@@ -1,10 +1,11 @@
-import Source from './Source'
-import Manga from '../models/Manga'
-import Chapter from '../models/Chapter'
+import {Source} from './Source'
+import {Manga} from '../models/Manga'
+import {Chapter} from '../models/Chapter'
+import { ChapterDetails } from '../models/ChapterDetails'
 
-export default class MangaPark extends Source {
-  constructor() {
-    super()
+export class MangaPark extends Source {
+  constructor(cheerio: CheerioAPI) {
+    super(cheerio)
   }
 
   getMangaDetailsUrls(ids: string[]) {
@@ -65,7 +66,7 @@ export default class MangaPark extends Source {
           break
         }
         case 'Alternative': {
-          let alts = $('td', row).text().replace(/\t*\n*/g, '').split('  ')
+          let alts = $('td', row).text().split('  ')
           for (let alt of alts) {
             let trim = alt.trim().replace(/;/g, '')
             if (trim != '')
@@ -104,7 +105,7 @@ export default class MangaPark extends Source {
           break
         }
         case 'Type': {
-          let type = $('td', row).text().replace(/\t/g, '').split('-')[0].trim()
+          let type = $('td', row).text().split('-')[0].trim()
           format.push({
             'id': 0,
             'value': type
@@ -194,12 +195,12 @@ export default class MangaPark extends Source {
     return chapters
   }
 
-  getChapterDetailsUrls(mangaId: string, chapId: string) {
+  getChapterDetailsUrls(mangaId: string, chId: string) {
     return {
       'chapters': {
         'metadata': {
           'mangaId': mangaId,
-          'chapterId': chapId
+          'chapterId': chId
         },
         'request': {
           'url': 'https://mangapark.net/manga/',
@@ -220,8 +221,13 @@ export default class MangaPark extends Source {
   }
 
 
-  getChapterDetails() {
-
+  getChapterDetails(data: any, metadata: any) {
+    let script = JSON.parse((/var _load_pages = (.*);/.exec(data.data)?? [])[1])
+    let pages: string[] = []
+    for (let page of script) {
+      pages.push(page.u)
+    }
+    return new ChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
   }
 
 

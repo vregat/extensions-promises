@@ -1,8 +1,6 @@
-import cheerio from 'cheerio'
-
-abstract class Source {
+export abstract class Source {
   protected cheerio: CheerioAPI
-  constructor() {
+  constructor(cheerio: CheerioAPI) {
     this.cheerio = cheerio
   }
 
@@ -18,5 +16,3 @@ abstract class Source {
   abstract getChapterDetailsUrls(mangaId: string, chapId: string):any
   abstract getChapterDetails(data: any, metadata: any): any
 }
-
-export default Source

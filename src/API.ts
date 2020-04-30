@@ -1,8 +1,10 @@
-import MangaDex from './sources/Mangadex'
-import MangaPark from './sources/Mangapark'
-import Source from './sources/Source'
-import Manga from './models/Manga'
-import Chapter from './models/Chapter'
+import {MangaDex} from './sources/Mangadex'
+import {MangaPark} from './sources/Mangapark'
+import {Source} from './sources/Source'
+import {Manga} from './models/Manga'
+import {Chapter} from './models/Chapter'
+import cheerio from 'cheerio'
+import { ChapterDetails } from './models/ChapterDetails'
 const axios = require('axios').default;
 
 class APIWrapper {
@@ -125,6 +127,8 @@ class APIWrapper {
 		for (let item of data) {
 			manga.push(source.getMangaDetails(data))
 		}
+
+		console.log(manga)
 		return manga
 	}
 
@@ -184,8 +188,26 @@ class APIWrapper {
 		return chapters
 	}
 
-	async getChapterDetails(source: Source, mangaId: string, chapterId: string) {
+	async getChapterDetails(source: Source, mangaId: string, chId: string) {
+		let info = source.getChapterDetailsUrls(mangaId, chId)
+		let url = info.chapters.request.url
+		let config = info.chapters.request.config
+		let headers: any = config.headers
+		headers['Cookie'] = ""
+		for (let cookie of info.chapters.request.cookies) {
+				headers['Cookie'] += `${cookie.key}=${cookie.value};`
+		}
 
+		try {
+			var data = await axios.get(url + `${mangaId}/${chId}`, config)
+		}
+		catch (e) {
+			console.log(e)
+			return []
+		}
+
+		let chapterDetails: ChapterDetails = source.getChapterDetails(data, info.chapters.metadata)
+		return chapterDetails
 	}
 
 	/**
@@ -193,7 +215,7 @@ class APIWrapper {
 	 * @param query 
 	 * @param page Still not sure how this fits in with the api
 	 */
-	async searchManga(query: SearchRequest, page: number): Promise<Manga[]> {
+	async searchManga(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
 		let url = this.mangadex.getSearchUrls(query).url
 		try {
 			var data = await axios.get(url + query + `&p=${page}`)
@@ -222,11 +244,12 @@ class APIWrapper {
 
 
 // MY TESTING FRAMEWORK - LOL
-let application = new APIWrapper(new MangaDex(), new MangaPark())
+let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
 //application.getHomePageSections().then((data => console.log(data)))
 //application.getMangaDetailsBulk(["4","2","3","4"])
 //application.getHomePageSections()
-application.getChapters(new MangaPark(), "radiation-house")
+//application.getChapters(new MangaPark(cheerio), "radiation-house")
 //application.searchManga("tag_mode_exc=any&tag_mode_inc=all&tags=-37&title=Radiation%20house", 1)
 //application.filterUpdatedManga(["1", "47057", "47151"], new Date("2020-04-29 02:33:30 UTC"))
-//application.getMangaDetails(new MangaPark(), ["one-piece"])
+//application.getMangaDetails(new MangaPark(cheerio), ["one-piece"])
+application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")

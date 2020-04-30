@@ -1,4 +1,4 @@
-export default class Manga {
+export class Manga {
 	private id: string 
 	private image: string 
 	private artist: string 

@@ -1,11 +1,11 @@
-import Manga from '../models/Manga'
-import Chapter from '../models/Chapter'
-import Source from './Source'
+import {Manga} from '../models/Manga'
+import {Chapter} from '../models/Chapter'
+import {Source} from './Source'
 
-export default class MangaDex extends Source {
+export class MangaDex extends Source {
   private hMode: number
-  constructor() {
-    super()
+  constructor(cheerio: CheerioAPI) {
+    super(cheerio)
     this.hMode = 0
   }
 
@@ -254,6 +254,7 @@ export default class MangaDex extends Source {
   getChapterDetailsUrls(mangaId: string, chapId: string) {
     throw new Error("Method not implemented.")
   }
+  
   getChapterDetails(data: any, metadata: any) {
     throw new Error("Method not implemented.")
   }

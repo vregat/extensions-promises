@@ -1,4 +1,4 @@
-class ChapterDetails {
+export class ChapterDetails {
   id: string
   mangaId: string
   pages: string[]
@@ -11,5 +11,3 @@ class ChapterDetails {
     this.longStrip = _longStip
   }
 }
-
-export default ChapterDetails
