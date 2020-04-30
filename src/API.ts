@@ -54,12 +54,12 @@ class APIWrapper {
 		let currentPage = 1
 		let hasResults = true
 		let info = this.mangadex.filterUpdatedMangaUrls(ids, referenceTime)
-        let url = info.titles.request.url
-        let config = info.titles.request.config
-        let headers: any = config.headers
-        headers['Cookie'] = ""
-        for (let cookie of info.titles.request.cookies) {
-            headers['Cookie'] += `${cookie.key}=${cookie.value};`
+		let url = info.titles.request.url
+		let config = info.titles.request.config
+		let headers: any = config.headers
+		headers['Cookie'] = ""
+		for (let cookie of info.titles.request.cookies) {
+				headers['Cookie'] += `${cookie.key}=${cookie.value};`
 		}
 
 		try {
@@ -95,12 +95,18 @@ class APIWrapper {
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
 		/*let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
 		let url = mangaDetailUrls.manga.url*/
-		let mangaDetailsUrls = source.getMangaDetailsUrls(ids)
-		let url = mangaDetailsUrls.manga.url
+		let info = source.getMangaDetailsUrls(ids)
+		let url = info.manga.request.url
+		let config = info.manga.request.config
+		let headers: any = config.headers
+		headers['Cookie'] = ""
+		for (let cookie of info.manga.request.cookies) {
+				headers['Cookie'] += `${cookie.key}=${cookie.value};`
+		}
 
 		try {
 			var data = await Promise.all(ids.map(async (id) => {
-				return await axios.get(url + id.toString())
+				return await axios.get(url + id.toString(), config)
 			}))
 		}
 		catch (e) {
@@ -122,7 +128,7 @@ class APIWrapper {
 	 */
 	async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
 		let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
-		let url = mangaDetailUrls.manga.url
+		let url = mangaDetailUrls.manga.request.url
 		let payload = {'id': ids}
 		try {
 			var data = await axios.post(url, payload)
@@ -150,18 +156,28 @@ class APIWrapper {
 		return tags
 	}
 
-	async getChapters(mangaId: string): Promise<Chapter[]> {
-		let chapterUrls = this.mangadex.getChapterUrls(mangaId)
-		let url = chapterUrls.manga.mangaUrl
+	async getChapters(source: Source, mangaId: string) {
+		let info = source.getChapterUrls(mangaId)
+		let url = info.manga.request.url
+		let config = info.manga.request.config
+		let headers: any = config.headers
+		headers['Cookie'] = ""
+		for (let cookie of info.manga.request.cookies) {
+				headers['Cookie'] += `${cookie.key}=${cookie.value};`
+		}
 		try {
-			var data = await axios.get(url + mangaId)
+			var data = await axios.get(url + mangaId, config)
 		}
 		catch (e) {
 			console.log(e)
 			return []
 		}
 
-		return this.mangadex.getChapters(mangaId, data)
+		return source.getChapters(mangaId, data)
+	}
+
+	async getChapterDetails(chapterId: string) {
+
 	}
 
 	/**
@@ -202,7 +218,7 @@ let application = new APIWrapper(new MangaDex(), new MangaPark())
 //application.getHomePageSections().then((data => console.log(data)))
 //application.getMangaDetailsBulk(["4","2","3","4"])
 //application.getHomePageSections()
-//application.getChapters("1")
+application.getChapters(new MangaPark(), "radiation-house")
 //application.searchManga("tag_mode_exc=any&tag_mode_inc=all&tags=-37&title=Radiation%20house", 1)
 //application.filterUpdatedManga(["1", "47057", "47151"], new Date("2020-04-29 02:33:30 UTC"))
-application.getMangaDetails(new MangaPark(), ["2-5d-seduction-atsushi-hashimoto"])
+//application.getMangaDetails(new MangaPark(), ["one-piece"])

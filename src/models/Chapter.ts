@@ -1,4 +1,4 @@
-class Chapter {
+export default class Chapter {
     id: number
     mangaId: number
     name: string
@@ -25,5 +25,3 @@ class Chapter {
 	}
 
 }
-
-export default Chapter

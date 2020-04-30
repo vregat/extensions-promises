@@ -1,5 +1,5 @@
-class Manga {
-	private id: number 
+export default class Manga {
+	private id: string 
 	private image: string 
 	private artist: string 
 	private author: string 
@@ -24,8 +24,7 @@ class Manga {
 	private relatedManga: Manga[] | undefined
 	private lastUpdate: string | undefined
 
-
-	constructor(_id: number , _image: string , _artist: string , _author: string , 
+	constructor(_id: string , _image: string , _artist: string , _author: string , 
 		_avgRating: number , _content: Tag[] , _covers: string[] , _demographic: Tag[] , 
 		_description: string , _follows: number , _format: Tag[] , _genre: Tag[] , 
 		_langFlag: string , _langName: string , _rating: number , _status: number , 
@@ -65,5 +64,3 @@ class Manga {
 	}
 
 }
-
-export default Manga

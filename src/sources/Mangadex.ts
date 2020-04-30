@@ -2,7 +2,7 @@ import Manga from '../models/Manga'
 import Chapter from '../models/Chapter'
 import Source from './Source'
 
-class MangaDex extends Source {
+export default class MangaDex extends Source {
   private hMode: number
   constructor() {
     super()
@@ -163,13 +163,22 @@ class MangaDex extends Source {
     return returnObject
   }
 
-  getMangaDetailsUrls(ids: string[]) {
+  getMangaDetailsUrls(ids: string[]): any {
     return {
       'manga': {
         'metadata': {
           'initialIds': ids
         },
-        'url': 'https://mangadex.org/title/'
+        'request': {
+          'url': 'https://mangadex.org/title/',
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'incognito':  true,
+          'cookies': []
+        }
       }
     }
   }
@@ -200,13 +209,22 @@ class MangaDex extends Source {
     return data.result
   }
 
-  getChapterUrls(mangaId: string) {
+  getChapterUrls(mangaId: string): any {
     return {
       'manga': {
         'metadata': {
           'id': mangaId
         },
-        'mangaUrl': 'https://mangadex.org/api/manga/'
+        'request': {
+          'url': 'https://mangadex.org/api/manga/',
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'incognito':  true,
+          'cookies':[]
+        }
       }
     }
   }
@@ -254,5 +272,3 @@ class MangaDex extends Source {
   }
 
 }
-
-export default MangaDex
