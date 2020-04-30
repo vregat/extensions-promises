@@ -1,8 +1,8 @@
 export default class Chapter {
-    id: number
-    mangaId: number
+    id: string
+    mangaId: string
     name: string
-    number: number
+    chapNum: number
     volume: number
     group: string
     views: number
@@ -11,11 +11,11 @@ export default class Chapter {
     langCode: string
     downloaded: boolean = false
 
-    constructor(_id: number , _mangaId: number , _name: string , _number: number , _volume: number , _group: string , _views: number , _time: Date , _read: boolean , _langCode: string ) {
+    constructor(_id: string , _mangaId: string , _name: string , _chapNum: number , _volume: number , _group: string , _views: number , _time: Date , _read: boolean , _langCode: string ) {
 		this.id = _id;
 		this.mangaId = _mangaId;
 		this.name = _name;
-		this.number = _number;
+		this.chapNum = _chapNum;
 		this.volume = _volume;
 		this.group = _group;
 		this.views = _views;
@@ -23,5 +23,4 @@ export default class Chapter {
 		this.read = _read;
 		this.langCode = _langCode;
 	}
-
 }

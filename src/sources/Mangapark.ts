@@ -1,5 +1,6 @@
 import Source from './Source'
 import Manga from '../models/Manga'
+import Chapter from '../models/Chapter'
 
 export default class MangaPark extends Source {
   constructor() {
@@ -35,7 +36,7 @@ export default class MangaPark extends Source {
     let html = ($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? []
     let id: string = html[2]
     let image: string = $('img','.manga').attr('src') ?? ""
-    let rating: string = $('i', '#rating').html() ?? "0"
+    let rating: string = $('i', '#rating').text()
     let tableBody = $('tbody', '.manga')
     let genres = []
     let demographic = []
@@ -49,13 +50,11 @@ export default class MangaPark extends Source {
     for (let row of $('tr', tableBody).toArray()) {
       let elem = $('th', row).html()
       switch(elem) {
-        case 'Author(s)': author = $('a', row).html() ?? ""; break
-        case 'Artist(s)': artist = $('a', row).html() ?? ""; break
+        case 'Author(s)': author = $('a', row).text(); break
+        case 'Artist(s)': artist = $('a', row).text(); break
         case 'Popularity': {
           // incredibly ugly ... i know
-          let pop = $('td', row).html() ?? ""
-          let regex = /has (\d*(\.?\d*\w)?)/g
-          pop = (regex.exec(pop) ?? [])[1]
+          let pop = (/has (\d*(\.?\d*\w)?)/g.exec($('td', row).text()) ?? [])[1]
           if (pop.includes('k')) {
             pop = pop.replace('k', '')
             views = Number(pop) * 1000
@@ -66,7 +65,7 @@ export default class MangaPark extends Source {
           break
         }
         case 'Alternative': {
-          let alts = ($('td', row).html() ?? "").replace(/\t*\n*/g, '').split('  ')
+          let alts = $('td', row).text().replace(/\t*\n*/g, '').split('  ')
           for (let alt of alts) {
             let trim = alt.trim().replace(/;/g, '')
             if (trim != '')
@@ -96,7 +95,7 @@ export default class MangaPark extends Source {
           break
         }
         case 'Status': {
-          let stat = $('td', row).html() ?? ""
+          let stat = $('td', row).text()
           if (stat.includes('Ongoing'))
             status = 1
           else if (stat.includes('Completed')) {
@@ -105,7 +104,7 @@ export default class MangaPark extends Source {
           break
         }
         case 'Type': {
-          let type = ($('td', row).html()?.replace(/\t/g, '').split('-')[0].trim()) ?? ""
+          let type = $('td', row).text().replace(/\t/g, '').split('-')[0].trim()
           format.push({
             'id': 0,
             'value': type
@@ -151,13 +150,97 @@ export default class MangaPark extends Source {
     }
   }
 
-  getChapters(mangaId: string, data: any): any {
+  getChapters(data: any, mangaId: string): Chapter[] {
     let $ = this.cheerio.load(data.data)
-    let chaptersByGroup = []
+    let chapters: Chapter[] = []
     for(let elem of $('#list').children('div').toArray()) {
-      let streamNum = $(elem).contents()
-      console.log(streamNum)
+      // streamNum helps me navigate the weird id/class naming scheme
+      let streamNum = (/(\d+)/g.exec($(elem).attr('id') ?? "") ?? [])[0]
+      let groupName = $(`.ml-1.stream-text-${streamNum}`, elem).text()
+
+      let volNum = 1
+      let chapNum = 1
+      let volumes = $('.volume', elem).toArray().reverse()
+      for (let vol of volumes) {
+        let chapterElem = $('li', vol).toArray().reverse()
+        for (let chap of chapterElem) {
+          let chapId = $(chap).attr('id')?.replace('b-', 'i')
+          let name = ""
+          let nameArr = ($('a', chap).html() ?? "").replace(/\t*\n*/g, '').split(':')
+          if (nameArr.length > 1) {
+            name = nameArr[1].trim()
+          }
+          else {
+            name = $('.txt', chap).text().replace(/:/g, '').trim()
+          }
+
+          let time = this.convertTime($('.time', chap).text().trim())
+          chapters.push(new Chapter(chapId ?? "",
+            mangaId,
+            name,
+            chapNum,
+            volNum,
+            groupName,
+            0,
+            time,
+            false,
+            'en'))
+          chapNum++
+        }
+        volNum++
+      }
+    }
+
+    return chapters
+  }
+
+  getChapterDetailsUrls(mangaId: string, chapId: string) {
+    return {
+      'chapters': {
+        'metadata': {
+          'mangaId': mangaId,
+          'chapterId': chapId
+        },
+        'request': {
+          'url': 'https://mangapark.net/manga/',
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'cookies':[
+            { 
+              'key': 'set',
+              'value': 'h=1'
+            },
+          ]
+        }
+      }
     }
   }
 
+
+  getChapterDetails() {
+
+  }
+
+
+  private convertTime(timeAgo: string): Date {
+    let time: Date
+    let trimmed: number = Number((/\d*/.exec(timeAgo) ?? [])[0])
+    if (timeAgo.includes('minutes')) {
+      time = new Date(Date.now() - trimmed * 60000)
+    }
+    else if (timeAgo.includes('hours')) {
+      time = new Date(Date.now() - trimmed * 3600000)
+    }
+    else if (timeAgo.includes('days')) {
+      time = new Date(Date.now() - trimmed * 86400000)
+    }
+    else {
+      time = new Date(Date.now() - 31556952000)
+    }
+
+    return new Date()
+  }
 }

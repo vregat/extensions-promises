@@ -229,15 +229,15 @@ export default class MangaDex extends Source {
     }
   }
 
-  getChapters(mangaId: string, data: any) {
+  getChapters(data: any, mangaId: string) {
     data = data.data.chapter
     let entries = Object.entries(data)
     let chapters: Chapter[] = []
     for (let entry of entries) {
       let id: string = entry[0]
       let info: any = entry[1]
-      chapters.push(new Chapter(parseInt(id), 
-        parseInt(mangaId), 
+      chapters.push(new Chapter(id, 
+        mangaId, 
         info.title,
         info.chapter,
         info.volume, 
@@ -249,6 +249,13 @@ export default class MangaDex extends Source {
     }
 
     return chapters
+  }
+
+  getChapterDetailsUrls(mangaId: string, chapId: string) {
+    throw new Error("Method not implemented.")
+  }
+  getChapterDetails(data: any, metadata: any) {
+    throw new Error("Method not implemented.")
   }
 
   getSearchUrls(query: SearchRequest) {

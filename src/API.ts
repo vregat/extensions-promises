@@ -92,6 +92,13 @@ class APIWrapper {
 		return manga
 	}
 
+	/**
+	 * Retrieves all relevant metadata from a source 
+	 * about particular manga
+	 * 
+	 * @param source 
+	 * @param ids 
+	 */
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
 		/*let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
 		let url = mangaDetailUrls.manga.url*/
@@ -156,7 +163,7 @@ class APIWrapper {
 		return tags
 	}
 
-	async getChapters(source: Source, mangaId: string) {
+	async getChapters(source: Source, mangaId: string): Promise<Chapter[]> {
 		let info = source.getChapterUrls(mangaId)
 		let url = info.manga.request.url
 		let config = info.manga.request.config
@@ -173,10 +180,11 @@ class APIWrapper {
 			return []
 		}
 
-		return source.getChapters(mangaId, data)
+		let chapters: Chapter[] = source.getChapters(data, mangaId)
+		return chapters
 	}
 
-	async getChapterDetails(chapterId: string) {
+	async getChapterDetails(source: Source, mangaId: string, chapterId: string) {
 
 	}
 

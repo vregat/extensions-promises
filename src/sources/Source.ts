@@ -13,8 +13,10 @@ abstract class Source {
   abstract filterUpdatedManga(data: any, metadata: any): any
 
   abstract getChapterUrls(mangaId: string): any
-  abstract getChapters(mangaId: string, data: any): any
+  abstract getChapters(data: any, mangaId: string): any
 
+  abstract getChapterDetailsUrls(mangaId: string, chapId: string):any
+  abstract getChapterDetails(data: any, metadata: any): any
 }
 
 export default Source
