@@ -252,7 +252,7 @@ class APIWrapper {
 
 // MY TESTING FRAMEWORK - LOL
 let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
-application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
+//application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 //application.getMangaDetailsBulk(["4","2","3","4"])
 //application.getHomePageSections()
 //application.getChapters(new MangaPark(cheerio), "radiation-house")

@@ -1,6 +1,7 @@
 import {Manga} from '../models/Manga'
 import {Chapter} from '../models/Chapter'
 import {Source} from './Source'
+import {createMangaTiles} from '../models/MangaTile'
 import { SearchRequest } from '../models/SearchRequest'
 
 export class MangaDex extends Source {
@@ -56,8 +57,8 @@ export class MangaDex extends Source {
   }
   
   getFeaturedNew($: CheerioSelector, section: any) {
-    let featuredManga: { id: number; title: string; image: string; bookmarks: number; rating: number }[] = []
-    let newManga: { id: number; title: string; thumbUrl: string; chapterUpdates: any[] }[] = []
+    let featuredManga: any = []
+    let newManga: any = []
   
     $("#hled_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
       let title = $(elem)
@@ -71,14 +72,7 @@ export class MangaDex extends Source {
       let caption = title.find(".car-caption p:nth-child(2)")
       let bookmarks = caption.find("span[title=Follows]").text()
       let rating = caption.find("span[title=Rating]").text()
-      let item = {
-        "id": parseInt(id),
-        "title": img.attr("title") ?? " ",
-        "image": img.attr("data-src") ?? " ",
-        "bookmarks": parseInt(bookmarks),
-        "rating": parseFloat(rating)
-      }
-      featuredManga.push(item)
+      featuredManga.push(createMangaTiles(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", '', 'bookmark.fill', bookmarks, 'star.fill', rating))
     })
   
     $("#new_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
@@ -88,20 +82,13 @@ export class MangaDex extends Source {
       let links = title.find("a")
   
       let idStr: any = links.first().attr("href")
-      let id = idStr.match(/(\d+)(?=\/)/) 
-  
-      var item = {
-        "id": parseInt(id),
-        "title": img.attr("title") ?? " ",
-        "thumbUrl": img.attr("data-src") ?? " ",
-        "chapterUpdates": []
-      }
+      let id = idStr.match(/(\d+)(?=\/)/)
   
       let caption = title.find(".car-caption p:nth-child(2)")
       let obj: any = {  name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
-      item.chapterUpdates.push()
-      newManga.push(item)
+      newManga.push(createMangaTiles(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", caption.find("a").text(), '', '', 'clock.fill', (Date.parse(caption.find("span").attr("title") ?? " ")).toString()))
     })
+    console.log(featuredManga, newManga)
     section[0].items = featuredManga
     section[1].items = newManga
     return section
