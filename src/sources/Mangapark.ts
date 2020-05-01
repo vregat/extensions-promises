@@ -8,7 +8,7 @@ export class MangaPark extends Source {
     super(cheerio)
   }
 
-  getMangaDetailsUrls(ids: string[]) {
+  getMangaDetailsRequest(ids: string[]) {
     return {
       'manga': {
         'metadata': {
@@ -120,11 +120,19 @@ export class MangaPark extends Source {
   }
 
   filterUpdatedMangaUrls(ids: any, time: Date): any {
-
+    throw new Error("Method not implemented.")
   }
 
   filterUpdatedManga(data: any, metadata: any) {
+    throw new Error("Method not implemented.")
+  }
 
+  getHomePageSectionUrls() {
+    throw new Error("Method not implemented.")
+  }
+
+  getHomePageSections(key: any, data: any, sections: any) {
+    throw new Error("Method not implemented.")
   }
 
   getChapterUrls(mangaId: string): any {
@@ -230,6 +238,13 @@ export class MangaPark extends Source {
     return new ChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
   }
 
+  search(data: any) {
+    throw new Error("Method not implemented.")
+  }
+
+  advancedSearch(data: any) {
+    throw new Error("Method not implemented.")
+  }
 
   private convertTime(timeAgo: string): Date {
     let time: Date

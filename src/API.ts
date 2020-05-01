@@ -5,6 +5,7 @@ import {Manga} from './models/Manga'
 import {Chapter} from './models/Chapter'
 import cheerio from 'cheerio'
 import { ChapterDetails } from './models/ChapterDetails'
+import { SearchRequest } from './models/SearchRequest'
 const axios = require('axios').default;
 
 class APIWrapper {
@@ -22,10 +23,17 @@ class APIWrapper {
 	 * @param none
 	 * @returns {Sections[]} List of sections
 	 */
-	async getHomePageSections() {
-		let sectionUrls = this.mangadex.getHomePageSectionUrls()
-		let keys = Object.keys(sectionUrls)
-		let urls: string[] = Object.values(sectionUrls)
+	async getHomePageSections(source: Source) {
+		let info = source.getHomePageSectionUrls()
+		let keys: any = Object.keys(info)
+		//let urls: string[] = Object.values(keys.request)
+		let urls: string[] = []
+		let sections: any = []
+		for (let key of keys) {
+			for (let section of info[key].sections)
+				sections.push(section)
+			urls.push(info[key].request.url)
+		}
 
 		try {
 			var data: any = await Promise.all(urls.map(axios.get))
@@ -36,9 +44,8 @@ class APIWrapper {
 		}
 		
 		// Promise.all retains order
-		let sections = []
 		for (let i = 0; i < data.length; i++) {
-			sections.push(this.mangadex.getHomePageSections(keys[i], data[i].data))
+			sections = source.getHomePageSections(keys[i], data[i].data, sections)
 		}
 
 		return sections
@@ -104,7 +111,7 @@ class APIWrapper {
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
 		/*let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
 		let url = mangaDetailUrls.manga.url*/
-		let info = source.getMangaDetailsUrls(ids)
+		let info = source.getMangaDetailsRequest(ids)
 		let url = info.manga.request.url
 		let config = info.manga.request.config
 		let headers: any = config.headers
@@ -138,7 +145,7 @@ class APIWrapper {
 	 * @param ids 
 	 */
 	async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
-		let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
+		let mangaDetailUrls = this.mangadex.getMangaDetailsRequest(ids)
 		let url = mangaDetailUrls.manga.request.url
 		let payload = {'id': ids}
 		try {
@@ -215,7 +222,7 @@ class APIWrapper {
 	 * @param query 
 	 * @param page Still not sure how this fits in with the api
 	 */
-	async searchManga(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
+	async search(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
 		let url = this.mangadex.getSearchUrls(query).url
 		try {
 			var data = await axios.get(url + query + `&p=${page}`)
@@ -225,7 +232,7 @@ class APIWrapper {
 			return []
 		}
 
-		return this.mangadex.searchManga(data)
+		return this.mangadex.search(data)
 	}
 
 	async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
@@ -245,11 +252,11 @@ class APIWrapper {
 
 // MY TESTING FRAMEWORK - LOL
 let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
-//application.getHomePageSections().then((data => console.log(data)))
+application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 //application.getMangaDetailsBulk(["4","2","3","4"])
 //application.getHomePageSections()
 //application.getChapters(new MangaPark(cheerio), "radiation-house")
 //application.searchManga("tag_mode_exc=any&tag_mode_inc=all&tags=-37&title=Radiation%20house", 1)
 //application.filterUpdatedManga(["1", "47057", "47151"], new Date("2020-04-29 02:33:30 UTC"))
 //application.getMangaDetails(new MangaPark(cheerio), ["one-piece"])
-application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")
+//application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")

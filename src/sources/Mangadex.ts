@@ -1,6 +1,7 @@
 import {Manga} from '../models/Manga'
 import {Chapter} from '../models/Chapter'
 import {Source} from './Source'
+import { SearchRequest } from '../models/SearchRequest'
 
 export class MangaDex extends Source {
   private hMode: number
@@ -11,21 +12,50 @@ export class MangaDex extends Source {
 
   getHomePageSectionUrls() {
     return {
-      "featured_new": "https://mangadex.org",
-      "latest_updates": "https://mangadex.org/updates"
+      "featured_new": {
+        "request": {
+          'url': 'https://mangadex.org'
+        }, // REQUEST OBJECT HERE
+        "sections": [
+          {
+            "id": "featured_titles",
+            "title": "FEATURED TITLES",
+            "items": [] // scraped items here
+          },
+          {
+            "id": "new_titles",
+            "title": "NEW TITLES",
+            "items": [], // scraped items here
+            "view_more": {} // request object here if this section supports "view all" button
+          }
+        ]
+      },
+      "recently_updated": {
+        "request": {
+          'url': 'https://mangadex.org/updates'
+        }, // REQUEST OBJECT HERE
+        "sections": [
+          {
+            "id": "recently_updated",
+            "title": "RECENTLY UPDATED TITLES",
+            "items": [],
+            "view_more": {} // REQUEST OBJECT HERE
+          }
+        ]
+      }
     }
   }
   
-  getHomePageSections(key: any, data: any) {
+  getHomePageSections(key: any, data: any, sections: any) {
     let $ = this.cheerio.load(data)
     switch (key) {
-      case "featured_new": return this.getFeaturedNew($)
-      case "latest_updates": return this.getLatestUpdates($)
-      default: return []
+      case "featured_new": sections = this.getFeaturedNew($, sections); break
+      case "recently_updated": sections = this.getLatestUpdates($, sections); break
     }
+    return sections
   }
   
-  getFeaturedNew($: CheerioSelector) {
+  getFeaturedNew($: CheerioSelector, section: any) {
     let featuredManga: { id: number; title: string; image: string; bookmarks: number; rating: number }[] = []
     let newManga: { id: number; title: string; thumbUrl: string; chapterUpdates: any[] }[] = []
   
@@ -72,10 +102,12 @@ export class MangaDex extends Source {
       item.chapterUpdates.push()
       newManga.push(item)
     })
-    return [{ "title": "Featured", "items": featuredManga }, { "title": "New Manga", "items": newManga }]
+    section[0].items = featuredManga
+    section[1].items = newManga
+    return section
   }
   
-  getLatestUpdates($: CheerioSelector) {
+  getLatestUpdates($: CheerioSelector, section: any) {
     var updates: { chapterUpdates: { name: any; group: any; time: number; langCode: any }[] }[] = []
     $("tr").each(function (i: any, elem: any) {
       let row: any = $(elem)
@@ -106,7 +138,8 @@ export class MangaDex extends Source {
         updates[updates.length - 1].chapterUpdates.push(chapterUpdate)
       }
     })
-    return [{ "title": "Latest Updates", "items": updates }]
+    section[2].items = updates
+    return section
   }
 
   filterUpdatedMangaUrls(ids: any, time: Date) {
@@ -163,7 +196,7 @@ export class MangaDex extends Source {
     return returnObject
   }
 
-  getMangaDetailsUrls(ids: string[]): any {
+  getMangaDetailsRequest(ids: string[]): any {
     return {
       'manga': {
         'metadata': {
@@ -259,6 +292,14 @@ export class MangaDex extends Source {
     throw new Error("Method not implemented.")
   }
 
+  search(data: any): any {
+    throw new Error("Method not implemented.")
+  }
+
+  advancedSearch(data: any) {
+    throw new Error("Method not implemented.")
+  }
+
   getSearchUrls(query: SearchRequest) {
     return {
       'metadata': {
@@ -266,12 +307,6 @@ export class MangaDex extends Source {
       },
       'url': 'https://mangadex.org/search?'
     }
-  }
-
-  // TODO: NOT YET IMPLMENENTED
-  // This function will not use the cache server
-  searchManga(data: any): any {
-    data = data.data
   }
 
   // manga are already formatted at the cache server level

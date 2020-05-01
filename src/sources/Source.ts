@@ -4,7 +4,7 @@ export abstract class Source {
     this.cheerio = cheerio
   }
 
-  abstract getMangaDetailsUrls(ids: string[]): any
+  abstract getMangaDetailsRequest(ids: string[]): any
   abstract getMangaDetails(data: any): any
 
   abstract filterUpdatedMangaUrls(ids: any, time: Date): any
@@ -15,4 +15,10 @@ export abstract class Source {
 
   abstract getChapterDetailsUrls(mangaId: string, chapId: string):any
   abstract getChapterDetails(data: any, metadata: any): any
+
+  abstract getHomePageSectionUrls(): any
+  abstract getHomePageSections(key: any, data: any, sections: any): any
+  
+  abstract search(data: any): any
+  abstract advancedSearch(data: any): any
 }
