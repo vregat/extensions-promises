@@ -2,6 +2,7 @@ import {Source} from './Source'
 import {Manga} from '../models/Manga'
 import {Chapter} from '../models/Chapter'
 import { ChapterDetails } from '../models/ChapterDetails'
+import { SearchRequest } from '../models/SearchRequest'
 
 export class MangaPark extends Source {
   constructor(cheerio: CheerioAPI) {
@@ -119,7 +120,7 @@ export class MangaPark extends Source {
       "", 'en', Number(rating), status, [], alternatives, 0, views, hentai, 0, [], "")
   }
 
-  filterUpdatedMangaUrls(ids: any, time: Date): any {
+  filterUpdatedMangaUrls(ids: any, time: Date, page: number): any {
     throw new Error("Method not implemented.")
   }
 
@@ -143,6 +144,7 @@ export class MangaPark extends Source {
         },
         'request': {
           'url': 'https://mangapark.net/manga/',
+          'param': mangaId,
           'config': {
             'headers' : {
               
@@ -212,6 +214,7 @@ export class MangaPark extends Source {
         },
         'request': {
           'url': 'https://mangapark.net/manga/',
+          'param': `${mangaId}/${chId}`,
           'config': {
             'headers' : {
               
@@ -238,11 +241,49 @@ export class MangaPark extends Source {
     return new ChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
   }
 
-  search(data: any) {
-    throw new Error("Method not implemented.")
+  searchRequest(query: SearchRequest, page: number): any {
+    let genres = ''
+    for (let genre of query.includeGenre ?? []) {
+      genres += genre + ','
+    }
+    let excluded = ''
+    for (let genre of query.excludeGenre ?? []) {
+      excluded += genre + ','
+    }
+    let status = ""
+    switch (query.status) {
+      case 0: status = 'completed'; break
+      case 1: status = 'ongoing'; break
+      default: status = ''
+    }
+    let search: string = `q=${encodeURI(query.title ?? '')}&`
+    search += `autart=${encodeURI(query.author || query.artist || '')}&`
+    search += `&genres=${genres}&genres-exclude=${excluded}&page=${page}`
+    search += `&status=${status}&st-ss=1`
+
+    return {
+      'metadata': {
+        'search': search
+      },
+      'request': {
+        'url': 'https://mangadex.org/search?',
+        'param': search,
+        'config': {
+          'headers' : {
+            
+          },
+        },
+        'cookies':[
+          { 
+            'key': 'set',
+            'value': `h=${query.hStatus}`
+          },
+        ]
+      }
+    }
   }
 
-  advancedSearch(data: any) {
+  search(data: any) {
     throw new Error("Method not implemented.")
   }
 

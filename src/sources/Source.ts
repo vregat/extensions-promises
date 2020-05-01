@@ -1,3 +1,5 @@
+import { SearchRequest } from "../models/SearchRequest"
+
 export abstract class Source {
   protected cheerio: CheerioAPI
   constructor(cheerio: CheerioAPI) {
@@ -7,7 +9,7 @@ export abstract class Source {
   abstract getMangaDetailsRequest(ids: string[]): any
   abstract getMangaDetails(data: any): any
 
-  abstract filterUpdatedMangaUrls(ids: any, time: Date): any
+  abstract filterUpdatedMangaUrls(ids: any, time: Date, page: number): any
   abstract filterUpdatedManga(data: any, metadata: any): any
 
   abstract getChapterUrls(mangaId: string): any
@@ -19,6 +21,6 @@ export abstract class Source {
   abstract getHomePageSectionUrls(): any
   abstract getHomePageSections(key: any, data: any, sections: any): any
   
+  abstract searchRequest(query: SearchRequest, page: number): any
   abstract search(data: any): any
-  abstract advancedSearch(data: any): any
 }

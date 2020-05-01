@@ -129,7 +129,7 @@ export class MangaDex extends Source {
     return section
   }
 
-  filterUpdatedMangaUrls(ids: any, time: Date) {
+  filterUpdatedMangaUrls(ids: any, time: Date, page: number) {
     return {
       'titles': {
         'metadata': {
@@ -138,6 +138,7 @@ export class MangaDex extends Source {
         },
         'request': {
           'url': 'https://mangadex.org/titles/0/',
+          'param': page,
           'config': {
             'headers' : {
               
@@ -237,6 +238,7 @@ export class MangaDex extends Source {
         },
         'request': {
           'url': 'https://mangadex.org/api/manga/',
+          'param': mangaId,
           'config': {
             'headers' : {
               
@@ -279,21 +281,33 @@ export class MangaDex extends Source {
     throw new Error("Method not implemented.")
   }
 
-  search(data: any): any {
-    throw new Error("Method not implemented.")
-  }
-
-  advancedSearch(data: any) {
-    throw new Error("Method not implemented.")
-  }
-
-  getSearchUrls(query: SearchRequest) {
+  //TODO: NOT FULLY IMPLEMENTED FOR search()
+  searchRequest(query: SearchRequest, page: number) {
+    let search = ''
     return {
       'metadata': {
-        'q': query
+        'search': search
       },
-      'url': 'https://mangadex.org/search?'
+      'request': {
+        'url': 'https://mangadex.org/search?',
+        'param': search,
+        'config': {
+          'headers' : {
+            
+          },
+        },
+        'cookies':[
+          { 
+            'key': '',
+            'value': ``
+          },
+        ]
+      }
     }
+  }
+
+  search(data: any): any {
+    throw new Error("Method not implemented.")
   }
 
   // manga are already formatted at the cache server level

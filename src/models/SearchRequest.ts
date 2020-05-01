@@ -1,17 +1,17 @@
 export class SearchRequest {
     title: string | undefined
 
-    includeDemographic: number[] | undefined
-    includeTheme: number[] | undefined
-    includeFormat: number[] | undefined
-    includeContent: number[] | undefined
-    includeGenre: number[] | undefined
+    includeDemographic: string[] | undefined
+    includeTheme: string[] | undefined
+    includeFormat: string[] | undefined
+    includeContent: string[] | undefined
+    includeGenre: string[] | undefined
 
-    excludeDemographic: number[] | undefined
-    excludeTheme: number[] | undefined
-    excludeFormat: number[] | undefined
-    excludeContent: number[] | undefined
-    excludeGenre: number[] | undefined
+    excludeDemographic: string[] | undefined
+    excludeTheme: string[] | undefined
+    excludeFormat: string[] | undefined
+    excludeContent: string[] | undefined
+    excludeGenre: string[] | undefined
 
     includeOperator: number | undefined
     excludeOperator: number | undefined
@@ -21,7 +21,7 @@ export class SearchRequest {
     status: number | undefined
     hStatus: boolean = false
 
-    constructor(_title: string , _includeDemographic: number[] , _includeTheme: number[] , _includeFormat: number[] , _includeContent: number[] , _includeGenre: number[] , _excludeDemographic: number[] , _excludeTheme: number[] , _excludeFormat: number[] , _excludeContent: number[] , _excludeGenre: number[] , _includeOperator: number , _excludeOperator: number , _author: string , _artist: string , _status: number , _hStatus: boolean ) {
+    constructor(_title: string , _includeDemographic: string[] , _includeTheme: string[] , _includeFormat: string[] , _includeContent: string[] , _includeGenre: string[] , _excludeDemographic: string[] , _excludeTheme: string[] , _excludeFormat: string[] , _excludeContent: string[] , _excludeGenre: string[] , _includeOperator: number , _excludeOperator: number , _author: string , _artist: string , _status: number , _hStatus: boolean ) {
 		this.title = _title;
 		this.includeDemographic = _includeDemographic;
 		this.includeTheme = _includeTheme;

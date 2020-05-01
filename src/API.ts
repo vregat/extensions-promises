@@ -62,7 +62,7 @@ class APIWrapper {
 	async filterUpdatedManga(ids: string[], referenceTime: Date): Promise<number[]> {
 		let currentPage = 1
 		let hasResults = true
-		let info = this.mangadex.filterUpdatedMangaUrls(ids, referenceTime)
+		let info = this.mangadex.filterUpdatedMangaUrls(ids, referenceTime, currentPage)
 		let url = info.titles.request.url
 		let config = info.titles.request.config
 		let headers: any = config.headers
@@ -184,7 +184,7 @@ class APIWrapper {
 				headers['Cookie'] += `${cookie.key}=${cookie.value};`
 		}
 		try {
-			var data = await axios.get(url + mangaId, config)
+			var data = await axios.get(url + info.manga.request.param, config)
 		}
 		catch (e) {
 			console.log(e)
@@ -206,7 +206,7 @@ class APIWrapper {
 		}
 
 		try {
-			var data = await axios.get(url + `${mangaId}/${chId}`, config)
+			var data = await axios.get(url + info.chapters.request.param, config)
 		}
 		catch (e) {
 			console.log(e)
@@ -223,20 +223,27 @@ class APIWrapper {
 	 * @param page Still not sure how this fits in with the api
 	 */
 	async search(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
-		let url = this.mangadex.getSearchUrls(query).url
+		let info = source.searchRequest(query, page)
+		let url = info.request.url
+		let config = info.request.config
+		let headers: any = config.headers
+		headers['Cookie'] = ""
+		for (let cookie of info.chapters.request.cookies) {
+				headers['Cookie'] += `${cookie.key}=${cookie.value};`
+		}
 		try {
-			var data = await axios.get(url + query + `&p=${page}`)
+			var data = await axios.get(url + info.metadata.request.param, config)
 		}
 		catch (e) {
 			console.log(e)
 			return []
 		}
 
-		return this.mangadex.search(data)
+		return source.search(data)
 	}
 
 	async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
-		let url = this.mangadex.getSearchUrls(query).url
+		let url = this.mangadex.searchRequest(query, page).request.url
 		try {
 			var data = await axios.post(url + `?page=${page}&items=100`, query)
 		}
