@@ -5,7 +5,7 @@ import {Manga} from './models/Manga'
 import {Chapter} from './models/Chapter'
 import cheerio from 'cheerio'
 import { ChapterDetails } from './models/ChapterDetails'
-import { SearchRequest } from './models/SearchRequest'
+import { SearchRequest, createSearchRequest } from './models/SearchRequest'
 const axios = require('axios').default;
 
 class APIWrapper {
@@ -24,9 +24,8 @@ class APIWrapper {
 	 * @returns {Sections[]} List of sections
 	 */
 	async getHomePageSections(source: Source) {
-		let info = source.getHomePageSectionUrls()
+		let info = source.getHomePageSectionRequest()
 		let keys: any = Object.keys(info)
-		//let urls: string[] = Object.values(keys.request)
 		let urls: string[] = []
 		let sections: any = []
 		for (let key of keys) {
@@ -62,7 +61,7 @@ class APIWrapper {
 	async filterUpdatedManga(source: Source, ids: string[], referenceTime: Date): Promise<number[]> {
 		let currentPage = 1
 		let hasResults = true
-		let info = source.filterUpdatedMangaUrls(ids, referenceTime, currentPage)
+		let info = source.filterUpdatedMangaRequest(ids, referenceTime, currentPage)
 		let url = info.titles.request.url
 		let config = info.titles.request.config
 		let headers: any = config.headers
@@ -174,7 +173,7 @@ class APIWrapper {
 	}
 
 	async getChapters(source: Source, mangaId: string): Promise<Chapter[]> {
-		let info = source.getChapterUrls(mangaId)
+		let info = source.getChapterRequest(mangaId)
 		let url = info.manga.request.url
 		let config = info.manga.request.config
 		let headers: any = config.headers
@@ -195,7 +194,7 @@ class APIWrapper {
 	}
 
 	async getChapterDetails(source: Source, mangaId: string, chId: string) {
-		let info = source.getChapterDetailsUrls(mangaId, chId)
+		let info = source.getChapterDetailsRequest(mangaId, chId)
 		let url = info.chapters.request.url
 		let config = info.chapters.request.config
 		let headers: any = config.headers
@@ -266,6 +265,5 @@ let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
 //application.filterUpdatedManga(["1", "47057", "47151"], new Date("2020-04-29 02:33:30 UTC"))
 //application.getMangaDetails(new MangaPark(cheerio), ["one-piece"])
 //application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")
-
-let test = new SearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
-application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})
+//let test = createSearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
+//application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})

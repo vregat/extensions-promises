@@ -9,16 +9,16 @@ export abstract class Source {
   abstract getMangaDetailsRequest(ids: string[]): any
   abstract getMangaDetails(data: any): any
 
-  abstract filterUpdatedMangaUrls(ids: any, time: Date, page: number): any
+  abstract filterUpdatedMangaRequest(ids: any, time: Date, page: number): any
   abstract filterUpdatedManga(data: any, metadata: any): any
 
-  abstract getChapterUrls(mangaId: string): any
+  abstract getChapterRequest(mangaId: string): any
   abstract getChapters(data: any, mangaId: string): any
 
-  abstract getChapterDetailsUrls(mangaId: string, chapId: string):any
+  abstract getChapterDetailsRequest(mangaId: string, chapId: string):any
   abstract getChapterDetails(data: any, metadata: any): any
 
-  abstract getHomePageSectionUrls(): any
+  abstract getHomePageSectionRequest(): any
   abstract getHomePageSections(key: any, data: any, sections: any): any
   
   abstract searchRequest(query: SearchRequest, page: number): any

@@ -1,5 +1,25 @@
+export interface MangaTile {
+  id: string
+  title: {
+    text: string
+  }
+  image: string
+  subtitleText: {
+    text: string
+  }
+  primaryText: {
+    icon: string
+    text: string
+  }
+  secondaryText: {
+    icon: string
+    text: string
+  }
+  badge: number
+}
+
 export function createMangaTiles(id: string, titleText: string, image: string, subtitleText: string, primaryIcon: string, 
-                                  primaryText: string, secondaryIcon: string, secondaryText: string, badge: number = 0) {
+                                  primaryText: string, secondaryIcon: string, secondaryText: string, badge: number = 0): MangaTile {
   return {
     'id': id,
     'title': {

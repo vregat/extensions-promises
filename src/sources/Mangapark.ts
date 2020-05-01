@@ -1,7 +1,7 @@
 import {Source} from './Source'
-import {Manga} from '../models/Manga'
-import {Chapter} from '../models/Chapter'
-import { ChapterDetails } from '../models/ChapterDetails'
+import {Manga, createManga} from '../models/Manga'
+import {Chapter, createChapter} from '../models/Chapter'
+import { ChapterDetails, createChapterDetails } from '../models/ChapterDetails'
 import { SearchRequest } from '../models/SearchRequest'
 
 export class MangaPark extends Source {
@@ -116,11 +116,11 @@ export class MangaPark extends Source {
     }
 
     let summary = $('.summary').html() ?? ""
-    return new Manga(id, image, artist, author, Number(rating), [], [], demographic, summary, 0, format, genres,
+    return createManga(id, image, artist, author, Number(rating), [], [], demographic, summary, 0, format, genres,
       "", 'en', Number(rating), status, [], titles, 0, views, hentai, 0, [], "")
   }
 
-  filterUpdatedMangaUrls(ids: any, time: Date, page: number): any {
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
     throw new Error("Method not implemented.")
   }
 
@@ -128,7 +128,7 @@ export class MangaPark extends Source {
     throw new Error("Method not implemented.")
   }
 
-  getHomePageSectionUrls() {
+  getHomePageSectionRequest() {
     throw new Error("Method not implemented.")
   }
 
@@ -136,7 +136,7 @@ export class MangaPark extends Source {
     throw new Error("Method not implemented.")
   }
 
-  getChapterUrls(mangaId: string): any {
+  getChapterRequest(mangaId: string): any {
     return {
       'manga': {
         'metadata': {
@@ -186,7 +186,7 @@ export class MangaPark extends Source {
           }
 
           let time = this.convertTime($('.time', chap).text().trim())
-          chapters.push(new Chapter(chapId ?? "",
+          chapters.push(createChapter(chapId ?? "",
             mangaId,
             name,
             chapNum,
@@ -205,7 +205,7 @@ export class MangaPark extends Source {
     return chapters
   }
 
-  getChapterDetailsUrls(mangaId: string, chId: string) {
+  getChapterDetailsRequest(mangaId: string, chId: string) {
     return {
       'chapters': {
         'metadata': {
@@ -232,13 +232,13 @@ export class MangaPark extends Source {
   }
 
 
-  getChapterDetails(data: any, metadata: any) {
+  getChapterDetails(data: any, metadata: any): ChapterDetails {
     let script = JSON.parse((/var _load_pages = (.*);/.exec(data.data)?? [])[1])
     let pages: string[] = []
     for (let page of script) {
       pages.push(page.u)
     }
-    return new ChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
+    return createChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
   }
 
   searchRequest(query: SearchRequest, page: number): any {
@@ -349,7 +349,7 @@ export class MangaPark extends Source {
       let summary = $('.summary', item).text().trim()
       let lastUpdate = $('ul', item).find('i').text()
 
-      manga.push(new Manga(id, image, artist, author, rating, [], [], demographic, summary, follows, [], genres, 'en', 'english', rating, status, [], titles, 0, 0, hentai, 0, [], lastUpdate))
+      manga.push(createManga(id, image, artist, author, rating, [], [], demographic, summary, follows, [], genres, 'en', 'english', rating, status, [], titles, 0, 0, hentai, 0, [], lastUpdate))
     }
 
     return manga

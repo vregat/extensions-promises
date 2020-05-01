@@ -1,4 +1,4 @@
-export class Chapter {
+export interface Chapter {
     id: string
     mangaId: string
     name: string
@@ -9,18 +9,23 @@ export class Chapter {
     time: Date
     read: boolean
     langCode: string
-    downloaded: boolean = false
+    downloaded: boolean
+}
 
-    constructor(_id: string , _mangaId: string , _name: string , _chapNum: number , _volume: number , _group: string , _views: number , _time: Date , _read: boolean , _langCode: string ) {
-		this.id = _id;
-		this.mangaId = _mangaId;
-		this.name = _name;
-		this.chapNum = _chapNum;
-		this.volume = _volume;
-		this.group = _group;
-		this.views = _views;
-		this.time = _time;
-		this.read = _read;
-		this.langCode = _langCode;
-	}
+export function createChapter(id: string, mangaId: string, name: string, chapNum: number,
+                              volume: number, group: string, views: number, time: Date,
+                              read: boolean = false, langCode: string = 'en', downloaded: boolean = false): Chapter {
+  return {
+    'id': id,
+    'mangaId': mangaId,
+    'name': name,
+    'chapNum': chapNum,
+    'volume': volume,
+    'group': group,
+    'views': views,
+    'time': time,
+    'read': read,
+    'langCode': langCode,
+    'downloaded': downloaded
+  }
 }

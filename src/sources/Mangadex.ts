@@ -1,7 +1,7 @@
 import {Manga} from '../models/Manga'
-import {Chapter} from '../models/Chapter'
+import {Chapter, createChapter} from '../models/Chapter'
 import {Source} from './Source'
-import {createMangaTiles} from '../models/MangaTile'
+import {createMangaTiles, MangaTile} from '../models/MangaTile'
 import { SearchRequest } from '../models/SearchRequest'
 
 export class MangaDex extends Source {
@@ -11,7 +11,7 @@ export class MangaDex extends Source {
     this.hMode = 0
   }
 
-  getHomePageSectionUrls() {
+  getHomePageSectionRequest() {
     return {
       "featured_new": {
         "request": {
@@ -47,18 +47,18 @@ export class MangaDex extends Source {
     }
   }
   
-  getHomePageSections(key: any, data: any, sections: any) {
+  getHomePageSections(key: string, data: any, sections: any) {
     let $ = this.cheerio.load(data)
     switch (key) {
       case "featured_new": sections = this.getFeaturedNew($, sections); break
-      case "recently_updated": sections = this.getLatestUpdates($, sections); break
+      case "recently_updated": sections = this.getRecentUpdates($, sections); break
     }
     return sections
   }
   
   getFeaturedNew($: CheerioSelector, section: any) {
-    let featuredManga: any = []
-    let newManga: any = []
+    let featuredManga: MangaTile[] = []
+    let newManga: MangaTile[] = []
   
     $("#hled_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
       let title = $(elem)
@@ -88,48 +88,55 @@ export class MangaDex extends Source {
       let obj: any = {  name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
       newManga.push(createMangaTiles(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", caption.find("a").text(), '', '', 'clock.fill', (Date.parse(caption.find("span").attr("title") ?? " ")).toString()))
     })
-    console.log(featuredManga, newManga)
     section[0].items = featuredManga
     section[1].items = newManga
     return section
   }
   
-  getLatestUpdates($: CheerioSelector, section: any) {
-    var updates: { chapterUpdates: { name: any; group: any; time: number; langCode: any }[] }[] = []
-    $("tr").each(function (i: any, elem: any) {
-      let row: any = $(elem)
-      let imgs = row.find("img")
-      let img = imgs.first()
-      let links = row.find("a")
-      if (imgs.length > 0) {
-        let idStr = links.first().attr("href")
-        let id = idStr.match(/(\d+)(?=\/)/)
-  
-        let item = {
-          id: parseInt(id),
-          title: $(links[1]).text(),
-          thumbUrl: img.attr("src").replace(".thumb", ".large"),
-          chapterUpdates: []
+  getRecentUpdates($: CheerioSelector, section: any) {
+    let updates: MangaTile[] = []
+    let elem = $('tr', 'tbody').toArray()
+    let i = 0
+    while (i < elem.length) {
+      let hasImg: boolean = false
+      let idStr: string = $('a.manga_title', elem[i]).attr('href') ?? ''
+      let id: string = (idStr.match(/(\d+)(?=\/)/) ?? '')[0] ?? ''
+      let title: string = $('a.manga_title', elem[i]).text() ?? ''
+      let image: string = $('img', elem[i]).attr('src') ?? ''
+
+      // in this case: badge will be number of updates
+      // that the manga has received within last week
+      let badge = 0
+      let pIcon = 'eye.fill'
+      let sIcon = 'clock.fill'
+      let subTitle = ''
+      let pText = ''
+      let sText = ''
+
+      let first = true
+      i++
+      while (!hasImg && i < elem.length) {
+        // for the manga tile, we only care about the first/latest entry
+        if (first && !hasImg) {
+          subTitle = $('a', elem[i]).first().text()
+          pText = $('.text-center.text-info', elem[i]).text()
+          sText = $('time', elem[i]).text().replace('ago', '').trim()
+          first = false
         }
-        updates.push(item)
-  
-      } else if (links.length > 0) {
-        let time = row.find("time")
-        let chapterUpdate = {
-          name: links.first().text().replace("Vol.", "V.").replace("Ch.", "C."),
-          group: $(links[1]).text(),
-          time: Date.parse(time.attr("datetime")),
-          langCode: row.find(".flag").attr("class").replace(/(rounded.?)?(flag.)?/, "")
-        }
-  
-        updates[updates.length - 1].chapterUpdates.push(chapterUpdate)
+        badge++
+        i++
+
+        hasImg = $(elem[i]).find('img').length > 0
       }
-    })
+
+      updates.push(createMangaTiles(id, title, image, subTitle, pIcon, pText, sIcon, sText, badge))
+    }
+
     section[2].items = updates
     return section
   }
 
-  filterUpdatedMangaUrls(ids: any, time: Date, page: number) {
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number) {
     return {
       'titles': {
         'metadata': {
@@ -209,14 +216,18 @@ export class MangaDex extends Source {
     console.log(data)
   }
 
+  // Manga is already formatted at the cache server level
   getMangaDetailsBulk(data: any): Manga[] {
     let manga: Manga[] = []
-    let unformatedManga = data.result
+    /*let unformatedManga = data.result
     for (let u of unformatedManga) {
-      let formattedManga: Manga = Manga.fromJSON(u)
+      let formattedManga: Manga = new Manga(data.id, data.image, data.artist, data.author, data.avgRating, data.content,
+        data.covers, data.demographic, data.description, data.follows, data.format, data.genre, data.langFlag, data.langName,
+        data.rating, data.status, data.theme, data.titles, data.users, data.views, data.hentai, data.related, data.relatedManga,
+        data.lastUpdate)
       manga.push(formattedManga)
-    }
-    return manga
+    }*/
+    return data.result
   }
 
   getTagsUrl() {
@@ -230,7 +241,7 @@ export class MangaDex extends Source {
     return data.result
   }
 
-  getChapterUrls(mangaId: string): any {
+  getChapterRequest(mangaId: string): any {
     return {
       'manga': {
         'metadata': {
@@ -258,7 +269,7 @@ export class MangaDex extends Source {
     for (let entry of entries) {
       let id: string = entry[0]
       let info: any = entry[1]
-      chapters.push(new Chapter(id, 
+      chapters.push(createChapter(id, 
         mangaId, 
         info.title,
         info.chapter,
@@ -273,7 +284,7 @@ export class MangaDex extends Source {
     return chapters
   }
 
-  getChapterDetailsUrls(mangaId: string, chapId: string) {
+  getChapterDetailsRequest(mangaId: string, chapId: string) {
     throw new Error("Method not implemented.")
   }
   
