@@ -58,7 +58,7 @@ class APIWrapper {
 	 * @param referenceTime will only get manga up to this time
 	 * @returns List of the ids of the manga that were recently updated
 	 */
-	async filterUpdatedManga(source: Source, ids: string[], referenceTime: Date): Promise<number[]> {
+	async filterUpdatedManga(source: Source, ids: string[], referenceTime: Date): Promise<string[]> {
 		let currentPage = 1
 		let hasResults = true
 		let info = source.filterUpdatedMangaRequest(ids, referenceTime, currentPage)
@@ -78,7 +78,7 @@ class APIWrapper {
 			return []
 		}
 
-		let manga: number[] = []
+		let manga: string[] = []
 		while (hasResults) {
 			let results: any = source.filterUpdatedManga(data, info.titles.metadata)
 			manga = manga.concat(results.updatedMangaIds)
@@ -262,7 +262,9 @@ let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
 //application.getHomePageSections()
 //application.getChapters(new MangaPark(cheerio), "radiation-house")
 //application.searchManga("tag_mode_exc=any&tag_mode_inc=all&tags=-37&title=Radiation%20house", 1)
-//application.filterUpdatedManga(["1", "47057", "47151"], new Date("2020-04-29 02:33:30 UTC"))
+// application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => {
+	// console.log(data)
+// })
 //application.getMangaDetails(new MangaPark(cheerio), ["one-piece"])
 //application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")
 //let test = createSearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])

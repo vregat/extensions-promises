@@ -40,6 +40,6 @@ export abstract class Source {
       time = new Date(Date.now() - 31556952000)
     }
 
-    return new Date()
+    return time
   }
 }

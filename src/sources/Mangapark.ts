@@ -121,11 +121,55 @@ export class MangaPark extends Source {
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
-    throw new Error("Method not implemented.")
+    return {
+      'titles': {
+        'metadata': {
+          'initialIds': ids,
+          'referenceTime': time
+        },
+        'request': {
+          'url': 'https://mangapark.net/latest/',
+          'param': page,
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'incognito': true,
+          'cookies':[
+            { 
+              'key': 'set',
+              'value': 'h=1'
+            },
+          ]
+        }
+      }
+    }
   }
 
   filterUpdatedManga(data: any, metadata: any) {
-    throw new Error("Method not implemented.")
+    let $ = this.cheerio.load(data.data)
+    
+    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+      'updatedMangaIds': [],
+      'nextPage': true
+    }
+
+    for (let item of $('.item', '.ls1').toArray()) {
+      let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
+      let time = $('.time').first().text()
+      if (this.convertTime(time) > metadata.referenceTime) {
+        if (metadata.initialIds.includes(id)) {
+          returnObject.updatedMangaIds.push(id)
+        }
+      }
+      else {
+        returnObject.nextPage = false
+        return returnObject
+      }
+    }
+
+    return returnObject
   }
 
   getHomePageSectionRequest() {
