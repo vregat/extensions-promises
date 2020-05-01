@@ -59,10 +59,10 @@ class APIWrapper {
 	 * @param referenceTime will only get manga up to this time
 	 * @returns List of the ids of the manga that were recently updated
 	 */
-	async filterUpdatedManga(ids: string[], referenceTime: Date): Promise<number[]> {
+	async filterUpdatedManga(source: Source, ids: string[], referenceTime: Date): Promise<number[]> {
 		let currentPage = 1
 		let hasResults = true
-		let info = this.mangadex.filterUpdatedMangaUrls(ids, referenceTime, currentPage)
+		let info = source.filterUpdatedMangaUrls(ids, referenceTime, currentPage)
 		let url = info.titles.request.url
 		let config = info.titles.request.config
 		let headers: any = config.headers
@@ -81,7 +81,7 @@ class APIWrapper {
 
 		let manga: number[] = []
 		while (hasResults) {
-			let results: any = this.mangadex.filterUpdatedManga(data, info.titles.metadata)
+			let results: any = source.filterUpdatedManga(data, info.titles.metadata)
 			manga = manga.concat(results.updatedMangaIds)
 			if (results.nextPage) {
 				currentPage++
@@ -135,7 +135,6 @@ class APIWrapper {
 			manga.push(source.getMangaDetails(data))
 		}
 
-		console.log(manga)
 		return manga
 	}
 
@@ -228,11 +227,11 @@ class APIWrapper {
 		let config = info.request.config
 		let headers: any = config.headers
 		headers['Cookie'] = ""
-		for (let cookie of info.chapters.request.cookies) {
+		for (let cookie of info.request.cookies) {
 				headers['Cookie'] += `${cookie.key}=${cookie.value};`
 		}
 		try {
-			var data = await axios.get(url + info.metadata.request.param, config)
+			var data = await axios.get(url + info.request.param, config)
 		}
 		catch (e) {
 			console.log(e)
@@ -267,3 +266,6 @@ let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
 //application.filterUpdatedManga(["1", "47057", "47151"], new Date("2020-04-29 02:33:30 UTC"))
 //application.getMangaDetails(new MangaPark(cheerio), ["one-piece"])
 //application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")
+
+let test = new SearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
+application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})

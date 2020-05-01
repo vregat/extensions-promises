@@ -21,8 +21,8 @@ export class Manga {
 	private views: number 
 	private hentai: boolean 
 	private related: number 
-	private relatedManga: Manga[] | undefined
-	private lastUpdate: string | undefined
+	private relatedManga?: Manga[]
+	private lastUpdate?: string
 
 	constructor(_id: string , _image: string , _artist: string , _author: string , 
 		_avgRating: number , _content: Tag[] , _covers: string[] , _demographic: Tag[] , 

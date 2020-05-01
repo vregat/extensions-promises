@@ -1,4 +1,4 @@
 interface Tag {
-    id: number
+    id?: number
     value: string
 }

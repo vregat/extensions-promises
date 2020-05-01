@@ -1,27 +1,27 @@
 export class SearchRequest {
-    title: string | undefined
+    title?: string
 
-    includeDemographic: string[] | undefined
-    includeTheme: string[] | undefined
-    includeFormat: string[] | undefined
-    includeContent: string[] | undefined
-    includeGenre: string[] | undefined
+    includeDemographic?: string[]
+    includeTheme?: string[]
+    includeFormat?: string[]
+    includeContent?: string[]
+    includeGenre?: string[]
 
-    excludeDemographic: string[] | undefined
-    excludeTheme: string[] | undefined
-    excludeFormat: string[] | undefined
-    excludeContent: string[] | undefined
-    excludeGenre: string[] | undefined
+    excludeDemographic?: string[]
+    excludeTheme?: string[]
+    excludeFormat?: string[]
+    excludeContent?: string[]
+    excludeGenre?: string[]
 
-    includeOperator: number | undefined
-    excludeOperator: number | undefined
+    includeOperator?: number
+    excludeOperator?: number
 
-    author: string | undefined
-    artist: string | undefined
-    status: number | undefined
-    hStatus: boolean = false
+    author?: string
+    artist?: string
+    status?: number
+    hStatus?: boolean = false
 
-    constructor(_title: string , _includeDemographic: string[] , _includeTheme: string[] , _includeFormat: string[] , _includeContent: string[] , _includeGenre: string[] , _excludeDemographic: string[] , _excludeTheme: string[] , _excludeFormat: string[] , _excludeContent: string[] , _excludeGenre: string[] , _includeOperator: number , _excludeOperator: number , _author: string , _artist: string , _status: number , _hStatus: boolean ) {
+    constructor(_title?: string, _includeDemographic?: string[], _includeTheme?: string[], _includeFormat?: string[], _includeContent?: string[], _includeGenre?: string[], _excludeDemographic?: string[], _excludeTheme?: string[], _excludeFormat?: string[], _excludeContent?: string[], _excludeGenre?: string[], _includeOperator?: number, _excludeOperator?: number, _author?: string, _artist?: string, _status?: number, _hStatus: boolean = true ) {
 		this.title = _title;
 		this.includeDemographic = _includeDemographic;
 		this.includeTheme = _includeTheme;
