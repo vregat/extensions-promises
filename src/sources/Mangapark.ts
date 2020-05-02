@@ -3,6 +3,7 @@ import {Manga, createManga} from '../models/Manga'
 import {Chapter, createChapter} from '../models/Chapter'
 import { ChapterDetails, createChapterDetails } from '../models/ChapterDetails'
 import { SearchRequest } from '../models/SearchRequest'
+import { MangaTile, createMangaTile } from '../models/MangaTile'
 
 export class MangaPark extends Source {
   constructor(cheerio: CheerioAPI) {
@@ -173,11 +174,78 @@ export class MangaPark extends Source {
   }
 
   getHomePageSectionRequest() {
-    throw new Error("Method not implemented.")
+    return {
+      "featured_new": {
+        "request": {
+          'url': 'https://mangapark.net/'
+        }, // REQUEST OBJECT HERE
+        "sections": [
+          {
+            "id": "popular_titles",
+            "title": "POPULAR MANGA",
+            "items": [] // scraped items here
+          },
+          {
+            "id": "popular_new_titles",
+            "title": "POPULAR MANGA UPDATES",
+            "items": [], // scraped items here
+            "view_more": {} // request object here if this section supports "view all" button
+          },
+          {
+            "id": "recently_updated",
+            "title": "RECENTLY UPDATED TITLES",
+            "items": [],
+            "view_more": {} // REQUEST OBJECT HERE
+          }
+        ]
+      }
+    }
   }
 
   getHomePageSections(key: any, data: any, sections: any) {
-    throw new Error("Method not implemented.")
+    let $ = this.cheerio.load(data)
+    let popManga: MangaTile[] = []
+    let newManga: MangaTile[] = []
+    let updateManga: MangaTile[] = []
+
+    for (let item of $('li', '.top').toArray()) {
+      let id: string = ($('.cover', item).attr('href') ?? '').split('/').pop() ?? ''
+      let title: string = $('.cover', item).attr('title') ?? ''
+      let image: string = $('img', item).attr('src') ?? ''
+      let subtitle: string = $('.visited', item).text() ?? ''
+
+      let sIcon = 'clock.fill'
+      let sText = $('i', item).text()
+      popManga.push(createMangaTile(id, title, image, subtitle, '', '', sIcon, sText))
+    }
+
+    for (let item of $('ul','.mainer').toArray()) {
+      for (let elem of $('li', item).toArray()) {
+        let id: string = ($('a', elem).first().attr('href') ?? '').split('/').pop() ?? ''
+        let title: string = $('img', elem).attr('alt') ?? ''
+        let image: string = $('img', elem).attr('src') ?? ''
+        let subtitle: string = $('.visited', elem).text() ?? ''
+
+        newManga.push(createMangaTile(id, title, image, subtitle, '', '', '', ''))
+      }
+    }
+
+    for (let item of $('.item', 'article').toArray()) {
+      let id: string = ($('.cover', item).attr('href') ?? '').split('/').pop() ?? ''
+      let title: string = $('.cover', item).attr('title') ?? ''
+      let image: string = $('img', item).attr('src') ?? ''
+      let subtitle: string = $('.visited', item).text() ?? ''
+
+      let sIcon = 'clock.fill'
+      let sText = $('li.new', item).first().find('i').last().text() ?? ''
+      updateManga.push(createMangaTile(id, title, image, subtitle, '', '', sIcon, sText))
+    }
+
+    // console.log(updateManga)
+    sections[0].items = popManga
+    sections[1].items = newManga
+    sections[2].items = updateManga
+    return sections
   }
 
   getChapterRequest(mangaId: string): any {

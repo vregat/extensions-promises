@@ -1,7 +1,7 @@
 import {Manga} from '../models/Manga'
 import {Chapter, createChapter} from '../models/Chapter'
 import {Source} from './Source'
-import {createMangaTiles, MangaTile} from '../models/MangaTile'
+import {createMangaTile, MangaTile} from '../models/MangaTile'
 import { SearchRequest } from '../models/SearchRequest'
 
 export class MangaDex extends Source {
@@ -72,7 +72,7 @@ export class MangaDex extends Source {
       let caption = title.find(".car-caption p:nth-child(2)")
       let bookmarks = caption.find("span[title=Follows]").text()
       let rating = caption.find("span[title=Rating]").text()
-      featuredManga.push(createMangaTiles(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", '', 'bookmark.fill', bookmarks, 'star.fill', rating))
+      featuredManga.push(createMangaTile(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", '', 'bookmark.fill', bookmarks, 'star.fill', rating))
     })
   
     $("#new_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
@@ -86,7 +86,7 @@ export class MangaDex extends Source {
   
       let caption = title.find(".car-caption p:nth-child(2)")
       let obj: any = {  name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
-      newManga.push(createMangaTiles(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", caption.find("a").text(), '', '', 'clock.fill', (Date.parse(caption.find("span").attr("title") ?? " ")).toString()))
+      newManga.push(createMangaTile(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", caption.find("a").text(), '', '', 'clock.fill', (Date.parse(caption.find("span").attr("title") ?? " ")).toString()))
     })
     section[0].items = featuredManga
     section[1].items = newManga
@@ -129,7 +129,7 @@ export class MangaDex extends Source {
         hasImg = $(elem[i]).find('img').length > 0
       }
 
-      updates.push(createMangaTiles(id, title, image, subTitle, pIcon, pText, sIcon, sText, badge))
+      updates.push(createMangaTile(id, title, image, subTitle, pIcon, pText, sIcon, sText, badge))
     }
 
     section[2].items = updates

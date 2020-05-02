@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/api.js",
+    "build": "tsc",
     "test": "node dist/api.js"
   },
   "author": "",

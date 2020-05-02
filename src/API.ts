@@ -259,7 +259,7 @@ class APIWrapper {
 let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
 //application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 //application.getMangaDetailsBulk(["4","2","3","4"])
-//application.getHomePageSections()
+application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 //application.getChapters(new MangaPark(cheerio), "radiation-house")
 //application.searchManga("tag_mode_exc=any&tag_mode_inc=all&tags=-37&title=Radiation%20house", 1)
 // application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => {
