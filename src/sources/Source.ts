@@ -14,7 +14,7 @@ export abstract class Source {
 
   // Get information about particular manga
   abstract getMangaDetailsRequest(ids: string[]): any
-  abstract getMangaDetails(data: any): Manga
+  abstract getMangaDetails(data: any, mangaId: string): Manga
 
   // Get all chapters related to a manga
   abstract getChapterRequest(mangaId: string): any

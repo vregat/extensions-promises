@@ -13,26 +13,24 @@ export class MangaDex extends Source {
 
   getMangaDetailsRequest(ids: string[]): any {
     return {
-      'manga': {
-        'metadata': {
-          'initialIds': ids
-        },
-        'request': {
-          'url': 'https://mangadex.org/title/',
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'initialIds': ids
+      },
+      'request': {
+        'url': 'https://mangadex.org/title/',
+        'config': {
+          'headers' : {
+            
           },
-          'incognito':  true,
-          'cookies': []
-        }
+        },
+        'incognito':  true,
+        'cookies': []
       }
     }
   }
 
   // TODO: TO BE IMPLEMENTED
-  getMangaDetails(data: any): Manga {
+  getMangaDetails(data: any, mangaId: string): Manga {
     throw new Error("Method not implemented.");
   }
 
@@ -52,27 +50,25 @@ export class MangaDex extends Source {
 
   getChapterRequest(mangaId: string): any {
     return {
-      'manga': {
-        'metadata': {
-          'id': mangaId
-        },
-        'request': {
-          'url': 'https://mangadex.org/api/manga/',
-          'param': mangaId,
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'id': mangaId
+      },
+      'request': {
+        'url': 'https://mangadex.org/api/manga/',
+        'param': mangaId,
+        'config': {
+          'headers' : {
+            
           },
-          'incognito':  true,
-          'cookies':[]
-        }
+        },
+        'incognito':  true,
+        'cookies':[]
       }
     }
   }
 
   getChapters(data: any, mangaId: string) {
-    data = data.data.chapter
+    data = data.chapter
     let entries = Object.entries(data)
     let chapters: Chapter[] = []
     for (let entry of entries) {
@@ -103,37 +99,35 @@ export class MangaDex extends Source {
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number) {
     return {
-      'titles': {
-        'metadata': {
-          'initialIds': ids,
-          'referenceTime': time
-        },
-        'request': {
-          'url': 'https://mangadex.org/titles/0/',
-          'param': page,
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'initialIds': ids,
+        'referenceTime': time
+      },
+      'request': {
+        'url': 'https://mangadex.org/titles/0/',
+        'param': page,
+        'config': {
+          'headers' : {
+            
           },
-          'incognito': true,
-          'cookies':[
-            { 
-              'key': 'mangadex_title_mode',
-              'value': 2
-            },
-            { 
-              'key': 'mangadex_h_mode',
-              'value': this.hMode
-            }
-          ]
-        }
+        },
+        'incognito': true,
+        'cookies':[
+          { 
+            'key': 'mangadex_title_mode',
+            'value': 2
+          },
+          { 
+            'key': 'mangadex_h_mode',
+            'value': this.hMode
+          }
+        ]
       }
     }
   }
 
   filterUpdatedManga(data: any, metadata: any) {
-    let $ = this.cheerio.load(data.data)
+    let $ = this.cheerio.load(data)
     
     let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
       'updatedMangaIds': [],

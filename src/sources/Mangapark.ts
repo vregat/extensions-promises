@@ -12,31 +12,29 @@ export class MangaPark extends Source {
 
   getMangaDetailsRequest(ids: string[]) {
     return {
-      'manga': {
-        'metadata': {
-          'initialIds': ids
-        },
-        'request': {
-          'url': 'https://mangapark.net/manga/',
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'initialIds': ids
+      },
+      'request': {
+        'url': 'https://mangapark.net/manga/',
+        'config': {
+          'headers' : {
+            
           },
-          'cookies':[
-            { 
-              'key': 'set',
-              'value': 'h=1'
-            },
-          ]
-        }
+        },
+        'cookies':[
+          { 
+            'key': 'set',
+            'value': 'h=1'
+          },
+        ]
       }
     }
   }
 
   // FIXME: I need to figure out the proper Ids of the Tags
-  getMangaDetails(data: any): Manga {
-    let $ = this.cheerio.load(data[0].data)
+  getMangaDetails(data: any, mangaId: string): Manga {
+    let $ = this.cheerio.load(data)
     let html = ($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? []
     let id: string = html[2]
     let image: string = $('img','.manga').attr('src') ?? ""
@@ -123,31 +121,29 @@ export class MangaPark extends Source {
 
   getChapterRequest(mangaId: string): any {
     return {
-      'manga': {
-        'metadata': {
-          'id': mangaId
-        },
-        'request': {
-          'url': 'https://mangapark.net/manga/',
-          'param': mangaId,
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'id': mangaId
+      },
+      'request': {
+        'url': 'https://mangapark.net/manga/',
+        'param': mangaId,
+        'config': {
+          'headers' : {
+            
           },
-          'cookies':[
-            { 
-              'key': 'set',
-              'value': 'h=1'
-            },
-          ]
-        }
+        },
+        'cookies':[
+          { 
+            'key': 'set',
+            'value': 'h=1'
+          },
+        ]
       }
     }
   }
 
   getChapters(data: any, mangaId: string): Chapter[] {
-    let $ = this.cheerio.load(data.data)
+    let $ = this.cheerio.load(data)
     let chapters: Chapter[] = []
     for(let elem of $('#list').children('div').toArray()) {
       // streamNum helps me navigate the weird id/class naming scheme
@@ -192,26 +188,24 @@ export class MangaPark extends Source {
 
   getChapterDetailsRequest(mangaId: string, chId: string) {
     return {
-      'chapters': {
-        'metadata': {
-          'mangaId': mangaId,
-          'chapterId': chId
-        },
-        'request': {
-          'url': 'https://mangapark.net/manga/',
-          'param': `${mangaId}/${chId}`,
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'mangaId': mangaId,
+        'chapterId': chId
+      },
+      'request': {
+        'url': 'https://mangapark.net/manga/',
+        'param': `${mangaId}/${chId}`,
+        'config': {
+          'headers' : {
+            
           },
-          'cookies':[
-            { 
-              'key': 'set',
-              'value': 'h=1'
-            },
-          ]
-        }
+        },
+        'cookies':[
+          { 
+            'key': 'set',
+            'value': 'h=1'
+          },
+        ]
       }
     }
   }
@@ -228,33 +222,31 @@ export class MangaPark extends Source {
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
     return {
-      'titles': {
-        'metadata': {
-          'initialIds': ids,
-          'referenceTime': time
-        },
-        'request': {
-          'url': 'https://mangapark.net/latest/',
-          'param': page,
-          'config': {
-            'headers' : {
-              
-            },
+      'metadata': {
+        'initialIds': ids,
+        'referenceTime': time
+      },
+      'request': {
+        'url': 'https://mangapark.net/latest/',
+        'param': page,
+        'config': {
+          'headers' : {
+            
           },
-          'incognito': true,
-          'cookies':[
-            { 
-              'key': 'set',
-              'value': 'h=1'
-            },
-          ]
-        }
+        },
+        'incognito': true,
+        'cookies':[
+          { 
+            'key': 'set',
+            'value': 'h=1'
+          },
+        ]
       }
     }
   }
 
   filterUpdatedManga(data: any, metadata: any) {
-    let $ = this.cheerio.load(data.data)
+    let $ = this.cheerio.load(data)
     
     let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
       'updatedMangaIds': [],
@@ -396,7 +388,7 @@ export class MangaPark extends Source {
   }
 
   search(data: any) {
-    let $ = this.cheerio.load(data.data)
+    let $ = this.cheerio.load(data)
     let mangaList = $('.manga-list')
     let manga: Manga[] = []
     for (let item of $('.item', mangaList).toArray()) {
