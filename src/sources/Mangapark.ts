@@ -4,32 +4,17 @@ import {Chapter, createChapter} from '../models/Chapter'
 import { ChapterDetails, createChapterDetails } from '../models/ChapterDetails'
 import { SearchRequest } from '../models/SearchRequest'
 import { MangaTile, createMangaTile } from '../models/MangaTile'
+import { RequestObject, createRequestObject, createCookie } from '../models/RequestObject'
 
 export class MangaPark extends Source {
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
   }
 
-  getMangaDetailsRequest(ids: string[]) {
-    return {
-      'metadata': {
-        'initialIds': ids
-      },
-      'request': {
-        'url': 'https://mangapark.net/manga/',
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'cookies':[
-          { 
-            'key': 'set',
-            'value': 'h=1'
-          },
-        ]
-      }
-    }
+  getMangaDetailsRequest(ids: string[]): RequestObject {
+    let metadata = {'ids': ids}
+    let cookies = createCookie('set', 'h=1')
+    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookies])
   }
 
   // FIXME: I need to figure out the proper Ids of the Tags
@@ -119,27 +104,10 @@ export class MangaPark extends Source {
       "", 'en', Number(rating), status, [], titles, 0, views, hentai, 0, [], "")
   }
 
-  getChapterRequest(mangaId: string): any {
-    return {
-      'metadata': {
-        'id': mangaId
-      },
-      'request': {
-        'url': 'https://mangapark.net/manga/',
-        'param': mangaId,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'cookies':[
-          { 
-            'key': 'set',
-            'value': 'h=1'
-          },
-        ]
-      }
-    }
+  getChapterRequest(mangaId: string): RequestObject {
+    let metadata = {'id': mangaId}
+    let cookie = createCookie('set', 'h=1')
+    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], mangaId)
   }
 
   getChapters(data: any, mangaId: string): Chapter[] {
@@ -186,66 +154,35 @@ export class MangaPark extends Source {
     return chapters
   }
 
-  getChapterDetailsRequest(mangaId: string, chId: string) {
-    return {
-      'metadata': {
-        'mangaId': mangaId,
-        'chapterId': chId
-      },
-      'request': {
-        'url': 'https://mangapark.net/manga/',
-        'param': `${mangaId}/${chId}`,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'cookies':[
-          { 
-            'key': 'set',
-            'value': 'h=1'
-          },
-        ]
-      }
-    }
+  getChapterDetailsRequest(mangaId: string, chId: string): RequestObject {
+    let metadata = {'mangaId': mangaId, 'chapterId': chId, 'nextPage': false}
+    let cookie = createCookie('set', 'h=1')
+    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], `${mangaId}/${chId}`)
   }
 
 
-  getChapterDetails(data: any, metadata: any): ChapterDetails {
-    let script = JSON.parse((/var _load_pages = (.*);/.exec(data.data)?? [])[1])
+  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
+    let script = JSON.parse((/var _load_pages = (.*);/.exec(data)?? [])[1])
     let pages: string[] = []
     for (let page of script) {
       pages.push(page.u)
     }
-    return createChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
+
+    let chapterDetails = createChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
+    let returnObject = {
+      'details': chapterDetails,
+      'nextPage': metadata.nextPage
+    }
+    return returnObject
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
-    return {
-      'metadata': {
-        'initialIds': ids,
-        'referenceTime': time
-      },
-      'request': {
-        'url': 'https://mangapark.net/latest/',
-        'param': page,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'incognito': true,
-        'cookies':[
-          { 
-            'key': 'set',
-            'value': 'h=1'
-          },
-        ]
-      }
-    }
+    let metadata = {'ids': ids,'referenceTime': time}
+    let cookie = createCookie('set', 'h=1')
+    return createRequestObject(metadata, 'https://mangapark.net/latest/', [cookie], page.toString())
   }
 
-  filterUpdatedManga(data: any, metadata: any) {
+  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
     let $ = this.cheerio.load(data)
     
     let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
@@ -257,7 +194,7 @@ export class MangaPark extends Source {
       let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
       let time = $('.time').first().text()
       if (this.convertTime(time) > metadata.referenceTime) {
-        if (metadata.initialIds.includes(id)) {
+        if (metadata.ids.includes(id)) {
           returnObject.updatedMangaIds.push(id)
         }
       }
@@ -345,7 +282,7 @@ export class MangaPark extends Source {
     return sections
   }
 
-  searchRequest(query: SearchRequest, page: number): any {
+  searchRequest(query: SearchRequest, page: number): RequestObject {
     let genres = ''
     for (let genre of (query.includeGenre ?? []).concat(query.includeDemographic ?? [])) {
       genres += genre + ','
@@ -365,26 +302,9 @@ export class MangaPark extends Source {
     search += `&genres=${genres}&genres-exclude=${excluded}&page=${page}`
     search += `&status=${status}&st-ss=1`
 
-    return {
-      'metadata': {
-        'search': search
-      },
-      'request': {
-        'url': 'https://mangapark.net/search?',
-        'param': search,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'cookies':[
-          { 
-            'key': 'set',
-            'value': `h=${query.hStatus ? 1 : 0}`
-          },
-        ]
-      }
-    }
+    let metadata = {'search': search}
+    let cookie = createCookie('set', `h=${query.hStatus ? 1 : 0}`)
+    return createRequestObject(metadata, 'https://mangapark.net/search?', [cookie], search)
   }
 
   search(data: any) {

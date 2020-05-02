@@ -7,14 +7,13 @@ import cheerio from 'cheerio'
 import { ChapterDetails } from './models/ChapterDetails'
 import { SearchRequest, createSearchRequest } from './models/SearchRequest'
 import { Manganelo } from './sources/Manganelo'
+import { RequestObject } from './models/RequestObject'
 const axios = require('axios').default;
 
 class APIWrapper {
 	mangadex: MangaDex
-	mangapark: MangaPark
-	constructor(mangadex: MangaDex, mangapark: MangaPark) {
+	constructor(mangadex: MangaDex) {
 		this.mangadex = mangadex
-		this.mangapark = mangapark
 	}
 
 	/**
@@ -28,17 +27,14 @@ class APIWrapper {
 		/*let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
 		let url = mangaDetailUrls.manga.url*/
 		let info = source.getMangaDetailsRequest(ids)
-		let url = info.request.url
 		let config = info.request.config
+		let url = config.url
 		let headers: any = config.headers
-		headers['Cookie'] = ""
-		for (let cookie of info.request.cookies) {
-				headers['Cookie'] += `${cookie.key}=${cookie.value};`
-		}
-
+		headers['Cookie'] = this.formatCookie(info)
 		try {
 			var data = await Promise.all(ids.map(async (id) => {
-				return await axios.get(url + id.toString(), config)
+				config.url = url + id
+				return await axios.request(config)
 			}))
 		}
 		catch (e) {
@@ -48,7 +44,7 @@ class APIWrapper {
 
 		let manga: Manga[] = []
 		for (let i = 0; i < data.length; i++) {
-			manga.push(source.getMangaDetails(data[i].data, info.metadata.initialIds[i]))
+			manga.push(source.getMangaDetails(data[i].data, info.metadata.ids[i]))
 		}
 
 		return manga
@@ -61,7 +57,7 @@ class APIWrapper {
 	 */
 	async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
 		let mangaDetailUrls = this.mangadex.getMangaDetailsRequest(ids)
-		let url = mangaDetailUrls.request.url
+		let url = mangaDetailUrls.request.config.url
 		let payload = {'id': ids}
 		try {
 			var data = await axios.post(url, payload)
@@ -83,15 +79,14 @@ class APIWrapper {
 	 */
 	async getChapters(source: Source, mangaId: string): Promise<Chapter[]> {
 		let info = source.getChapterRequest(mangaId)
-		let url = info.request.url
 		let config = info.request.config
+		let url = config.url
 		let headers: any = config.headers
-		headers['Cookie'] = ""
-		for (let cookie of info.request.cookies) {
-				headers['Cookie'] += `${cookie.key}=${cookie.value};`
-		}
+		headers['Cookie'] = this.formatCookie(info)
+
 		try {
-			var data = await axios.get(url + info.request.param, config)
+			config.url = url + info.request.param
+			var data = await axios.request(config)
 		}
 		catch (e) {
 			console.log(e)
@@ -111,24 +106,41 @@ class APIWrapper {
 	 */
 	async getChapterDetails(source: Source, mangaId: string, chId: string) {
 		let info = source.getChapterDetailsRequest(mangaId, chId)
-		let url = info.request.url
 		let config = info.request.config
+		let url = config.url
+		let metadata = info.metadata
 		let headers: any = config.headers
-		headers['Cookie'] = ""
-		for (let cookie of info.request.cookies) {
-				headers['Cookie'] += `${cookie.key}=${cookie.value};`
-		}
+		headers['Cookie'] = this.formatCookie(info)
 
 		try {
-			var data = await axios.get(url + info.chapters.request.param, config)
+			config.url = url + info.request.param
+			var data = await axios.request(config)
 		}
 		catch (e) {
 			console.log(e)
 			return []
 		}
 
-		let chapterDetails: ChapterDetails = source.getChapterDetails(data.data, info.metadata)
-		return chapterDetails
+		let response = source.getChapterDetails(data.data, metadata)
+		let details: ChapterDetails = response.details
+
+		// there needs to be a way to handle sites that only show one page per link
+		while (response.nextPage && metadata.page) {
+			metadata.page++ 
+			try {
+				config.url = url + info.request.param
+				data = await axios.request(config)
+			}
+			catch (e) {
+				console.log(e)
+				return details
+			}
+
+			response = source.getChapterDetails(data.data, metadata)
+			details.pages.push(response.details.pages[0])
+		}
+
+		return details
 	}
 
 	/**
@@ -143,16 +155,14 @@ class APIWrapper {
 		let currentPage = 1
 		let hasResults = true
 		let info = source.filterUpdatedMangaRequest(ids, referenceTime, currentPage)
-		let url = info.request.url
 		let config = info.request.config
+		let url = config.url
 		let headers: any = config.headers
-		headers['Cookie'] = ""
-		for (let cookie of info.request.cookies) {
-				headers['Cookie'] += `${cookie.key}=${cookie.value};`
-		}
+		headers['Cookie'] = this.formatCookie(info)
 
 		try {
-			var data = await axios.get(url + currentPage, config)
+			config.url = url + currentPage
+			var data = await axios.request(config)
 		}
 		catch (e) {
 			console.log(e)
@@ -166,7 +176,8 @@ class APIWrapper {
 			if (results.nextPage) {
 				currentPage++
 				try {
-					data = await axios.get(url + currentPage, config)
+					config.url = url + currentPage
+					data = await axios.request(config)
 				}
 				catch (e) {
 					console.log(e)
@@ -223,15 +234,15 @@ class APIWrapper {
 	 */
 	async search(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
 		let info = source.searchRequest(query, page)
-		let url = info.request.url
 		let config = info.request.config
+		let url = config.url
+
 		let headers: any = config.headers
-		headers['Cookie'] = ""
-		for (let cookie of info.request.cookies) {
-				headers['Cookie'] += `${cookie.key}=${cookie.value};`
-		}
+		headers['Cookie'] = this.formatCookie(info)
+
 		try {
-			var data = await axios.get(url + info.request.param, config)
+			config.url = url + info.request.param
+			var data = await axios.request(config)
 		}
 		catch (e) {
 			console.log(e)
@@ -248,7 +259,7 @@ class APIWrapper {
 	 * @param page 
 	 */
 	async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
-		let url = this.mangadex.searchRequest(query, page).request.url
+		let url = this.mangadex.searchRequest(query, page).request.config.url
 		try {
 			var data = await axios.post(url + `?page=${page}&items=100`, query)
 		}
@@ -273,20 +284,34 @@ class APIWrapper {
 		let tags = this.mangadex.getTags(data.data)
 		return tags
 	}
+
+	private formatCookie(info: RequestObject): string {
+		let fCookie = ''
+		for (let cookie of info.request.cookies) 
+			fCookie += `${cookie.name}=${cookie.value};`
+		return fCookie
+	}
 }
 
-
 // MY TESTING FRAMEWORK - LOL
-let application = new APIWrapper(new MangaDex(cheerio), new MangaPark(cheerio))
+let application = new APIWrapper(new MangaDex(cheerio))
 //application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 //application.getMangaDetailsBulk(["4","2","3","4"])
 //application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
-//application.getChapters(new MangaPark(cheerio), "radiation-house")
-//application.searchManga("tag_mode_exc=any&tag_mode_inc=all&tags=-37&title=Radiation%20house", 1)
-// application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => {
-	// console.log(data)
-// })
-//application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then( (data) => {console.log(data)})
-//application.getChapterDetails(new MangaPark(cheerio), "radiation-house", "i1510452")
-//let test = createSearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
-//application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})
+
+// MangaDex
+// application.getMangaDetails(new MangaDex(cheerio), ['1'])
+// application.filterUpdatedManga(new MangaDex(cheerio), ['1'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
+
+// MangaPark
+// application.getMangaDetails(new MangaPark(cheerio), ['radiation-house', 'boku-no-hero-academia-horikoshi-kouhei']).then((data) => {console.log(data)})
+// application.getChapters(new MangaPark(cheerio), "radiation-house").then((data) => {console.log(data)})
+// application.getChapterDetails(new MangaPark(cheerio), 'radiation-house', 'i1510452').then((data) => console.log(data))
+// application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => { console.log(data)})
+// let test = createSearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
+// application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})
+
+// Manganelo
+// application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then( (data) => {console.log(data)})
+// application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => {console.log(data)})
+// application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => {console.log(data)})

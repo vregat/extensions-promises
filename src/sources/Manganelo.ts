@@ -1,6 +1,9 @@
 import { Source } from "./Source";
 import { SearchRequest, createSearchRequest } from "../models/SearchRequest";
 import { Manga, createManga } from "../models/Manga";
+import { Chapter, createChapter } from "../models/Chapter";
+import { ChapterDetails, createChapterDetails } from "../models/ChapterDetails";
+import { RequestObject, createRequestObject, createCookie } from "../models/RequestObject";
 
 export class Manganelo extends Source {
   allDemogrpahic: string[]
@@ -9,24 +12,9 @@ export class Manganelo extends Source {
     this.allDemogrpahic = ["Shounen", "Shoujo", "Seinen", "Josei"]
   }
 
-  getMangaDetailsRequest(ids: string[]) {
-    return {
-      'manga': {
-        'metadata': {
-          'initialIds': ids
-        },
-        'request': {
-          'url': 'https://manganelo.com/manga/',
-          'config': {
-            'headers' : {
-              
-            },
-          },
-          'incognito':  true,
-          'cookies': []
-        }
-      }
-    }
+  getMangaDetailsRequest(ids: string[]): RequestObject {
+    let metadata = {'ids': ids}
+    return createRequestObject(metadata, 'https://manganelo.com/manga/')
   }
 
   getMangaDetails(data: any, mangaId: string): Manga {
@@ -35,7 +23,6 @@ export class Manganelo extends Source {
     let title = $('.img-loading', panel).attr('title') ?? ''
     let image = $('.img-loading', panel).attr('src') ?? ''
     let table = $('.variations-tableInfo', panel)
-    let i = 0
     let author = ''
     let artist = ''
     let rating = 0
@@ -88,8 +75,7 @@ export class Manganelo extends Source {
     table = $('.story-info-right-extent', panel)
     for (let row of $('p', table).toArray()) {
       if ($(row).find('.info-time').length > 0) {
-        let timeStr = $('.stre-value', row).text().replace(',', ' ').split('-')[0].trim()
-        let time = new Date(timeStr)
+        let time = new Date($('.stre-value', row).text().replace(/-*(AM)*(PM)*/g, ''))
         lastUpdate = time.toDateString()
       }
       else if ($(row).find('.info-view').length > 0) {
@@ -104,46 +90,61 @@ export class Manganelo extends Source {
     return createManga(mangaId, image, artist, author, rating, [], [], demographic, summary, follows, [], genres, 'en', 'english', rating, status, [], titles, 0, views, hentai, 0, [], lastUpdate)
   }
 
-  getChapterRequest(mangaId: string) {
-    return {
-      'metadata': {
-        'id': mangaId
-      },
-      'request': {
-        'url': 'https://mangapark.net/manga/',
-        'param': mangaId,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'cookies':[
-          { 
-            'key': 'set',
-            'value': 'h=1'
-          },
-        ]
-      }
+  getChapterRequest(mangaId: string): RequestObject {
+    let metadata = {'id': mangaId}
+    return createRequestObject(metadata, 'https://manganelo.com/manga/', [], mangaId)
+  }
+
+  getChapters(data: any, mangaId: string): Chapter[] {
+    let $ = this.cheerio.load(data)
+    let allChapters = $('.row-content-chapter', '.body-site')
+    let chapters: Chapter[] = []
+    for (let chapter of $('li', allChapters).toArray()) {
+      let id: string = $('a', chapter).attr('href')?.split('/').pop() ?? ''
+      let name: string = $('a', chapter).text() ?? ''
+      let chNum: number = Number((/Chapter (\d*)/g.exec(name) ?? [])[1] ?? '')
+      let views: number = Number($('.chapter-view', chapter).text().replace(',', ''))
+      let time: Date = new Date($('.chapter-time', chapter).attr('title') ?? '')
+      chapters.push(createChapter(id, mangaId, name, chNum, 0, '', views, time))
     }
+    return chapters
   }
 
-  getChapters(data: any, mangaId: string) {
+  getChapterDetailsRequest(mangaId: string, chId: string): RequestObject {
+    let metadata = {'mangaId': mangaId, 'chapterId': chId, 'nextPage': false}
+    let cookie = createCookie('content_lazyload', 'off')
+    return createRequestObject(metadata, 'https://manganelo.com/chapter/', [cookie], `${mangaId}/${chId}`)
+  }
+
+  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
+    let $ = this.cheerio.load(data)
+    let pages: string[] = []
+    for (let item of $('img', '.container-chapter-reader').toArray()) {
+      pages.push($(item).attr('src') ?? '')
+    }
+
+    let chapterDetails = createChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
+    let returnObject = {
+      'details': chapterDetails,
+      'nextPage': metadata.nextPage
+    }
+    return returnObject
+  }
+
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject {
     throw new Error("Method not implemented.");
   }
 
-  getChapterDetailsRequest(mangaId: string, chapId: string) {
-    throw new Error("Method not implemented.");
-  }
+  // FIXME: Current issue with site not loading the newest pages properly
+  // I will consider coming back to this later
+  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
+    let $ = this.cheerio.load(data)
+    
+    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+      'updatedMangaIds': [],
+      'nextPage': true
+    }
 
-  getChapterDetails(data: any, metadata: any) {
-    throw new Error("Method not implemented.");
-  }
-
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number) {
-    throw new Error("Method not implemented.");
-  }
-
-  filterUpdatedManga(data: any, metadata: any) {
     throw new Error("Method not implemented.");
   }
 
@@ -155,7 +156,7 @@ export class Manganelo extends Source {
     throw new Error("Method not implemented.");
   }
 
-  searchRequest(query: SearchRequest, page: number) {
+  searchRequest(query: SearchRequest, page: number): RequestObject {
     throw new Error("Method not implemented.");
   }
 

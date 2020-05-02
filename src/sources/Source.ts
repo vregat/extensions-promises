@@ -5,6 +5,9 @@
 
 import { SearchRequest } from "../models/SearchRequest"
 import { Manga } from "../models/Manga"
+import { RequestObject } from "../models/RequestObject"
+import { Chapter } from "../models/Chapter"
+import { ChapterDetails } from "../models/ChapterDetails"
 
 export abstract class Source {
   protected cheerio: CheerioAPI
@@ -13,20 +16,20 @@ export abstract class Source {
   }
 
   // Get information about particular manga
-  abstract getMangaDetailsRequest(ids: string[]): any
+  abstract getMangaDetailsRequest(ids: string[]): RequestObject
   abstract getMangaDetails(data: any, mangaId: string): Manga
 
   // Get all chapters related to a manga
-  abstract getChapterRequest(mangaId: string): any
-  abstract getChapters(data: any, mangaId: string): any
+  abstract getChapterRequest(mangaId: string): RequestObject
+  abstract getChapters(data: any, mangaId: string): Chapter[]
 
   // Get all pages for a particular chapter
-  abstract getChapterDetailsRequest(mangaId: string, chapId: string):any
-  abstract getChapterDetails(data: any, metadata: any): any
+  abstract getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject
+  abstract getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean}
 
   // Determines if, and how many times, the passed in ids have been updated since reference time 
-  abstract filterUpdatedMangaRequest(ids: any, time: Date, page: number): any
-  abstract filterUpdatedManga(data: any, metadata: any): any
+  abstract filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject
+  abstract filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean}
 
   // For the apps home page, there are multiple sections that contain manga of interest
   // Function returns formatted sections and any number of such
@@ -35,7 +38,7 @@ export abstract class Source {
   
   // Does a search request - It is capable of doing advanced searches
   // See SearchRequest interface or MangaPark implementation for more information
-  abstract searchRequest(query: SearchRequest, page: number): any
+  abstract searchRequest(query: SearchRequest, page: number): RequestObject
   abstract search(data: any): any
 
   // Many sites use '[x] time ago' - Figured it would be good to handle these cases in general

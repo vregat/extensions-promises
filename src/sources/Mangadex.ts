@@ -2,7 +2,9 @@ import {Manga} from '../models/Manga'
 import {Chapter, createChapter} from '../models/Chapter'
 import {Source} from './Source'
 import {createMangaTile, MangaTile} from '../models/MangaTile'
-import { SearchRequest } from '../models/SearchRequest'
+import { SearchRequest, createSearchRequest } from '../models/SearchRequest'
+import { createRequestObject, RequestObject, createCookie } from '../models/RequestObject'
+import { ChapterDetails } from '../models/ChapterDetails'
 
 export class MangaDex extends Source {
   private hMode: number
@@ -11,22 +13,9 @@ export class MangaDex extends Source {
     this.hMode = 0
   }
 
-  getMangaDetailsRequest(ids: string[]): any {
-    return {
-      'metadata': {
-        'initialIds': ids
-      },
-      'request': {
-        'url': 'https://mangadex.org/title/',
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'incognito':  true,
-        'cookies': []
-      }
-    }
+  getMangaDetailsRequest(ids: string[]): RequestObject {
+    let metadata = {'ids': ids}
+    return createRequestObject(metadata, 'https://mangadex.org/title/')
   }
 
   // TODO: TO BE IMPLEMENTED
@@ -48,23 +37,9 @@ export class MangaDex extends Source {
     return data.result
   }
 
-  getChapterRequest(mangaId: string): any {
-    return {
-      'metadata': {
-        'id': mangaId
-      },
-      'request': {
-        'url': 'https://mangadex.org/api/manga/',
-        'param': mangaId,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'incognito':  true,
-        'cookies':[]
-      }
-    }
+  getChapterRequest(mangaId: string): RequestObject {
+    let metadata = {'id': mangaId}
+    return createRequestObject(metadata, 'https://mangadex.org/api/manga/', [], mangaId)
   }
 
   getChapters(data: any, mangaId: string) {
@@ -89,44 +64,21 @@ export class MangaDex extends Source {
     return chapters
   }
 
-  getChapterDetailsRequest(mangaId: string, chapId: string) {
+  getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject {
     throw new Error("Method not implemented.")
   }
   
-  getChapterDetails(data: any, metadata: any) {
+  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
     throw new Error("Method not implemented.")
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number) {
-    return {
-      'metadata': {
-        'initialIds': ids,
-        'referenceTime': time
-      },
-      'request': {
-        'url': 'https://mangadex.org/titles/0/',
-        'param': page,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'incognito': true,
-        'cookies':[
-          { 
-            'key': 'mangadex_title_mode',
-            'value': 2
-          },
-          { 
-            'key': 'mangadex_h_mode',
-            'value': this.hMode
-          }
-        ]
-      }
-    }
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject {
+    let metadata = {'ids': ids, 'referenceTime': time}
+    let cookies = [createCookie('mangadex_title_mode', (2).toString()), createCookie('mangadex_h_mode', this.hMode.toString())]
+    return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString())
   }
 
-  filterUpdatedManga(data: any, metadata: any) {
+  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
     let $ = this.cheerio.load(data)
     
     let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
@@ -137,7 +89,7 @@ export class MangaDex extends Source {
     for (let elem of $('.manga-entry').toArray()) {
       let id = elem.attribs['data-id']
       if (new Date($(elem).find('time').attr('datetime')?.toString() ?? "") > metadata.referenceTime) {
-        if (metadata.initialIds.includes(id)) {
+        if (metadata.ids.includes(id)) {
           returnObject.updatedMangaIds.push(id)
         }
       }
@@ -276,8 +228,9 @@ export class MangaDex extends Source {
   }
 
   //TODO: NOT FULLY IMPLEMENTED FOR search()
-  searchRequest(query: SearchRequest, page: number) {
-    let search = ''
+  searchRequest(query: SearchRequest, page: number): RequestObject {
+    throw new Error("Method not implemented.");
+    /*let search = ''
     return {
       'metadata': {
         'search': search
@@ -297,7 +250,7 @@ export class MangaDex extends Source {
           },
         ]
       }
-    }
+    }*/
   }
 
   search(data: any): any {
