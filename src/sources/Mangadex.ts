@@ -11,6 +11,151 @@ export class MangaDex extends Source {
     this.hMode = 0
   }
 
+  getMangaDetailsRequest(ids: string[]): any {
+    return {
+      'manga': {
+        'metadata': {
+          'initialIds': ids
+        },
+        'request': {
+          'url': 'https://mangadex.org/title/',
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'incognito':  true,
+          'cookies': []
+        }
+      }
+    }
+  }
+
+  // TODO: TO BE IMPLEMENTED
+  getMangaDetails(data: any): Manga {
+    throw new Error("Method not implemented.");
+  }
+
+  // Manga is already formatted at the cache server level
+  getMangaDetailsBulk(data: any): Manga[] {
+    let manga: Manga[] = []
+    /*let unformatedManga = data.result
+    for (let u of unformatedManga) {
+      let formattedManga: Manga = new Manga(data.id, data.image, data.artist, data.author, data.avgRating, data.content,
+        data.covers, data.demographic, data.description, data.follows, data.format, data.genre, data.langFlag, data.langName,
+        data.rating, data.status, data.theme, data.titles, data.users, data.views, data.hentai, data.related, data.relatedManga,
+        data.lastUpdate)
+      manga.push(formattedManga)
+    }*/
+    return data.result
+  }
+
+  getChapterRequest(mangaId: string): any {
+    return {
+      'manga': {
+        'metadata': {
+          'id': mangaId
+        },
+        'request': {
+          'url': 'https://mangadex.org/api/manga/',
+          'param': mangaId,
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'incognito':  true,
+          'cookies':[]
+        }
+      }
+    }
+  }
+
+  getChapters(data: any, mangaId: string) {
+    data = data.data.chapter
+    let entries = Object.entries(data)
+    let chapters: Chapter[] = []
+    for (let entry of entries) {
+      let id: string = entry[0]
+      let info: any = entry[1]
+      chapters.push(createChapter(id, 
+        mangaId, 
+        info.title,
+        info.chapter,
+        info.volume, 
+        info.group_name,
+        0,
+        new Date(info.timestamp),
+        false,
+        info.lang_code))
+    }
+
+    return chapters
+  }
+
+  getChapterDetailsRequest(mangaId: string, chapId: string) {
+    throw new Error("Method not implemented.")
+  }
+  
+  getChapterDetails(data: any, metadata: any) {
+    throw new Error("Method not implemented.")
+  }
+
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number) {
+    return {
+      'titles': {
+        'metadata': {
+          'initialIds': ids,
+          'referenceTime': time
+        },
+        'request': {
+          'url': 'https://mangadex.org/titles/0/',
+          'param': page,
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'incognito': true,
+          'cookies':[
+            { 
+              'key': 'mangadex_title_mode',
+              'value': 2
+            },
+            { 
+              'key': 'mangadex_h_mode',
+              'value': this.hMode
+            }
+          ]
+        }
+      }
+    }
+  }
+
+  filterUpdatedManga(data: any, metadata: any) {
+    let $ = this.cheerio.load(data.data)
+    
+    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+      'updatedMangaIds': [],
+      'nextPage': true
+    }
+
+    for (let elem of $('.manga-entry').toArray()) {
+      let id = elem.attribs['data-id']
+      if (new Date($(elem).find('time').attr('datetime')?.toString() ?? "") > metadata.referenceTime) {
+        if (metadata.initialIds.includes(id)) {
+          returnObject.updatedMangaIds.push(id)
+        }
+      }
+      else {
+        returnObject.nextPage = false
+        return returnObject
+      }
+    }
+
+    return returnObject
+  }
+
   getHomePageSectionRequest() {
     return {
       "featured_new": {
@@ -136,162 +281,6 @@ export class MangaDex extends Source {
     return section
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number) {
-    return {
-      'titles': {
-        'metadata': {
-          'initialIds': ids,
-          'referenceTime': time
-        },
-        'request': {
-          'url': 'https://mangadex.org/titles/0/',
-          'param': page,
-          'config': {
-            'headers' : {
-              
-            },
-          },
-          'incognito': true,
-          'cookies':[
-            { 
-              'key': 'mangadex_title_mode',
-              'value': 2
-            },
-            { 
-              'key': 'mangadex_h_mode',
-              'value': this.hMode
-            }
-          ]
-        }
-      }
-    }
-  }
-
-  filterUpdatedManga(data: any, metadata: any) {
-    let $ = this.cheerio.load(data.data)
-    
-    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
-      'updatedMangaIds': [],
-      'nextPage': true
-    }
-
-    for (let elem of $('.manga-entry').toArray()) {
-      let id = elem.attribs['data-id']
-      if (new Date($(elem).find('time').attr('datetime')?.toString() ?? "") > metadata.referenceTime) {
-        if (metadata.initialIds.includes(id)) {
-          returnObject.updatedMangaIds.push(id)
-        }
-      }
-      else {
-        returnObject.nextPage = false
-        return returnObject
-      }
-    }
-
-    return returnObject
-  }
-
-  getMangaDetailsRequest(ids: string[]): any {
-    return {
-      'manga': {
-        'metadata': {
-          'initialIds': ids
-        },
-        'request': {
-          'url': 'https://mangadex.org/title/',
-          'config': {
-            'headers' : {
-              
-            },
-          },
-          'incognito':  true,
-          'cookies': []
-        }
-      }
-    }
-  }
-
-  // TODO: TO BE IMPLEMENTED
-  getMangaDetails(data: any) {
-    console.log(data)
-  }
-
-  // Manga is already formatted at the cache server level
-  getMangaDetailsBulk(data: any): Manga[] {
-    let manga: Manga[] = []
-    /*let unformatedManga = data.result
-    for (let u of unformatedManga) {
-      let formattedManga: Manga = new Manga(data.id, data.image, data.artist, data.author, data.avgRating, data.content,
-        data.covers, data.demographic, data.description, data.follows, data.format, data.genre, data.langFlag, data.langName,
-        data.rating, data.status, data.theme, data.titles, data.users, data.views, data.hentai, data.related, data.relatedManga,
-        data.lastUpdate)
-      manga.push(formattedManga)
-    }*/
-    return data.result
-  }
-
-  getTagsUrl() {
-    return {
-      'url': 'url'
-    }
-  }
-
-  // Tags are already formatted at the cache server level
-  getTags(data: any) {
-    return data.result
-  }
-
-  getChapterRequest(mangaId: string): any {
-    return {
-      'manga': {
-        'metadata': {
-          'id': mangaId
-        },
-        'request': {
-          'url': 'https://mangadex.org/api/manga/',
-          'param': mangaId,
-          'config': {
-            'headers' : {
-              
-            },
-          },
-          'incognito':  true,
-          'cookies':[]
-        }
-      }
-    }
-  }
-
-  getChapters(data: any, mangaId: string) {
-    data = data.data.chapter
-    let entries = Object.entries(data)
-    let chapters: Chapter[] = []
-    for (let entry of entries) {
-      let id: string = entry[0]
-      let info: any = entry[1]
-      chapters.push(createChapter(id, 
-        mangaId, 
-        info.title,
-        info.chapter,
-        info.volume, 
-        info.group_name,
-        0,
-        new Date(info.timestamp),
-        false,
-        info.lang_code))
-    }
-
-    return chapters
-  }
-
-  getChapterDetailsRequest(mangaId: string, chapId: string) {
-    throw new Error("Method not implemented.")
-  }
-  
-  getChapterDetails(data: any, metadata: any) {
-    throw new Error("Method not implemented.")
-  }
-
   //TODO: NOT FULLY IMPLEMENTED FOR search()
   searchRequest(query: SearchRequest, page: number) {
     let search = ''
@@ -323,6 +312,17 @@ export class MangaDex extends Source {
 
   // manga are already formatted at the cache server level
   searchMangaCached(data: any): any {
+    return data.result
+  }
+
+  getTagsUrl() {
+    return {
+      'url': 'url'
+    }
+  }
+
+  // Tags are already formatted at the cache server level
+  getTags(data: any) {
     return data.result
   }
 

@@ -172,6 +172,12 @@ class APIWrapper {
 		return tags
 	}
 
+	/**
+	 * Retrieves all the chapters for a particular manga
+	 * 
+	 * @param source 
+	 * @param mangaId 
+	 */
 	async getChapters(source: Source, mangaId: string): Promise<Chapter[]> {
 		let info = source.getChapterRequest(mangaId)
 		let url = info.manga.request.url
@@ -193,6 +199,13 @@ class APIWrapper {
 		return chapters
 	}
 
+	/**
+	 * Retrieves the images for a particular chapter of a manga
+	 * 
+	 * @param source 
+	 * @param mangaId 
+	 * @param chId 
+	 */
 	async getChapterDetails(source: Source, mangaId: string, chId: string) {
 		let info = source.getChapterDetailsRequest(mangaId, chId)
 		let url = info.chapters.request.url
@@ -216,9 +229,10 @@ class APIWrapper {
 	}
 
 	/**
+	 * Creates a search query for the source
 	 * 
 	 * @param query 
-	 * @param page Still not sure how this fits in with the api
+	 * @param page
 	 */
 	async search(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
 		let info = source.searchRequest(query, page)
@@ -240,6 +254,12 @@ class APIWrapper {
 		return source.search(data)
 	}
 
+	/**
+	 * Returns the json payload from the cache server
+	 * 
+	 * @param query 
+	 * @param page 
+	 */
 	async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
 		let url = this.mangadex.searchRequest(query, page).request.url
 		try {

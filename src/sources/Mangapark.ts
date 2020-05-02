@@ -35,7 +35,7 @@ export class MangaPark extends Source {
   }
 
   // FIXME: I need to figure out the proper Ids of the Tags
-  getMangaDetails(data: any): any {
+  getMangaDetails(data: any): Manga {
     let $ = this.cheerio.load(data[0].data)
     let html = ($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? []
     let id: string = html[2]
@@ -119,6 +119,111 @@ export class MangaPark extends Source {
     let summary = $('.summary').html() ?? ""
     return createManga(id, image, artist, author, Number(rating), [], [], demographic, summary, 0, format, genres,
       "", 'en', Number(rating), status, [], titles, 0, views, hentai, 0, [], "")
+  }
+
+  getChapterRequest(mangaId: string): any {
+    return {
+      'manga': {
+        'metadata': {
+          'id': mangaId
+        },
+        'request': {
+          'url': 'https://mangapark.net/manga/',
+          'param': mangaId,
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'cookies':[
+            { 
+              'key': 'set',
+              'value': 'h=1'
+            },
+          ]
+        }
+      }
+    }
+  }
+
+  getChapters(data: any, mangaId: string): Chapter[] {
+    let $ = this.cheerio.load(data.data)
+    let chapters: Chapter[] = []
+    for(let elem of $('#list').children('div').toArray()) {
+      // streamNum helps me navigate the weird id/class naming scheme
+      let streamNum = (/(\d+)/g.exec($(elem).attr('id') ?? "") ?? [])[0]
+      let groupName = $(`.ml-1.stream-text-${streamNum}`, elem).text()
+
+      let volNum = 1
+      let chapNum = 1
+      let volumes = $('.volume', elem).toArray().reverse()
+      for (let vol of volumes) {
+        let chapterElem = $('li', vol).toArray().reverse()
+        for (let chap of chapterElem) {
+          let chapId = $(chap).attr('id')?.replace('b-', 'i')
+          let name = ""
+          let nameArr = ($('a', chap).html() ?? "").replace(/\t*\n*/g, '').split(':')
+          if (nameArr.length > 1) {
+            name = nameArr[1].trim()
+          }
+          else {
+            name = $('.txt', chap).text().replace(/:/g, '').trim()
+          }
+
+          let time = this.convertTime($('.time', chap).text().trim())
+          chapters.push(createChapter(chapId ?? "",
+            mangaId,
+            name,
+            chapNum,
+            volNum,
+            groupName,
+            0,
+            time,
+            false,
+            'en'))
+          chapNum++
+        }
+        volNum++
+      }
+    }
+
+    return chapters
+  }
+
+  getChapterDetailsRequest(mangaId: string, chId: string) {
+    return {
+      'chapters': {
+        'metadata': {
+          'mangaId': mangaId,
+          'chapterId': chId
+        },
+        'request': {
+          'url': 'https://mangapark.net/manga/',
+          'param': `${mangaId}/${chId}`,
+          'config': {
+            'headers' : {
+              
+            },
+          },
+          'cookies':[
+            { 
+              'key': 'set',
+              'value': 'h=1'
+            },
+          ]
+        }
+      }
+    }
+  }
+
+
+  getChapterDetails(data: any, metadata: any): ChapterDetails {
+    let script = JSON.parse((/var _load_pages = (.*);/.exec(data.data)?? [])[1])
+    let pages: string[] = []
+    for (let page of script) {
+      pages.push(page.u)
+    }
+    return createChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
@@ -246,111 +351,6 @@ export class MangaPark extends Source {
     sections[1].items = newManga
     sections[2].items = updateManga
     return sections
-  }
-
-  getChapterRequest(mangaId: string): any {
-    return {
-      'manga': {
-        'metadata': {
-          'id': mangaId
-        },
-        'request': {
-          'url': 'https://mangapark.net/manga/',
-          'param': mangaId,
-          'config': {
-            'headers' : {
-              
-            },
-          },
-          'cookies':[
-            { 
-              'key': 'set',
-              'value': 'h=1'
-            },
-          ]
-        }
-      }
-    }
-  }
-
-  getChapters(data: any, mangaId: string): Chapter[] {
-    let $ = this.cheerio.load(data.data)
-    let chapters: Chapter[] = []
-    for(let elem of $('#list').children('div').toArray()) {
-      // streamNum helps me navigate the weird id/class naming scheme
-      let streamNum = (/(\d+)/g.exec($(elem).attr('id') ?? "") ?? [])[0]
-      let groupName = $(`.ml-1.stream-text-${streamNum}`, elem).text()
-
-      let volNum = 1
-      let chapNum = 1
-      let volumes = $('.volume', elem).toArray().reverse()
-      for (let vol of volumes) {
-        let chapterElem = $('li', vol).toArray().reverse()
-        for (let chap of chapterElem) {
-          let chapId = $(chap).attr('id')?.replace('b-', 'i')
-          let name = ""
-          let nameArr = ($('a', chap).html() ?? "").replace(/\t*\n*/g, '').split(':')
-          if (nameArr.length > 1) {
-            name = nameArr[1].trim()
-          }
-          else {
-            name = $('.txt', chap).text().replace(/:/g, '').trim()
-          }
-
-          let time = this.convertTime($('.time', chap).text().trim())
-          chapters.push(createChapter(chapId ?? "",
-            mangaId,
-            name,
-            chapNum,
-            volNum,
-            groupName,
-            0,
-            time,
-            false,
-            'en'))
-          chapNum++
-        }
-        volNum++
-      }
-    }
-
-    return chapters
-  }
-
-  getChapterDetailsRequest(mangaId: string, chId: string) {
-    return {
-      'chapters': {
-        'metadata': {
-          'mangaId': mangaId,
-          'chapterId': chId
-        },
-        'request': {
-          'url': 'https://mangapark.net/manga/',
-          'param': `${mangaId}/${chId}`,
-          'config': {
-            'headers' : {
-              
-            },
-          },
-          'cookies':[
-            { 
-              'key': 'set',
-              'value': 'h=1'
-            },
-          ]
-        }
-      }
-    }
-  }
-
-
-  getChapterDetails(data: any, metadata: any): ChapterDetails {
-    let script = JSON.parse((/var _load_pages = (.*);/.exec(data.data)?? [])[1])
-    let pages: string[] = []
-    for (let page of script) {
-      pages.push(page.u)
-    }
-    return createChapterDetails(metadata.chapterId, metadata.mangaId, pages, false)
   }
 
   searchRequest(query: SearchRequest, page: number): any {
