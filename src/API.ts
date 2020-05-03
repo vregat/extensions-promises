@@ -1,14 +1,26 @@
-import {MangaDex} from './sources/Mangadex'
-import {MangaPark} from './sources/Mangapark'
-import {Source} from './sources/Source'
-import {Manga} from './models/Manga'
-import {Chapter} from './models/Chapter'
+
+// Import the global wrapper for all the models
+import './models/Chapter_impl'
+import './models/ChapterDetail_impl'
+import './models/HomeRequestObject_impl'
+import './models/Manga_impl'
+import './models/MangaTile_impl'
+import './models/SearchRequest_impl'
+import './models/RequestObject_impl'
+
+import { MangaDex } from './sources/Mangadex'
+import { MangaPark } from './sources/Mangapark'
+import { Source } from './sources/Source'
 import cheerio from 'cheerio'
-import { ChapterDetails } from './models/ChapterDetails'
-import { SearchRequest, createSearchRequest } from './models/SearchRequest'
 import { Manganelo } from './sources/Manganelo'
-import { RequestObject } from './models/RequestObject'
 import { Mangasee } from './sources/Mangasee'
+
+import { Manga } from './models/Manga'
+import { Chapter } from './models/Chapter'
+import { ChapterDetails } from './models/ChapterDetails'
+import { SearchRequest } from './models/SearchRequest'
+import { RequestObject } from './models/RequestObject'
+
 const axios = require('axios').default;
 
 class APIWrapper {
@@ -25,7 +37,7 @@ class APIWrapper {
 	 */
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
 		let info = source.getMangaDetailsRequest(ids)
-		let config = info.request.config
+		let config = info.request
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
@@ -55,8 +67,8 @@ class APIWrapper {
 	 */
 	async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
 		let mangaDetailUrls = this.mangadex.getMangaDetailsRequest(ids)
-		let url = mangaDetailUrls.request.config.url
-		let payload = {'id': ids}
+		let url = mangaDetailUrls.request.url
+		let payload = { 'id': ids }
 		try {
 			var data = await axios.post(url, payload)
 		}
@@ -77,7 +89,7 @@ class APIWrapper {
 	 */
 	async getChapters(source: Source, mangaId: string): Promise<Chapter[]> {
 		let info = source.getChapterRequest(mangaId)
-		let config = info.request.config
+		let config = info.request
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
@@ -104,7 +116,7 @@ class APIWrapper {
 	 */
 	async getChapterDetails(source: Source, mangaId: string, chId: string) {
 		let info = source.getChapterDetailsRequest(mangaId, chId)
-		let config = info.request.config
+		let config = info.request
 		let url = config.url
 		let metadata = info.metadata
 		let headers: any = config.headers
@@ -124,7 +136,7 @@ class APIWrapper {
 
 		// there needs to be a way to handle sites that only show one page per link
 		while (response.nextPage && metadata.page) {
-			metadata.page++ 
+			metadata.page++
 			try {
 				config.url = url + info.request.param
 				data = await axios.request(config)
@@ -153,7 +165,7 @@ class APIWrapper {
 		let currentPage = 1
 		let hasResults = true
 		let info = source.filterUpdatedMangaRequest(ids, referenceTime, currentPage)
-		let config = info.request.config
+		let config = info.request
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
@@ -164,7 +176,7 @@ class APIWrapper {
 			if (data.code || data.code == 'ECONNABORTED') retries++
 			else if (data.code || Number(data.response.status) >= 400) {
 				console.log(data)
-				 return []
+				return []
 			}
 		} while (data.code && retries < 5)
 
@@ -182,7 +194,7 @@ class APIWrapper {
 						console.log(data)
 						return manga
 					}
-				} while (data.code && retries < 5) 
+				} while (data.code && retries < 5)
 			}
 			else {
 				hasResults = false
@@ -230,7 +242,7 @@ class APIWrapper {
 		for (let key of keys) {
 			for (let section of info[key].sections)
 				sections.push(section)
-				configs.push(info[key].request.request.config)
+			configs.push(info[key].request.request.config)
 		}
 
 		try {
@@ -240,7 +252,7 @@ class APIWrapper {
 			console.log(e)
 			return []
 		}
-		
+
 		// Promise.all retains order
 		for (let i = 0; i < data.length; i++) {
 			sections = source.getHomePageSections(data[i].data, keys[i], sections)
@@ -257,7 +269,7 @@ class APIWrapper {
 	 */
 	async search(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
 		let info = source.searchRequest(query, page)
-		let config = info.request.config
+		let config = info.request
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
@@ -282,7 +294,7 @@ class APIWrapper {
 	 * @param page 
 	 */
 	async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
-		let url = this.mangadex.searchRequest(query, page).request.config.url
+		let url = this.mangadex.searchRequest(query, page).request.url
 		try {
 			var data = await axios.post(url + `?page=${page}&items=100`, query)
 		}
@@ -297,7 +309,7 @@ class APIWrapper {
 	async getTags() {
 		let url = this.mangadex.getTagsUrl().url
 		try {
-			var data =  await axios.get(url)
+			var data = await axios.get(url)
 		}
 		catch (e) {
 			console.log(e)
@@ -310,7 +322,7 @@ class APIWrapper {
 
 	private formatCookie(info: RequestObject): string {
 		let fCookie = ''
-		for (let cookie of info.request.cookies) 
+		for (let cookie of info.request.cookies)
 			fCookie += `${cookie.name}=${cookie.value};`
 		return fCookie
 	}
@@ -334,7 +346,7 @@ let application = new APIWrapper(new MangaDex(cheerio))
 // application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // Manganelo
-// application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then( (data) => {console.log(data)})
+application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then((data) => { console.log(data) })
 // application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => {console.log(data)})
 // application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => {console.log(data)})
 
@@ -343,5 +355,5 @@ let application = new APIWrapper(new MangaDex(cheerio))
 // application.getChapters(new Mangasee(cheerio), 'Boku-no-hero-academia').then((data) => {console.log(data)})
 // application.getChapterDetails(new Mangasee(cheerio), 'boku-no-hero-academia', 'Boku-No-Hero-Academia-chapter-269-page-1.html').then((data) => {console.log(data)})
 // application.filterUpdatedManga(new Mangasee(cheerio), ['Be-Blues---Ao-Ni-Nare', 'Tales-Of-Demons-And-Gods', 'Amano-Megumi-Wa-Suki-Darake'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
-let test = createSearchRequest('one piece', ['Shounen'], [], [], [], [], [], [], [], [], ['Supernatural'])
-application.search(new Mangasee(cheerio), test, 1).then((data) => {console.log(data)})
+//let test = createSearchRequest('one piece', ['Shounen'], [], [], [], [], [], [], [], [], ['Supernatural'])
+//application.search(new Mangasee(cheerio), test, 1).then((data) => { console.log(data) })

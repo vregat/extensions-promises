@@ -1,11 +1,10 @@
-import {Source} from './Source'
-import {Manga, createManga} from '../models/Manga'
-import {Chapter, createChapter} from '../models/Chapter'
-import { ChapterDetails, createChapterDetails } from '../models/ChapterDetails'
+import { Source } from './Source'
+import { Manga } from '../models/Manga'
+import { Chapter } from '../models/Chapter'
+import { MangaTile } from '../models/MangaTile'
 import { SearchRequest } from '../models/SearchRequest'
-import { MangaTile, createMangaTile } from '../models/MangaTile'
-import { RequestObject, createRequestObject, createCookie } from '../models/RequestObject'
-import { createSection, createHomeRequestObject } from '../models/HomeRequestObject'
+import { RequestObject } from '../models/RequestObject'
+import { ChapterDetails } from '../models/ChapterDetails'
 
 export class MangaPark extends Source {
   constructor(cheerio: CheerioAPI) {
@@ -13,7 +12,7 @@ export class MangaPark extends Source {
   }
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
-    let metadata = {'ids': ids}
+    let metadata = { 'ids': ids }
     let cookies = createCookie('set', 'h=1')
     return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookies])
   }
@@ -23,7 +22,7 @@ export class MangaPark extends Source {
     let $ = this.cheerio.load(data)
     let html = ($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? []
     let id: string = html[2]
-    let image: string = $('img','.manga').attr('src') ?? ""
+    let image: string = $('img', '.manga').attr('src') ?? ""
     let rating: string = $('i', '#rating').text()
     let tableBody = $('tbody', '.manga')
     let titles: string[] = []
@@ -39,7 +38,7 @@ export class MangaPark extends Source {
     let status = 0
     for (let row of $('tr', tableBody).toArray()) {
       let elem = $('th', row).html()
-      switch(elem) {
+      switch (elem) {
         case 'Author(s)': author = $('a', row).text(); break
         case 'Artist(s)': artist = $('a', row).text(); break
         case 'Popularity': {
@@ -67,15 +66,15 @@ export class MangaPark extends Source {
           for (let genre of $('a', row).toArray()) {
             let item = $(genre).html() ?? ""
             if (item.includes('<b>')) {
-              demographic.push( {
+              demographic.push({
                 'value': item.replace(/<[a-zA-Z\/][^>]*>/g, "")
               })
             }
-            else if (item.includes('Hentai')){
+            else if (item.includes('Hentai')) {
               hentai = true
             }
             else {
-              genres.push( {
+              genres.push({
                 'value': item.replace(/<[a-zA-Z\/][^>]*>/g, "")
               })
             }
@@ -106,7 +105,7 @@ export class MangaPark extends Source {
   }
 
   getChapterRequest(mangaId: string): RequestObject {
-    let metadata = {'id': mangaId}
+    let metadata = { 'id': mangaId }
     let cookie = createCookie('set', 'h=1')
     return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], mangaId)
   }
@@ -114,7 +113,7 @@ export class MangaPark extends Source {
   getChapters(data: any, mangaId: string): Chapter[] {
     let $ = this.cheerio.load(data)
     let chapters: Chapter[] = []
-    for(let elem of $('#list').children('div').toArray()) {
+    for (let elem of $('#list').children('div').toArray()) {
       // streamNum helps me navigate the weird id/class naming scheme
       let streamNum = (/(\d+)/g.exec($(elem).attr('id') ?? "") ?? [])[0]
       let groupName = $(`.ml-1.stream-text-${streamNum}`, elem).text()
@@ -156,14 +155,14 @@ export class MangaPark extends Source {
   }
 
   getChapterDetailsRequest(mangaId: string, chId: string): RequestObject {
-    let metadata = {'mangaId': mangaId, 'chapterId': chId, 'nextPage': false}
+    let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false }
     let cookie = createCookie('set', 'h=1')
     return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], `${mangaId}/${chId}`)
   }
 
 
-  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
-    let script = JSON.parse((/var _load_pages = (.*);/.exec(data)?? [])[1])
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
+    let script = JSON.parse((/var _load_pages = (.*);/.exec(data) ?? [])[1])
     let pages: string[] = []
     for (let page of script) {
       pages.push(page.u)
@@ -178,15 +177,15 @@ export class MangaPark extends Source {
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
-    let metadata = {'ids': ids,'referenceTime': time}
+    let metadata = { 'ids': ids, 'referenceTime': time }
     let cookie = createCookie('set', 'h=1')
     return createRequestObject(metadata, 'https://mangapark.net/latest/', [cookie], page.toString())
   }
 
-  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
     let $ = this.cheerio.load(data)
-    
-    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+
+    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
       'updatedMangaIds': [],
       'nextPage': true
     }
@@ -214,7 +213,7 @@ export class MangaPark extends Source {
     let section2 = createSection('popular_new_titles', 'POPULAR MANGA UPDATES', [])
     let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [])
 
-    return {'featured_new': createHomeRequestObject(request, [section1, section2, section3])}
+    return { 'featured_new': createHomeRequestObject(request, [section1, section2, section3]) }
   }
 
   getHomePageSections(data: any, key: any, sections: any) {
@@ -234,7 +233,7 @@ export class MangaPark extends Source {
       popManga.push(createMangaTile(id, title, image, subtitle, '', '', sIcon, sText))
     }
 
-    for (let item of $('ul','.mainer').toArray()) {
+    for (let item of $('ul', '.mainer').toArray()) {
       for (let elem of $('li', item).toArray()) {
         let id: string = ($('a', elem).first().attr('href') ?? '').split('/').pop() ?? ''
         let title: string = $('img', elem).attr('alt') ?? ''
@@ -291,7 +290,7 @@ export class MangaPark extends Source {
     search += `&genres=${genres}&genres-exclude=${excluded}&page=${page}`
     search += `&status=${status}&st-ss=1`
 
-    let metadata = {'search': search}
+    let metadata = { 'search': search }
     let cookie = createCookie('set', `h=${query.hStatus ? 1 : 0}`)
     return createRequestObject(metadata, 'https://mangapark.net/search?', [cookie], search)
   }
@@ -302,14 +301,14 @@ export class MangaPark extends Source {
     let manga: Manga[] = []
     for (let item of $('.item', mangaList).toArray()) {
       let id = $('a', item).first().attr('href')?.split('/').pop() ?? ''
-      let img = $('img', item) 
+      let img = $('img', item)
       let image = $(img).attr('src') ?? ''
       let title = $(img).attr('title') ?? ''
       let titles: string[] = [title]
       let rate = $('.rate', item)
       let rating = Number($(rate).find('i').text())
       let follows = Number($(rate).attr('title')?.match(/(\d+)(?!.*\d)/))
-      
+
       let author = ""
       let artist = ""
       let status = 0
@@ -319,7 +318,7 @@ export class MangaPark extends Source {
 
       for (let field of $('.field', item).toArray()) {
         let elem = $('b', field).first().text()
-        switch(elem) {
+        switch (elem) {
           case 'Alternative:': {
             let info = $(field).text().replace(/\t*\n*(Alternative:)*/g, '').split(',')
             for (let title of info) {
@@ -342,15 +341,15 @@ export class MangaPark extends Source {
             for (let genre of $('a', field).toArray()) {
               let item = $(genre).html() ?? ""
               if (item.includes('<b>')) {
-                demographic.push( {
+                demographic.push({
                   'value': item.replace(/<[a-zA-Z\/][^>]*>/g, "")
                 })
               }
-              else if (item.includes('Hentai')){
+              else if (item.includes('Hentai')) {
                 hentai = true
               }
               else {
-                genres.push( {
+                genres.push({
                   'value': item.replace(/<[a-zA-Z\/][^>]*>/g, "")
                 })
               }

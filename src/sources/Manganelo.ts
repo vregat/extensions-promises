@@ -1,10 +1,10 @@
-import { Source } from "./Source";
-import { SearchRequest, createSearchRequest } from "../models/SearchRequest";
-import { Manga, createManga } from "../models/Manga";
-import { Chapter, createChapter } from "../models/Chapter";
-import { ChapterDetails, createChapterDetails } from "../models/ChapterDetails";
-import { RequestObject, createRequestObject, createCookie } from "../models/RequestObject";
-import { MangaTile } from "../models/MangaTile";
+import { Source } from './Source'
+import { Manga } from '../models/Manga'
+import { Chapter } from '../models/Chapter'
+import { MangaTile } from '../models/MangaTile'
+import { SearchRequest } from '../models/SearchRequest'
+import { RequestObject } from '../models/RequestObject'
+import { ChapterDetails } from '../models/ChapterDetails'
 
 export class Manganelo extends Source {
   allDemogrpahic: string[]
@@ -14,7 +14,7 @@ export class Manganelo extends Source {
   }
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
-    let metadata = {'ids': ids}
+    let metadata = { 'ids': ids }
     return createRequestObject(metadata, 'https://manganelo.com/manga/')
   }
 
@@ -67,7 +67,7 @@ export class Manganelo extends Source {
             })
           }
           else {
-            genres.push({'value': text})
+            genres.push({ 'value': text })
           }
         }
       }
@@ -92,7 +92,7 @@ export class Manganelo extends Source {
   }
 
   getChapterRequest(mangaId: string): RequestObject {
-    let metadata = {'id': mangaId}
+    let metadata = { 'id': mangaId }
     return createRequestObject(metadata, 'https://manganelo.com/manga/', [], mangaId)
   }
 
@@ -112,12 +112,12 @@ export class Manganelo extends Source {
   }
 
   getChapterDetailsRequest(mangaId: string, chId: string): RequestObject {
-    let metadata = {'mangaId': mangaId, 'chapterId': chId, 'nextPage': false}
+    let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false }
     let cookie = createCookie('content_lazyload', 'off')
     return createRequestObject(metadata, 'https://manganelo.com/chapter/', [cookie], `${mangaId}/${chId}`)
   }
 
-  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
     let $ = this.cheerio.load(data)
     let pages: string[] = []
     for (let item of $('img', '.container-chapter-reader').toArray()) {
@@ -138,10 +138,10 @@ export class Manganelo extends Source {
 
   // FIXME: Current issue with site not loading the newest pages properly
   // I will consider coming back to this later
-  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
     let $ = this.cheerio.load(data)
-    
-    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+
+    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
       'updatedMangaIds': [],
       'nextPage': true
     }
@@ -160,7 +160,7 @@ export class Manganelo extends Source {
   getViewMoreRequest(key: string): RequestObject {
     throw new Error("Method not implemented.")
   }
-  
+
   getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
     throw new Error("Method not implemented.")
   }

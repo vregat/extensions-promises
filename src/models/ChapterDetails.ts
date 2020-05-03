@@ -5,11 +5,7 @@ export interface ChapterDetails {
   longStrip: boolean
 }
 
-export function createChapterDetails(id: string, mangaId: string, pages: string[], longStrip: boolean): ChapterDetails {
-  return {
-    'id': id,
-    'mangaId': mangaId,
-    'pages': pages,
-    'longStrip': longStrip
-  }
+declare global {
+
+  function createChapterDetails(id: string, mangaId: string, pages: string[], longStrip: boolean): ChapterDetails
 }

@@ -1,48 +1,31 @@
 export interface SearchRequest {
-    title?: string
+  title?: string
 
-    includeDemographic?: string[]
-    includeTheme?: string[]
-    includeFormat?: string[]
-    includeContent?: string[]
-    includeGenre?: string[]
+  includeDemographic?: string[]
+  includeTheme?: string[]
+  includeFormat?: string[]
+  includeContent?: string[]
+  includeGenre?: string[]
 
-    excludeDemographic?: string[]
-    excludeTheme?: string[]
-    excludeFormat?: string[]
-    excludeContent?: string[]
-    excludeGenre?: string[]
+  excludeDemographic?: string[]
+  excludeTheme?: string[]
+  excludeFormat?: string[]
+  excludeContent?: string[]
+  excludeGenre?: string[]
 
-    includeOperator?: number
-    excludeOperator?: number
+  includeOperator?: number
+  excludeOperator?: number
 
-    author?: string
-    artist?: string
-    status?: number
-    hStatus?: boolean
+  author?: string
+  artist?: string
+  status?: number
+  hStatus?: boolean
 }
 
-export function createSearchRequest(title?: string, includeDemographic?: string[], includeTheme?: string[], includeFormat?: string[],
-                                    includeContent?: string[], includeGenre?: string[], excludeDemographic?: string[], excludeTheme?: string[],
-                                    excludeFormat?: string[], excludeContent?: string[], excludeGenre?: string[], includeOperator?: number,
-                                    excludeOperator?: number, author?: string, artist?: string, status?: number, hStatus: boolean = false): SearchRequest {
-  return {
-    'title': title,
-    'includeDemographic': includeDemographic,
-    'includeTheme': includeTheme,
-    'includeFormat': includeFormat,
-    'includeContent': includeContent,
-    'includeGenre': includeGenre,
-    'excludeDemographic': excludeDemographic,
-    'excludeTheme': excludeTheme,
-    'excludeFormat': excludeFormat,
-    'excludeContent': excludeContent,
-    'excludeGenre': excludeGenre,
-    'includeOperator': includeOperator,
-    'excludeOperator': excludeOperator,
-    'author': author,
-    'artist': artist,
-    'status': status,
-    'hStatus': hStatus
-  }
+declare global {
+
+  function createSearchRequest(title?: string, includeDemographic?: string[], includeTheme?: string[], includeFormat?: string[],
+    includeContent?: string[], includeGenre?: string[], excludeDemographic?: string[], excludeTheme?: string[],
+    excludeFormat?: string[], excludeContent?: string[], excludeGenre?: string[], includeOperator?: number,
+    excludeOperator?: number, author?: string, artist?: string, status?: number, hStatus?: boolean): SearchRequest
 }

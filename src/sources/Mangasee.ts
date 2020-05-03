@@ -1,11 +1,10 @@
-import { Source } from "./Source";
-import { SearchRequest, createSearchRequest } from "../models/SearchRequest";
-import { Manga, createManga } from "../models/Manga";
-import { Chapter, createChapter } from "../models/Chapter";
-import { ChapterDetails, createChapterDetails } from "../models/ChapterDetails";
-import { RequestObject, createCookie, createRequestObject } from "../models/RequestObject";
-import { MangaTile } from "../models/MangaTile";
-import { createSection, createHomeRequestObject } from "../models/HomeRequestObject";
+import { Source } from './Source'
+import { Manga } from '../models/Manga'
+import { Chapter } from '../models/Chapter'
+import { MangaTile } from '../models/MangaTile'
+import { SearchRequest } from '../models/SearchRequest'
+import { RequestObject } from '../models/RequestObject'
+import { ChapterDetails } from '../models/ChapterDetails'
 
 export class Mangasee extends Source {
   allDemogrpahic: string[]
@@ -15,10 +14,10 @@ export class Mangasee extends Source {
   }
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
-    let metadata = {'ids': ids}
+    let metadata = { 'ids': ids }
     return createRequestObject(metadata, 'https://mangaseeonline.us/manga/')
   }
-  
+
   getMangaDetails(data: any, mangaId: string): Manga {
     let $ = this.cheerio.load(data)
     let info = $('.row')
@@ -36,7 +35,7 @@ export class Mangasee extends Source {
 
     for (let row of $('.row', details).toArray()) {
       let text = $('b', row).text()
-      switch(text) {
+      switch (text) {
         case 'Alternate Name(s): ': {
           titles.push($(row).text().replace(/(Alternate Name\(s\):)*\t*\n*/g, '').trim())
           break
@@ -50,20 +49,20 @@ export class Mangasee extends Source {
           for (let item of items) {
             if (item.toLowerCase().includes('hentai')) {
               hentai = true
-              genres.push({'value': item.trim()})
+              genres.push({ 'value': item.trim() })
             }
             else if (this.allDemogrpahic.includes(item.trim())) {
-              demographic.push({'value': item.trim()})
+              demographic.push({ 'value': item.trim() })
             }
             else {
-              genres.push({'value': item.trim()})
+              genres.push({ 'value': item.trim() })
             }
           }
           break
         }
         case 'Type:': {
           let type = $(row).text().replace(/(Type:)*\t*\n*/g, '').trim()
-          format.push({'value': type})
+          format.push({ 'value': type })
           break
         }
         case 'Status: ': {
@@ -81,7 +80,7 @@ export class Mangasee extends Source {
   }
 
   getChapterRequest(mangaId: string): RequestObject {
-    let metadata = {'id': mangaId}
+    let metadata = { 'id': mangaId }
     return createRequestObject(metadata, 'https://mangaseeonline.us/manga/', [], mangaId)
   }
 
@@ -100,12 +99,12 @@ export class Mangasee extends Source {
   }
 
   getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject {
-    let metadata = {'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1}
+    let metadata = { 'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1 }
     return createRequestObject(metadata, 'https://mangaseeonline.us/read-online/', [], chapId)
   }
 
-  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
-    let script = JSON.parse((/PageArr=(.*);/g.exec(data)?? [])[1])
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
+    let script = JSON.parse((/PageArr=(.*);/g.exec(data) ?? [])[1])
     let pages: string[] = []
     let images: string[] = Object.values(script)
     for (let [i, image] of images.entries()) {
@@ -123,15 +122,15 @@ export class Mangasee extends Source {
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject {
-    let metadata = {'ids': ids,'referenceTime': time}
-    let data: any = {'page': page}
-    data = Object.keys(data).map(function(key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key])}).join('&')
+    let metadata = { 'ids': ids, 'referenceTime': time }
+    let data: any = { 'page': page }
+    data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
     return createRequestObject(metadata, 'https://mangaseeonline.us/home/latest.request.php', [], '', 'POST', data)
   }
 
-  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
     let $ = this.cheerio.load(data)
-    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
       'updatedMangaIds': [],
       'nextPage': true
     }
@@ -163,7 +162,7 @@ export class Mangasee extends Source {
   getViewMoreRequest(key: string): RequestObject {
     throw new Error("Method not implemented.")
   }
-  
+
   getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
     throw new Error("Method not implemented.")
   }
@@ -194,13 +193,13 @@ export class Mangasee extends Source {
       'genreNo': excluded
     }
     let metadata = data
-    data = Object.keys(data).map(function(key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key])}).join('&')
+    data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
     return createRequestObject(metadata, 'https://mangaseeonline.us/search/request.php', [], '', 'POST', data)
   }
-  
+
   search(data: any) {
     let $ = this.cheerio.load(data)
-    
+
     return data
   }
 }

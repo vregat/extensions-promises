@@ -2,4 +2,7 @@
 node_modules
 dist
 
+#compiled sources
+bundles
+
 reference

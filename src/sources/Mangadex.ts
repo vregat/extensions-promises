@@ -1,11 +1,10 @@
-import {Manga} from '../models/Manga'
-import {Chapter, createChapter} from '../models/Chapter'
-import {Source} from './Source'
-import {createMangaTile, MangaTile} from '../models/MangaTile'
-import { SearchRequest, createSearchRequest } from '../models/SearchRequest'
-import { createRequestObject, RequestObject, createCookie } from '../models/RequestObject'
+import { Source } from './Source'
+import { Manga } from '../models/Manga'
+import { Chapter } from '../models/Chapter'
+import { MangaTile } from '../models/MangaTile'
+import { SearchRequest } from '../models/SearchRequest'
+import { RequestObject } from '../models/RequestObject'
 import { ChapterDetails } from '../models/ChapterDetails'
-import { createSection, createHomeRequestObject } from '../models/HomeRequestObject'
 
 export class MangaDex extends Source {
   private hMode: number
@@ -15,7 +14,7 @@ export class MangaDex extends Source {
   }
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
-    let metadata = {'ids': ids}
+    let metadata = { 'ids': ids }
     return createRequestObject(metadata, 'https://mangadex.org/title/')
   }
 
@@ -39,7 +38,7 @@ export class MangaDex extends Source {
   }
 
   getChapterRequest(mangaId: string): RequestObject {
-    let metadata = {'id': mangaId}
+    let metadata = { 'id': mangaId }
     return createRequestObject(metadata, 'https://mangadex.org/api/manga/', [], mangaId)
   }
 
@@ -50,11 +49,11 @@ export class MangaDex extends Source {
     for (let entry of entries) {
       let id: string = entry[0]
       let info: any = entry[1]
-      chapters.push(createChapter(id, 
-        mangaId, 
+      chapters.push(createChapter(id,
+        mangaId,
         info.title,
         info.chapter,
-        info.volume, 
+        info.volume,
         info.group_name,
         0,
         new Date(info.timestamp),
@@ -68,21 +67,21 @@ export class MangaDex extends Source {
   getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject {
     throw new Error("Method not implemented.")
   }
-  
-  getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean} {
+
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
     throw new Error("Method not implemented.")
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject {
-    let metadata = {'ids': ids, 'referenceTime': time}
+    let metadata = { 'ids': ids, 'referenceTime': time }
     let cookies = [createCookie('mangadex_title_mode', (2).toString()), createCookie('mangadex_h_mode', this.hMode.toString())]
     return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString())
   }
 
-  filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean} {
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
     let $ = this.cheerio.load(data)
-    
-    let returnObject: {'updatedMangaIds': string[], 'nextPage': boolean} = {
+
+    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
       'updatedMangaIds': [],
       'nextPage': true
     }
@@ -116,7 +115,7 @@ export class MangaDex extends Source {
       'recently_updated': createHomeRequestObject(request2, [section3])
     }
   }
-  
+
   getHomePageSections(data: any, key: string, sections: any) {
     let $ = this.cheerio.load(data)
     switch (key) {
@@ -125,44 +124,44 @@ export class MangaDex extends Source {
     }
     return sections
   }
-  
+
   getFeaturedNew($: CheerioSelector, section: any) {
     let featuredManga: MangaTile[] = []
     let newManga: MangaTile[] = []
-  
+
     $("#hled_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
       let title = $(elem)
-  
+
       let img = title.find("img").first()
       let links = title.find("a")
-  
+
       let idStr: any = links.first().attr("href")
       let id = idStr!!.match(/(\d+)(?=\/)/) ?? "-1"
-  
+
       let caption = title.find(".car-caption p:nth-child(2)")
       let bookmarks = caption.find("span[title=Follows]").text()
       let rating = caption.find("span[title=Rating]").text()
       featuredManga.push(createMangaTile(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", '', 'bookmark.fill', bookmarks, 'star.fill', rating))
     })
-  
+
     $("#new_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
       let title = $(elem)
-  
+
       let img = title.find("img").first()
       let links = title.find("a")
-  
+
       let idStr: any = links.first().attr("href")
       let id = idStr.match(/(\d+)(?=\/)/)
-  
+
       let caption = title.find(".car-caption p:nth-child(2)")
-      let obj: any = {  name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
+      let obj: any = { name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
       newManga.push(createMangaTile(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", caption.find("a").text(), '', '', 'clock.fill', (Date.parse(caption.find("span").attr("title") ?? " ")).toString()))
     })
     section[0].items = featuredManga
     section[1].items = newManga
     return section
   }
-  
+
   getRecentUpdates($: CheerioSelector, section: any) {
     let updates: MangaTile[] = []
     let elem = $('tr', 'tbody').toArray()
