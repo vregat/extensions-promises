@@ -19,7 +19,7 @@ export interface MangaTile {
 }
 
 export function createMangaTile(id: string, titleText: string, image: string, subtitleText: string, primaryIcon: string, 
-                                  primaryText: string, secondaryIcon: string, secondaryText: string, badge: number = 0): MangaTile {
+                                primaryText: string, secondaryIcon: string, secondaryText: string, badge: number = 0): MangaTile {
   return {
     'id': id,
     'title': {

@@ -5,6 +5,7 @@ import { ChapterDetails, createChapterDetails } from '../models/ChapterDetails'
 import { SearchRequest } from '../models/SearchRequest'
 import { MangaTile, createMangaTile } from '../models/MangaTile'
 import { RequestObject, createRequestObject, createCookie } from '../models/RequestObject'
+import { createSection, createHomeRequestObject } from '../models/HomeRequestObject'
 
 export class MangaPark extends Source {
   constructor(cheerio: CheerioAPI) {
@@ -208,35 +209,15 @@ export class MangaPark extends Source {
   }
 
   getHomePageSectionRequest() {
-    return {
-      "featured_new": {
-        "request": {
-          'url': 'https://mangapark.net/'
-        }, // REQUEST OBJECT HERE
-        "sections": [
-          {
-            "id": "popular_titles",
-            "title": "POPULAR MANGA",
-            "items": [] // scraped items here
-          },
-          {
-            "id": "popular_new_titles",
-            "title": "POPULAR MANGA UPDATES",
-            "items": [], // scraped items here
-            "view_more": {} // request object here if this section supports "view all" button
-          },
-          {
-            "id": "recently_updated",
-            "title": "RECENTLY UPDATED TITLES",
-            "items": [],
-            "view_more": {} // REQUEST OBJECT HERE
-          }
-        ]
-      }
-    }
+    let request = createRequestObject({}, 'https://mangapark.net/')
+    let section1 = createSection('popular_titles', 'POPULAR MANGA', [])
+    let section2 = createSection('popular_new_titles', 'POPULAR MANGA UPDATES', [])
+    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [])
+
+    return {'featured_new': createHomeRequestObject(request, [section1, section2, section3])}
   }
 
-  getHomePageSections(key: any, data: any, sections: any) {
+  getHomePageSections(data: any, key: any, sections: any) {
     let $ = this.cheerio.load(data)
     let popManga: MangaTile[] = []
     let newManga: MangaTile[] = []
@@ -280,6 +261,14 @@ export class MangaPark extends Source {
     sections[1].items = newManga
     sections[2].items = updateManga
     return sections
+  }
+
+  getViewMoreRequest(key: string): RequestObject {
+    throw new Error("Method not implemented.")
+  }
+
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
+    throw new Error("Method not implemented.")
   }
 
   searchRequest(query: SearchRequest, page: number): RequestObject {

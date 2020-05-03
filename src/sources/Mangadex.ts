@@ -5,6 +5,7 @@ import {createMangaTile, MangaTile} from '../models/MangaTile'
 import { SearchRequest, createSearchRequest } from '../models/SearchRequest'
 import { createRequestObject, RequestObject, createCookie } from '../models/RequestObject'
 import { ChapterDetails } from '../models/ChapterDetails'
+import { createSection, createHomeRequestObject } from '../models/HomeRequestObject'
 
 export class MangaDex extends Source {
   private hMode: number
@@ -103,42 +104,20 @@ export class MangaDex extends Source {
   }
 
   getHomePageSectionRequest() {
+    let request1 = createRequestObject({}, 'https://mangadex.org')
+    let request2 = createRequestObject({}, 'https://mangadex.org/updates')
+
+    let section1 = createSection('featured_titles', 'FEATURED TITLES', [])
+    let section2 = createSection('new_titles', 'NEW TITLES', [])
+    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [])
+
     return {
-      "featured_new": {
-        "request": {
-          'url': 'https://mangadex.org'
-        }, // REQUEST OBJECT HERE
-        "sections": [
-          {
-            "id": "featured_titles",
-            "title": "FEATURED TITLES",
-            "items": [] // scraped items here
-          },
-          {
-            "id": "new_titles",
-            "title": "NEW TITLES",
-            "items": [], // scraped items here
-            "view_more": {} // request object here if this section supports "view all" button
-          }
-        ]
-      },
-      "recently_updated": {
-        "request": {
-          'url': 'https://mangadex.org/updates'
-        }, // REQUEST OBJECT HERE
-        "sections": [
-          {
-            "id": "recently_updated",
-            "title": "RECENTLY UPDATED TITLES",
-            "items": [],
-            "view_more": {} // REQUEST OBJECT HERE
-          }
-        ]
-      }
+      'featured_new': createHomeRequestObject(request1, [section1, section2]),
+      'recently_updated': createHomeRequestObject(request2, [section3])
     }
   }
   
-  getHomePageSections(key: string, data: any, sections: any) {
+  getHomePageSections(data: any, key: string, sections: any) {
     let $ = this.cheerio.load(data)
     switch (key) {
       case "featured_new": sections = this.getFeaturedNew($, sections); break
@@ -225,6 +204,14 @@ export class MangaDex extends Source {
 
     section[2].items = updates
     return section
+  }
+
+  getViewMoreRequest(key: string): RequestObject {
+    throw new Error("Method not implemented.")
+  }
+
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
+    throw new Error("Method not implemented.")
   }
 
   //TODO: NOT FULLY IMPLEMENTED FOR search()

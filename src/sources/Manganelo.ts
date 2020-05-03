@@ -4,6 +4,7 @@ import { Manga, createManga } from "../models/Manga";
 import { Chapter, createChapter } from "../models/Chapter";
 import { ChapterDetails, createChapterDetails } from "../models/ChapterDetails";
 import { RequestObject, createRequestObject, createCookie } from "../models/RequestObject";
+import { MangaTile } from "../models/MangaTile";
 
 export class Manganelo extends Source {
   allDemogrpahic: string[]
@@ -152,8 +153,16 @@ export class Manganelo extends Source {
     throw new Error("Method not implemented.");
   }
 
-  getHomePageSections(key: any, data: any, sections: any) {
+  getHomePageSections(data: any, key: any, sections: any) {
     throw new Error("Method not implemented.");
+  }
+
+  getViewMoreRequest(key: string): RequestObject {
+    throw new Error("Method not implemented.")
+  }
+  
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
+    throw new Error("Method not implemented.")
   }
 
   searchRequest(query: SearchRequest, page: number): RequestObject {

@@ -8,6 +8,7 @@ import { Manga } from "../models/Manga"
 import { RequestObject } from "../models/RequestObject"
 import { Chapter } from "../models/Chapter"
 import { ChapterDetails } from "../models/ChapterDetails"
+import { MangaTile } from "../models/MangaTile"
 
 export abstract class Source {
   protected cheerio: CheerioAPI
@@ -34,7 +35,12 @@ export abstract class Source {
   // For the apps home page, there are multiple sections that contain manga of interest
   // Function returns formatted sections and any number of such
   abstract getHomePageSectionRequest(): any
-  abstract getHomePageSections(key: any, data: any, sections: any): any
+  abstract getHomePageSections(data: any, key: any, sections: any): any
+
+  // For many of the home page sections, there is an ability to view more of that selection
+  // Calling these functions will retrieve more MangaTiles for the particular section
+  abstract getViewMoreRequest(key: string): RequestObject
+  abstract getViewMoreItems(data: any, key: string, page: number): MangaTile[]
   
   // Does a search request - It is capable of doing advanced searches
   // See SearchRequest interface or MangaPark implementation for more information

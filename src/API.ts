@@ -24,8 +24,6 @@ class APIWrapper {
 	 * @param ids 
 	 */
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
-		/*let mangaDetailUrls = this.mangadex.getMangaDetailsUrls(ids)
-		let url = mangaDetailUrls.manga.url*/
 		let info = source.getMangaDetailsRequest(ids)
 		let config = info.request.config
 		let url = config.url
@@ -202,16 +200,16 @@ class APIWrapper {
 	async getHomePageSections(source: Source) {
 		let info = source.getHomePageSectionRequest()
 		let keys: any = Object.keys(info)
-		let urls: string[] = []
+		let configs = []
 		let sections: any = []
 		for (let key of keys) {
 			for (let section of info[key].sections)
 				sections.push(section)
-			urls.push(info[key].request.url)
+				configs.push(info[key].request.request.config)
 		}
 
 		try {
-			var data: any = await Promise.all(urls.map(axios.get))
+			var data: any = await Promise.all(configs.map(axios.request))
 		}
 		catch (e) {
 			console.log(e)
@@ -220,7 +218,7 @@ class APIWrapper {
 		
 		// Promise.all retains order
 		for (let i = 0; i < data.length; i++) {
-			sections = source.getHomePageSections(keys[i], data[i].data, sections)
+			sections = source.getHomePageSections(data[i].data, keys[i], sections)
 		}
 
 		return sections
@@ -295,13 +293,11 @@ class APIWrapper {
 
 // MY TESTING FRAMEWORK - LOL
 let application = new APIWrapper(new MangaDex(cheerio))
-//application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
-//application.getMangaDetailsBulk(["4","2","3","4"])
-//application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // MangaDex
 // application.getMangaDetails(new MangaDex(cheerio), ['1'])
 // application.filterUpdatedManga(new MangaDex(cheerio), ['1'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
+// application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 
 // MangaPark
 // application.getMangaDetails(new MangaPark(cheerio), ['radiation-house', 'boku-no-hero-academia-horikoshi-kouhei']).then((data) => {console.log(data)})
@@ -310,6 +306,7 @@ let application = new APIWrapper(new MangaDex(cheerio))
 // application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => { console.log(data)})
 // let test = createSearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
 // application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})
+// application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // Manganelo
 // application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then( (data) => {console.log(data)})
