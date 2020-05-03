@@ -34,8 +34,8 @@ export abstract class Source {
 
   // For the apps home page, there are multiple sections that contain manga of interest
   // Function returns formatted sections and any number of such
-  abstract getHomePageSectionRequest(): any
-  abstract getHomePageSections(data: any, key: any, sections: any): any
+  abstract getHomePageSectionRequest(): any | null
+  abstract getHomePageSections(data: any, key: any, sections: any): any | null
 
   // For many of the home page sections, there is an ability to view more of that selection
   // Calling these functions will retrieve more MangaTiles for the particular section
@@ -51,6 +51,7 @@ export abstract class Source {
   protected convertTime(timeAgo: string): Date {
     let time: Date
     let trimmed: number = Number((/\d*/.exec(timeAgo) ?? [])[0])
+    trimmed = (trimmed == 0 && timeAgo.includes('a')) ? 1 : trimmed
     if (timeAgo.includes('minutes')) {
       time = new Date(Date.now() - trimmed * 60000)
     }

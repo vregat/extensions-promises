@@ -8,6 +8,7 @@ import { ChapterDetails } from './models/ChapterDetails'
 import { SearchRequest, createSearchRequest } from './models/SearchRequest'
 import { Manganelo } from './sources/Manganelo'
 import { RequestObject } from './models/RequestObject'
+import { Mangasee } from './sources/Mangasee'
 const axios = require('axios').default;
 
 class APIWrapper {
@@ -17,8 +18,7 @@ class APIWrapper {
 	}
 
 	/**
-	 * Retrieves all relevant metadata from a source 
-	 * about particular manga
+	 * Retrieves all relevant metadata from a source about particular manga
 	 * 
 	 * @param source 
 	 * @param ids 
@@ -158,29 +158,31 @@ class APIWrapper {
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
 
-		try {
-			config.url = url + currentPage
-			var data = await axios.request(config)
-		}
-		catch (e) {
-			console.log(e)
-			return []
-		}
+		let retries = 0
+		do {
+			var data = await this.makeFilterRequest(url, config, currentPage)
+			if (data.code || data.code == 'ECONNABORTED') retries++
+			else if (data.code || Number(data.response.status) >= 400) {
+				console.log(data)
+				 return []
+			}
+		} while (data.code && retries < 5)
 
 		let manga: string[] = []
-		while (hasResults) {
+		while (hasResults && data.data) {
 			let results: any = source.filterUpdatedManga(data.data, info.metadata)
 			manga = manga.concat(results.updatedMangaIds)
 			if (results.nextPage) {
 				currentPage++
-				try {
-					config.url = url + currentPage
-					data = await axios.request(config)
-				}
-				catch (e) {
-					console.log(e)
-					return manga
-				}
+				let retries = 0
+				do {
+					data = await this.makeFilterRequest(url, config, currentPage)
+					if (data.code || data.code == 'ECONNABORTED') retries++
+					else if (data.code) {
+						console.log(data)
+						return manga
+					}
+				} while (data.code && retries < 5) 
 			}
 			else {
 				hasResults = false
@@ -188,6 +190,29 @@ class APIWrapper {
 		}
 
 		return manga
+	}
+
+	// In the case that a source takes too long (LOOKING AT YOU MANGASEE)
+	// we will retry after a 4 second timeout. During testings, some requests would take up to 30 s for no reason
+	// this brings that edge case way down while still getting data
+	private async makeFilterRequest(url: string, config: any, currentPage: number): Promise<any> {
+		let post: boolean = config.method ? true : false
+		try {
+			if (!post) {
+				config.url = url + currentPage
+			}
+			else {
+				// axios has a hard time with properly encoding the payload
+				// this took me too long to find
+				config.data = config.data.replace(/(.*page=)(\d*)(.*)/g, `$1${currentPage}$3`)
+				config.timeout = 4000
+			}
+			var data = await axios.request(config)
+		}
+		catch (e) {
+			return e
+		}
+		return data
 	}
 
 	/**
@@ -234,12 +259,12 @@ class APIWrapper {
 		let info = source.searchRequest(query, page)
 		let config = info.request.config
 		let url = config.url
-
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
 
 		try {
 			config.url = url + info.request.param
+			console.log(config)
 			var data = await axios.request(config)
 		}
 		catch (e) {
@@ -312,3 +337,11 @@ let application = new APIWrapper(new MangaDex(cheerio))
 // application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then( (data) => {console.log(data)})
 // application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => {console.log(data)})
 // application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => {console.log(data)})
+
+// Mangasee
+// application.getMangaDetails(new Mangasee(cheerio), ['Domestic-Na-Kanojo']).then((data) => {console.log(data)})
+// application.getChapters(new Mangasee(cheerio), 'Boku-no-hero-academia').then((data) => {console.log(data)})
+// application.getChapterDetails(new Mangasee(cheerio), 'boku-no-hero-academia', 'Boku-No-Hero-Academia-chapter-269-page-1.html').then((data) => {console.log(data)})
+// application.filterUpdatedManga(new Mangasee(cheerio), ['Be-Blues---Ao-Ni-Nare', 'Tales-Of-Demons-And-Gods', 'Amano-Megumi-Wa-Suki-Darake'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
+let test = createSearchRequest('one piece', ['Shounen'], [], [], [], [], [], [], [], [], ['Supernatural'])
+application.search(new Mangasee(cheerio), test, 1).then((data) => {console.log(data)})
