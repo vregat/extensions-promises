@@ -8,12 +8,13 @@ export interface MangaTile {
   badge: number
 }
 
-interface IconText {
-  icon: string
+export interface IconText {
   text: string
+  icon?: string
 }
 
 declare global {
-  function createMangaTile(id: string, titleText: string, image: string, subtitleText: string, primaryIcon: string,
-    primaryText: string, secondaryIcon: string, secondaryText: string, badge?: number): MangaTile
+  function createMangaTile(id: string, image: string, title: IconText, subtitleText?: IconText,
+    primaryText?: IconText, secondaryText?: IconText, badge?: number): MangaTile
+  function createIconText(text: string, icon?: string): IconText
 }

@@ -252,7 +252,7 @@ export class MangaPark extends Source {
 
       let sIcon = 'clock.fill'
       let sText = $('li.new', item).first().find('i').last().text() ?? ''
-      updateManga.push(createMangaTile(id, title, image, subtitle, '', '', sIcon, sText))
+      updateManga.push(createMangaTile(id, image, createIconText(title), createIconText(subtitle), undefined, createIconText(sText, sIcon)))
     }
 
     // console.log(updateManga)
