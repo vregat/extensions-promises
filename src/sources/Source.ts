@@ -3,12 +3,13 @@
  * This allows us to to use a generic api to make the calls against any source
  */
 
-import { SearchRequest } from "../models/SearchRequest"
-import { Manga } from "../models/Manga"
-import { RequestObject } from "../models/RequestObject"
-import { Chapter } from "../models/Chapter"
-import { ChapterDetails } from "../models/ChapterDetails"
-import { MangaTile } from "../models/MangaTile"
+import { SearchRequest } from "../models/SearchRequest/SearchRequest"
+import { Manga } from "../models/Manga/Manga"
+import { Request } from "../models/RequestObject/RequestObject"
+import { Chapter } from "../models/Chapter/Chapter"
+import { ChapterDetails } from "../models/ChapterDetails/ChapterDetails"
+import { MangaTile } from "../models/MangaTile/MangaTile"
+import { HomeSectionRequest, HomeSection } from "../models/HomeSection/HomeSection"
 
 export abstract class Source {
   protected cheerio: CheerioAPI
@@ -16,37 +17,46 @@ export abstract class Source {
     this.cheerio = cheerio
   }
 
+
+
+  // <-----------        REQUIRED METHODS        -----------> //
   // Get information about particular manga
-  abstract getMangaDetailsRequest(ids: string[]): RequestObject
-  abstract getMangaDetails(data: any, mangaId: string): Manga
+  abstract getMangaDetailsRequest(ids: string[]): Request[]
+  abstract getMangaDetails(data: any, metadata: any): Manga[]
 
   // Get all chapters related to a manga
-  abstract getChapterRequest(mangaId: string): RequestObject
-  abstract getChapters(data: any, mangaId: string): Chapter[]
+  abstract getChaptersRequest(mangaId: string): Request
+  abstract getChapters(data: any, metadata: any): Chapter[]
 
   // Get all pages for a particular chapter
-  abstract getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject
-  abstract getChapterDetails(data: any, metadata: any): {'details': ChapterDetails, 'nextPage': boolean}
+  abstract getChapterDetailsRequest(mangaId: string, chapId: string): Request
+  abstract getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean }
 
+
+
+  // <-----------        OPTIONAL METHODS        -----------> //
   // Determines if, and how many times, the passed in ids have been updated since reference time 
-  abstract filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject
-  abstract filterUpdatedManga(data: any, metadata: any): {'updatedMangaIds': string[], 'nextPage': boolean}
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request | null { return null }
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } | null { return null }
 
   // For the apps home page, there are multiple sections that contain manga of interest
   // Function returns formatted sections and any number of such
-  abstract getHomePageSectionRequest(): any | null
-  abstract getHomePageSections(data: any, key: any, sections: any): any | null
+  getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
+  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
 
   // For many of the home page sections, there is an ability to view more of that selection
   // Calling these functions will retrieve more MangaTiles for the particular section
-  abstract getViewMoreRequest(key: string): RequestObject
-  abstract getViewMoreItems(data: any, key: string, page: number): MangaTile[]
-  
+  getViewMoreRequest(key: string): Request | null { return null }
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
+
   // Does a search request - It is capable of doing advanced searches
   // See SearchRequest interface or MangaPark implementation for more information
-  abstract searchRequest(query: SearchRequest, page: number): RequestObject
-  abstract search(data: any): any
+  searchRequest(query: SearchRequest, page: number): Request | null { return null }
+  search(data: any): MangaTile[] | null { return null }
 
+
+
+  // <-----------        PROTECTED METHODS        -----------> //
   // Many sites use '[x] time ago' - Figured it would be good to handle these cases in general
   protected convertTime(timeAgo: string): Date {
     let time: Date

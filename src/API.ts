@@ -1,27 +1,25 @@
 
 // Import the global wrapper for all the models
-import './models/Chapter_impl'
-import './models/ChapterDetail_impl'
-import './models/HomeRequestObject_impl'
-import './models/Manga_impl'
-import './models/MangaTile_impl'
-import './models/SearchRequest_impl'
-import './models/RequestObject_impl'
+import './models/impl_export'
 
-import { MangaDex } from './sources/Mangadex'
-import { MangaPark } from './sources/Mangapark'
-import { Source } from './sources/Source'
 import cheerio from 'cheerio'
-import { Manganelo } from './sources/Manganelo'
-import { Mangasee } from './sources/Mangasee'
+import { Source } from './sources/Source'
 
-import { Manga } from './models/Manga'
-import { Chapter } from './models/Chapter'
-import { ChapterDetails } from './models/ChapterDetails'
-import { SearchRequest } from './models/SearchRequest'
-import { RequestObject } from './models/RequestObject'
+// Sources
+import { MangaDex } from './sources/Mangadex'
+// import { MangaPark } from './sources/Mangapark'
+// import { Manganelo } from './sources/Manganelo'
+// import { Mangasee } from './sources/Mangasee'
 
-const axios = require('axios').default;
+import { Manga } from './models/Manga/Manga'
+import { Chapter } from './models/Chapter/Chapter'
+import { ChapterDetails } from './models/ChapterDetails/ChapterDetails'
+import { SearchRequest } from './models/SearchRequest/SearchRequest'
+import { Request } from './models/RequestObject/RequestObject'
+import { MangaTile } from './models/MangaTile/MangaTile'
+
+// import axios from 'axios'  <- use this when you've fixed the typings
+const axios = require('axios')
 
 class APIWrapper {
 	mangadex: MangaDex
@@ -36,15 +34,18 @@ class APIWrapper {
 	 * @param ids 
 	 */
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
-		let info = source.getMangaDetailsRequest(ids)
-		let config = info.request
-		let url = config.url
-		let headers: any = config.headers
+		let info = source.getMangaDetailsRequest(ids)[0]
+		// let config = info
+		// let url = config.url
+		let headers: any = info.headers
 		headers['Cookie'] = this.formatCookie(info)
 		try {
 			var data = await Promise.all(ids.map(async (id) => {
-				config.url = url + id
-				return await axios.request(config)
+
+				return await axios.request({
+					url: `${info.url}${info.param ?? ""}`,
+					headers: headers
+				})
 			}))
 		}
 		catch (e) {
@@ -54,32 +55,32 @@ class APIWrapper {
 
 		let manga: Manga[] = []
 		for (let i = 0; i < data.length; i++) {
-			manga.push(source.getMangaDetails(data[i].data, info.metadata.ids[i]))
+			manga.push(...source.getMangaDetails(data[i].data, info.metadata.ids[i]))
 		}
 
 		return manga
 	}
 
-	/**
-	 * Returns the json payload from the cache server
-	 * 
-	 * @param ids 
-	 */
-	async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
-		let mangaDetailUrls = this.mangadex.getMangaDetailsRequest(ids)
-		let url = mangaDetailUrls.request.url
-		let payload = { 'id': ids }
-		try {
-			var data = await axios.post(url, payload)
-		}
-		catch (e) {
-			console.log(e)
-			return []
-		}
+	// /**
+	//  * Returns the json payload from the cache server
+	//  * 
+	//  * @param ids 
+	//  */
+	// async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
+	// 	let mangaDetailUrls = this.mangadex.getMangaDetailsRequest(ids)
+	// 	let url = mangaDetailUrls.url
+	// 	let payload = { 'id': ids }
+	// 	try {
+	// 		var data = await axios.post(url, payload)
+	// 	}
+	// 	catch (e) {
+	// 		console.log(e)
+	// 		return []
+	// 	}
 
-		let manga: Manga[] = this.mangadex.getMangaDetailsBulk(data)
-		return manga
-	}
+	// 	let manga: Manga[] = this.mangadex.getMangaDetailsBulk(data)
+	// 	return manga
+	// }
 
 	/**
 	 * Retrieves all the chapters for a particular manga
@@ -88,14 +89,14 @@ class APIWrapper {
 	 * @param mangaId 
 	 */
 	async getChapters(source: Source, mangaId: string): Promise<Chapter[]> {
-		let info = source.getChapterRequest(mangaId)
-		let config = info.request
+		let info = source.getChaptersRequest(mangaId)
+		let config = info
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
 
 		try {
-			config.url = url + info.request.param
+			config.url = url + info.param
 			var data = await axios.request(config)
 		}
 		catch (e) {
@@ -116,14 +117,14 @@ class APIWrapper {
 	 */
 	async getChapterDetails(source: Source, mangaId: string, chId: string) {
 		let info = source.getChapterDetailsRequest(mangaId, chId)
-		let config = info.request
+		let config = info
 		let url = config.url
 		let metadata = info.metadata
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
 
 		try {
-			config.url = url + info.request.param
+			config.url = url + info.param
 			var data = await axios.request(config)
 		}
 		catch (e) {
@@ -138,7 +139,7 @@ class APIWrapper {
 		while (response.nextPage && metadata.page) {
 			metadata.page++
 			try {
-				config.url = url + info.request.param
+				config.url = url + info.param
 				data = await axios.request(config)
 			}
 			catch (e) {
@@ -165,7 +166,9 @@ class APIWrapper {
 		let currentPage = 1
 		let hasResults = true
 		let info = source.filterUpdatedMangaRequest(ids, referenceTime, currentPage)
-		let config = info.request
+		if (info == null) return Promise.resolve([])
+
+		let config = info
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
@@ -236,29 +239,31 @@ class APIWrapper {
 	 */
 	async getHomePageSections(source: Source) {
 		let info = source.getHomePageSectionRequest()
+		if (info == null) return Promise.resolve([])
+
 		let keys: any = Object.keys(info)
 		let configs = []
 		let sections: any = []
 		for (let key of keys) {
 			for (let section of info[key].sections)
 				sections.push(section)
-			configs.push(info[key].request.request.config)
+			configs.push(info[key].request)
 		}
 
 		try {
 			var data: any = await Promise.all(configs.map(axios.request))
+
+			// Promise.all retains order
+			for (let i = 0; i < data.length; i++) {
+				sections = source.getHomePageSections(data[i].data, sections)
+			}
+
+			return sections
 		}
 		catch (e) {
 			console.log(e)
 			return []
 		}
-
-		// Promise.all retains order
-		for (let i = 0; i < data.length; i++) {
-			sections = source.getHomePageSections(data[i].data, keys[i], sections)
-		}
-
-		return sections
 	}
 
 	/**
@@ -267,62 +272,65 @@ class APIWrapper {
 	 * @param query 
 	 * @param page
 	 */
-	async search(source: Source, query: SearchRequest, page: number): Promise<Manga[]> {
+	async search(source: Source, query: SearchRequest, page: number): Promise<MangaTile[]> {
 		let info = source.searchRequest(query, page)
-		let config = info.request
+		if (info == null) return Promise.resolve([])
+
+		let config = info
 		let url = config.url
 		let headers: any = config.headers
 		headers['Cookie'] = this.formatCookie(info)
 
 		try {
-			config.url = url + info.request.param
+			config.url = url + info.param
 			console.log(config)
 			var data = await axios.request(config)
+
+			return source.search(data.data) ?? []
 		}
 		catch (e) {
 			console.log(e)
 			return []
 		}
 
-		return source.search(data.data)
 	}
 
-	/**
-	 * Returns the json payload from the cache server
-	 * 
-	 * @param query 
-	 * @param page 
-	 */
-	async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
-		let url = this.mangadex.searchRequest(query, page).request.url
-		try {
-			var data = await axios.post(url + `?page=${page}&items=100`, query)
-		}
-		catch (e) {
-			console.log(e)
-			return []
-		}
+	// /**
+	//  * Returns the json payload from the cache server
+	//  * 
+	//  * @param query 
+	//  * @param page 
+	//  */
+	// async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
+	// 	let url = this.mangadex.searchRequest(query, page).url
+	// 	try {
+	// 		var data = await axios.post(url + `?page=${page}&items=100`, query)
+	// 	}
+	// 	catch (e) {
+	// 		console.log(e)
+	// 		return []
+	// 	}
 
-		return this.mangadex.searchMangaCached(data.data)
-	}
+	// 	return this.mangadex.searchMangaCached(data.data)
+	// }
 
-	async getTags() {
-		let url = this.mangadex.getTagsUrl().url
-		try {
-			var data = await axios.get(url)
-		}
-		catch (e) {
-			console.log(e)
-			return []
-		}
+	// async getTags() {
+	// 	let url = this.mangadex.getTagsUrl().url
+	// 	try {
+	// 		var data = await axios.get(url)
+	// 	}
+	// 	catch (e) {
+	// 		console.log(e)
+	// 		return []
+	// 	}
 
-		let tags = this.mangadex.getTags(data.data)
-		return tags
-	}
+	// 	let tags = this.mangadex.getTags(data.data)
+	// 	return tags
+	// }
 
-	private formatCookie(info: RequestObject): string {
+	private formatCookie(info: Request): string {
 		let fCookie = ''
-		for (let cookie of info.request.cookies ?? [])
+		for (let cookie of info.cookies ?? [])
 			fCookie += `${cookie.name}=${cookie.value};`
 		return fCookie
 	}
@@ -334,7 +342,7 @@ let application = new APIWrapper(new MangaDex(cheerio))
 // MangaDex
 // application.getMangaDetails(new MangaDex(cheerio), ['1'])
 // application.filterUpdatedManga(new MangaDex(cheerio), ['1'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
-// application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
+application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 
 // MangaPark
 // application.getMangaDetails(new MangaPark(cheerio), ['radiation-house', 'boku-no-hero-academia-horikoshi-kouhei']).then((data) => {console.log(data)})

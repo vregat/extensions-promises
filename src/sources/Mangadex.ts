@@ -1,70 +1,74 @@
 import { Source } from './Source'
-import { Manga } from '../models/Manga'
-import { Chapter } from '../models/Chapter'
-import { MangaTile } from '../models/MangaTile'
-import { SearchRequest } from '../models/SearchRequest'
-import { RequestObject } from '../models/RequestObject'
-import { ChapterDetails } from '../models/ChapterDetails'
+import { Manga } from '../models/Manga/Manga'
+import { Chapter } from '../models/Chapter/Chapter'
+import { MangaTile } from '../models/MangaTile/MangaTile'
+import { SearchRequest } from '../models/SearchRequest/SearchRequest'
+import { Request } from '../models/RequestObject/RequestObject'
+import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
+
+import { CACHE_MANGA_DETAILS } from '../models/Constants/Constants'
+import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSection'
+
+const MD_DOMAIN = 'https://mangadex.org'
+const MD_CHAPTERS_API = `${MD_DOMAIN}/api/manga`                // /:mangaId
+const MD_CHAPTER_DETAILS_API = `${MD_DOMAIN}/api/chapter`       // /:chapterId
 
 export class MangaDex extends Source {
   private hMode: number
+
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
     this.hMode = 0
   }
 
-  getMangaDetailsRequest(ids: string[]): RequestObject {
-    let metadata = { 'ids': ids }
-    return createRequestObject(metadata, 'https://mangadex.org/title/', undefined, undefined, undefined, undefined, undefined, undefined, true)
+  getMangaDetailsRequest(ids: string[]): Request[] {
+    return [createRequestObject({
+      metadata: { ids },
+      url: `${CACHE_MANGA_DETAILS}`,
+      method: 'POST',
+      headers: {
+        "content-type": "application/json"
+      },
+      data: JSON.stringify({
+        ids: ids
+      })
+    })]
   }
 
-  // TODO: TO BE IMPLEMENTED
-  getMangaDetails(data: any, mangaId: string): Manga {
+  getMangaDetails(data: any, metadata: any): Manga[] {
     throw new Error("Method not implemented.");
   }
 
-  // Manga is already formatted at the cache server level
-  getMangaDetailsBulk(data: any): Manga[] {
-    let manga: Manga[] = []
-    /*let unformatedManga = data.result
-    for (let u of unformatedManga) {
-      let formattedManga: Manga = new Manga(data.id, data.image, data.artist, data.author, data.avgRating, data.content,
-        data.covers, data.demographic, data.description, data.follows, data.format, data.genre, data.langFlag, data.langName,
-        data.rating, data.status, data.theme, data.titles, data.users, data.views, data.hentai, data.related, data.relatedManga,
-        data.lastUpdate)
-      manga.push(formattedManga)
-    }*/
-    return data.result
+  getChaptersRequest(mangaId: string): Request {
+    let metadata = { mangaId }
+    return createRequestObject({
+      metadata,
+      url: MD_CHAPTERS_API,
+      param: mangaId,
+      method: "GET"
+    })
   }
 
-  getChapterRequest(mangaId: string): RequestObject {
-    let metadata = { 'id': mangaId }
-    return createRequestObject(metadata, 'https://mangadex.org/api/manga/', [], mangaId, undefined, undefined, undefined, undefined, true)
+  getChapters(data: any, metadata: any): Chapter[] {
+    data = data.chapter as any
+
+    return Object.keys(data).map(id => {
+      const chapter = data[id]
+
+      return createChapter({
+        id: id,
+        chapNum: parseFloat(chapter.chapter),
+        langCode: chapter.lang_code,
+        volume: parseFloat(chapter.volume),
+        mangaId: metadata.mangaId,
+        group: chapter.group_name,
+        name: chapter.title,
+        time: new Date(chapter.timestamp)
+      })
+    })
   }
 
-  getChapters(data: any, mangaId: string) {
-    data = data.chapter
-    let entries = Object.entries(data)
-    let chapters: Chapter[] = []
-    for (let entry of entries) {
-      let id: string = entry[0]
-      let info: any = entry[1]
-      chapters.push(createChapter(id,
-        mangaId,
-        info.title,
-        info.chapter,
-        info.volume,
-        info.group_name,
-        0,
-        new Date(info.timestamp),
-        false,
-        info.lang_code))
-    }
-
-    return chapters
-  }
-
-  getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject {
+  getChapterDetailsRequest(mangaId: string, chapId: string): Request {
     throw new Error("Method not implemented.")
   }
 
@@ -72,10 +76,17 @@ export class MangaDex extends Source {
     throw new Error("Method not implemented.")
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject {
-    let metadata = { 'ids': ids, 'referenceTime': time }
-    let cookies = [createCookie('mangadex_title_mode', (2).toString(), undefined, undefined, undefined, undefined), createCookie('mangadex_h_mode', this.hMode.toString(), undefined, undefined, undefined, undefined)]
-    return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString(), undefined, undefined, undefined, undefined, true)
+  filterUpdatedMangaRequest(ids: string[], time: Date, page: number): Request | null {
+    return null
+
+    // let metadata = { 'ids': ids, 'referenceTime': time }
+    // let cookies = [
+    //   createCookie({
+    //     name: 'mangadex_title_mode',
+    //     value: '2'
+    //   })
+    // ]
+    // return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString(), undefined, undefined, undefined, undefined, true)
   }
 
   filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
@@ -102,32 +113,53 @@ export class MangaDex extends Source {
     return returnObject
   }
 
-  getHomePageSectionRequest() {
-    let request1 = createRequestObject({}, 'https://mangadex.org', undefined, undefined, undefined, undefined, undefined, undefined, true)
-    let request2 = createRequestObject({}, 'https://mangadex.org/updates', undefined, undefined, undefined, undefined, undefined, undefined, true)
+  getHomePageSectionRequest(): HomeSectionRequest[] {
+    let request1 = createRequestObject({
+      url: 'https://mangadex.org',
+      method: "GET"
+    })
+    let request2 = createRequestObject({
+      url: 'https://mangadex.org/updates',
+      method: 'GET'
+    })
 
-    let section1 = createSection('featured_titles', 'FEATURED TITLES', [], undefined)
-    let section2 = createSection('new_titles', 'NEW TITLES', [], undefined)
-    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [], undefined)
+    let section1 = createHomeSection({ id: 'featured_titles', title: 'FEATURED TITLES' })
+    let section2 = createHomeSection({ id: 'new_titles', title: 'NEW TITLES' })
+    let section3 = createHomeSection({ id: 'recently_updated', title: 'RECENTLY UPDATED TITLES' })
 
-    return {
-      'featured_new': createHomeRequestObject(request1, [section1, section2]),
-      'recently_updated': createHomeRequestObject(request2, [section3])
-    }
+    return [
+      createHomeSectionRequest({
+        request: request1,
+        sections: [section1, section2]
+      }),
+      createHomeSectionRequest({
+        request: request2,
+        sections: [section3]
+      })
+    ]
   }
 
-  getHomePageSections(data: any, key: string, sections: any) {
+  getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] {
     let $ = this.cheerio.load(data)
-    switch (key) {
-      case "featured_new": sections = this.getFeaturedNew($, sections); break
-      case "recently_updated": sections = this.getRecentUpdates($, sections); break
-    }
-    return sections
+    return sections.map(section => {
+      switch (section.id) {
+        case 'featured_titles':
+          section.items = this.parseFeaturedMangaTiles($)
+          break;
+        case 'new_titles':
+          section.items = this.parseNewMangaSectionTiles($)
+          break;
+        case 'recently_updated':
+          section.items = this.parseRecentlyUpdatedMangaSectionTiles($)
+          break;
+      }
+
+      return section
+    })
   }
 
-  getFeaturedNew($: CheerioSelector, section: any) {
+  parseFeaturedMangaTiles($: CheerioSelector): MangaTile[] {
     let featuredManga: MangaTile[] = []
-    let newManga: MangaTile[] = []
 
     $("#hled_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
       let title = $(elem)
@@ -141,8 +173,21 @@ export class MangaDex extends Source {
       let caption = title.find(".car-caption p:nth-child(2)")
       let bookmarks = caption.find("span[title=Follows]").text()
       let rating = caption.find("span[title=Rating]").text()
-      featuredManga.push(createMangaTile(id[0], img.attr("data-src") ?? " ", createIconText(img.attr("title") ?? " ", undefined), undefined, createIconText(bookmarks, 'bookmark.fill'), createIconText(rating, 'star.fill'), undefined))
+
+      featuredManga.push(createMangaTile({
+        id: id[0],
+        image: img.attr("data-src") ?? " ",
+        title: createIconText({ text: img.attr("title") ?? " " }),
+        primaryText: createIconText({ text: bookmarks, icon: 'bookmark.fill' }),
+        secondaryText: createIconText({ text: rating, icon: 'star.fill' })
+      }))
     })
+
+    return featuredManga
+  }
+
+  parseNewMangaSectionTiles($: CheerioSelector): MangaTile[] {
+    let newManga: MangaTile[] = []
 
     $("#new_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
       let title = $(elem)
@@ -156,17 +201,23 @@ export class MangaDex extends Source {
       let caption = title.find(".car-caption p:nth-child(2)")
       let obj: any = { name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
       let updateTime: string = (Date.parse(caption.find("span").attr("title") ?? " ")).toString()
-      newManga.push(createMangaTile(id[0], img.attr("data-src") ?? " ", createIconText(img.attr("title") ?? " ", undefined), createIconText(caption.find("a").text(), undefined), undefined, createIconText(updateTime, 'clock.fill'), undefined))
+      newManga.push(createMangaTile({
+        id: id[0],
+        image: img.attr("data-src") ?? " ",
+        title: createIconText({ text: img.attr("title") ?? " " }),
+        subtitleText: createIconText({ text: caption.find("a").text() }),
+        secondaryText: createIconText({ text: updateTime, icon: 'clock.fill' })
+      }))
     })
-    section[0].items = featuredManga
-    section[1].items = newManga
-    return section
+
+    return newManga
   }
 
-  getRecentUpdates($: CheerioSelector, section: any) {
+  parseRecentlyUpdatedMangaSectionTiles($: CheerioSelector): MangaTile[] {
     let updates: MangaTile[] = []
     let elem = $('tr', 'tbody').toArray()
     let i = 0
+
     while (i < elem.length) {
       let hasImg: boolean = false
       let idStr: string = $('a.manga_title', elem[i]).attr('href') ?? ''
@@ -199,65 +250,17 @@ export class MangaDex extends Source {
         hasImg = $(elem[i]).find('img').length > 0
       }
 
-      updates.push(createMangaTile(id, image, createIconText(title, undefined),  createIconText(subTitle, undefined), createIconText(pText, pIcon), createIconText(sText, sIcon), badge))
+      updates.push(createMangaTile({
+        id,
+        image,
+        title: createIconText({ text: title }),
+        subtitleText: createIconText({ text: subTitle }),
+        primaryText: createIconText({ text: pText, icon: pIcon }),
+        secondaryText: createIconText({ text: sText, icon: sIcon }),
+        badge
+      }))
     }
 
-    section[2].items = updates
-    return section
+    return updates
   }
-
-  getViewMoreRequest(key: string): RequestObject {
-    throw new Error("Method not implemented.")
-  }
-
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
-    throw new Error("Method not implemented.")
-  }
-
-  //TODO: NOT FULLY IMPLEMENTED FOR search()
-  searchRequest(query: SearchRequest, page: number): RequestObject {
-    throw new Error("Method not implemented.");
-    /*let search = ''
-    return {
-      'metadata': {
-        'search': search
-      },
-      'request': {
-        'url': 'https://mangadex.org/search?',
-        'param': search,
-        'config': {
-          'headers' : {
-            
-          },
-        },
-        'cookies':[
-          { 
-            'key': '',
-            'value': ``
-          },
-        ]
-      }
-    }*/
-  }
-
-  search(data: any): any {
-    throw new Error("Method not implemented.")
-  }
-
-  // manga are already formatted at the cache server level
-  searchMangaCached(data: any): any {
-    return data.result
-  }
-
-  getTagsUrl() {
-    return {
-      'url': 'url'
-    }
-  }
-
-  // Tags are already formatted at the cache server level
-  getTags(data: any) {
-    return data.result
-  }
-
 }

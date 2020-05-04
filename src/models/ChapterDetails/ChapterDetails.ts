@@ -7,5 +7,5 @@ export interface ChapterDetails {
 
 declare global {
 
-  function createChapterDetails(id: string, mangaId: string, pages: string[], longStrip: boolean): ChapterDetails
+  function createChapterDetails(chapterDetails: ChapterDetails): ChapterDetails
 }
