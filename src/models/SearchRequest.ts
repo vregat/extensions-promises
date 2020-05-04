@@ -1,31 +1,31 @@
 export interface SearchRequest {
-  title?: string
+  title: string | undefined
 
-  includeDemographic?: string[]
-  includeTheme?: string[]
-  includeFormat?: string[]
-  includeContent?: string[]
-  includeGenre?: string[]
+  includeDemographic: string[] | undefined
+  includeTheme: string[] | undefined
+  includeFormat: string[] | undefined
+  includeContent: string[] | undefined
+  includeGenre: string[] | undefined
 
-  excludeDemographic?: string[]
-  excludeTheme?: string[]
-  excludeFormat?: string[]
-  excludeContent?: string[]
-  excludeGenre?: string[]
+  excludeDemographic: string[] | undefined
+  excludeTheme: string[] | undefined
+  excludeFormat: string[] | undefined
+  excludeContent: string[] | undefined
+  excludeGenre: string[] | undefined
 
-  includeOperator?: number
-  excludeOperator?: number
+  includeOperator: number | undefined
+  excludeOperator: number | undefined
 
-  author?: string
-  artist?: string
-  status?: number
-  hStatus?: boolean
+  author: string | undefined
+  artist: string | undefined
+  status: number | undefined
+  hStatus: boolean | undefined
 }
 
 declare global {
 
-  function createSearchRequest(title?: string, includeDemographic?: string[], includeTheme?: string[], includeFormat?: string[],
-    includeContent?: string[], includeGenre?: string[], excludeDemographic?: string[], excludeTheme?: string[],
-    excludeFormat?: string[], excludeContent?: string[], excludeGenre?: string[], includeOperator?: number,
-    excludeOperator?: number, author?: string, artist?: string, status?: number, hStatus?: boolean): SearchRequest
+  function createSearchRequest(title: string | undefined, includeDemographic: string[] | undefined, includeTheme: string[] | undefined, includeFormat: string[] | undefined,
+    includeContent: string[] | undefined, includeGenre: string[] | undefined, excludeDemographic: string[] | undefined, excludeTheme: string[] | undefined,
+    excludeFormat: string[] | undefined, excludeContent: string[] | undefined, excludeGenre: string[] | undefined, includeOperator: number | undefined,
+    excludeOperator: number | undefined, author: string | undefined, artist: string | undefined, status: number | undefined, hStatus: boolean | undefined): SearchRequest
 }

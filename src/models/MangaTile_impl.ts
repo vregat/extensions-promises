@@ -14,7 +14,7 @@ _global.createMangaTile = function (id: string, title: IconText, image: string, 
     }
 }
 
-_global.createIconText = function (text: string, icon?: string): IconText {
+_global.createIconText = function (text: string, icon: string | undefined): IconText {
     return {
         text, icon
     }

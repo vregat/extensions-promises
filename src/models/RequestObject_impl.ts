@@ -3,7 +3,7 @@ export { }
 
 const _global = global as any
 
-_global.createCookie = function (name: string, value: string, domain?: string, path?: string, created?: Date, expires?: Date): Cookie {
+_global.createCookie = function (name: string, value: string, domain: string | undefined, path: string | undefined, created: Date | undefined, expires: Date | undefined): Cookie {
     return {
         name: name,
         value: value,
@@ -17,12 +17,12 @@ _global.createCookie = function (name: string, value: string, domain?: string, p
 _global.createRequestObject = function (
     metadata: any,
     url: string,
-    cookies?: Cookie[],
-    param?: string,
-    method?: string,
-    data?: any,
-    timeout?: any,
-    headers?: Record<string, string>,
+    cookies: Cookie[] | undefined,
+    param: string | undefined,
+    method: string | undefined,
+    data: any | undefined,
+    timeout: any | undefined,
+    headers: Record<string, string> | undefined,
     incognito: boolean = true): RequestObject {
 
     headers = (headers == undefined) ? {} : headers

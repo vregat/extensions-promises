@@ -14,6 +14,6 @@ export interface Section {
 }
 
 declare global {
-  function createSection(id: string, title: string, items: MangaTile[], view_more?: boolean): Section
+  function createSection(id: string, title: string, items: MangaTile[], view_more: boolean | undefined): Section
   function createHomeRequestObject(request: RequestObject, sections: Section[]): HomeRequestObject
 }

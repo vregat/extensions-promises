@@ -13,8 +13,8 @@ export class MangaPark extends Source {
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
     let metadata = { 'ids': ids }
-    let cookies = createCookie('set', 'h=1')
-    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookies])
+    let cookies = createCookie('set', 'h=1', undefined, undefined, undefined, undefined)
+    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookies], undefined, undefined, undefined, undefined, undefined, true)
   }
 
   // FIXME: I need to figure out the proper Ids of the Tags
@@ -106,8 +106,8 @@ export class MangaPark extends Source {
 
   getChapterRequest(mangaId: string): RequestObject {
     let metadata = { 'id': mangaId }
-    let cookie = createCookie('set', 'h=1')
-    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], mangaId)
+    let cookie = createCookie('set', 'h=1', undefined, undefined, undefined, undefined)
+    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], mangaId, undefined, undefined, undefined, undefined, true)
   }
 
   getChapters(data: any, mangaId: string): Chapter[] {
@@ -156,8 +156,8 @@ export class MangaPark extends Source {
 
   getChapterDetailsRequest(mangaId: string, chId: string): RequestObject {
     let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false }
-    let cookie = createCookie('set', 'h=1')
-    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], `${mangaId}/${chId}`)
+    let cookie = createCookie('set', 'h=1', undefined, undefined, undefined, undefined)
+    return createRequestObject(metadata, 'https://mangapark.net/manga/', [cookie], `${mangaId}/${chId}`, undefined, undefined, undefined, undefined, true)
   }
 
 
@@ -178,8 +178,8 @@ export class MangaPark extends Source {
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
     let metadata = { 'ids': ids, 'referenceTime': time }
-    let cookie = createCookie('set', 'h=1')
-    return createRequestObject(metadata, 'https://mangapark.net/latest/', [cookie], page.toString())
+    let cookie = createCookie('set', 'h=1', undefined, undefined, undefined, undefined)
+    return createRequestObject(metadata, 'https://mangapark.net/latest/', [cookie], page.toString(), undefined, undefined, undefined, undefined, true)
   }
 
   filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
@@ -208,10 +208,10 @@ export class MangaPark extends Source {
   }
 
   getHomePageSectionRequest() {
-    let request = createRequestObject({}, 'https://mangapark.net/')
-    let section1 = createSection('popular_titles', 'POPULAR MANGA', [])
-    let section2 = createSection('popular_new_titles', 'POPULAR MANGA UPDATES', [])
-    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [])
+    let request = createRequestObject({}, 'https://mangapark.net/', undefined, undefined, undefined, undefined, undefined, undefined, true)
+    let section1 = createSection('popular_titles', 'POPULAR MANGA', [], undefined)
+    let section2 = createSection('popular_new_titles', 'POPULAR MANGA UPDATES', [], undefined)
+    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [], undefined)
 
     return { 'featured_new': createHomeRequestObject(request, [section1, section2, section3]) }
   }
@@ -230,7 +230,7 @@ export class MangaPark extends Source {
 
       let sIcon = 'clock.fill'
       let sText = $('i', item).text()
-      popManga.push(createMangaTile(id, title, image, subtitle, '', '', sIcon, sText))
+      popManga.push(createMangaTile(id, image, createIconText(title, undefined), createIconText(subtitle, undefined), undefined, createIconText(sText, sIcon), undefined))
     }
 
     for (let item of $('ul', '.mainer').toArray()) {
@@ -240,7 +240,7 @@ export class MangaPark extends Source {
         let image: string = $('img', elem).attr('src') ?? ''
         let subtitle: string = $('.visited', elem).text() ?? ''
 
-        newManga.push(createMangaTile(id, title, image, subtitle, '', '', '', ''))
+        newManga.push(createMangaTile(id, image, createIconText(title, undefined), createIconText(subtitle, undefined), undefined, undefined, undefined))
       }
     }
 
@@ -252,7 +252,7 @@ export class MangaPark extends Source {
 
       let sIcon = 'clock.fill'
       let sText = $('li.new', item).first().find('i').last().text() ?? ''
-      updateManga.push(createMangaTile(id, image, createIconText(title), createIconText(subtitle), undefined, createIconText(sText, sIcon)))
+      updateManga.push(createMangaTile(id, image, createIconText(title, undefined), createIconText(subtitle, undefined), undefined, createIconText(sText, sIcon), undefined))
     }
 
     // console.log(updateManga)
@@ -291,8 +291,8 @@ export class MangaPark extends Source {
     search += `&status=${status}&st-ss=1`
 
     let metadata = { 'search': search }
-    let cookie = createCookie('set', `h=${query.hStatus ? 1 : 0}`)
-    return createRequestObject(metadata, 'https://mangapark.net/search?', [cookie], search)
+    let cookie = createCookie('set', `h=${query.hStatus ? 1 : 0}`, undefined, undefined, undefined, undefined)
+    return createRequestObject(metadata, 'https://mangapark.net/search?', [cookie], search, undefined, undefined, undefined, undefined, true)
   }
 
   search(data: any) {

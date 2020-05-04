@@ -322,7 +322,7 @@ class APIWrapper {
 
 	private formatCookie(info: RequestObject): string {
 		let fCookie = ''
-		for (let cookie of info.request.cookies)
+		for (let cookie of info.request.cookies ?? [])
 			fCookie += `${cookie.name}=${cookie.value};`
 		return fCookie
 	}
@@ -346,7 +346,7 @@ let application = new APIWrapper(new MangaDex(cheerio))
 // application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // Manganelo
-application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then((data) => { console.log(data) })
+// application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then((data) => { console.log(data) })
 // application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => {console.log(data)})
 // application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => {console.log(data)})
 
@@ -355,5 +355,5 @@ application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_onlin
 // application.getChapters(new Mangasee(cheerio), 'Boku-no-hero-academia').then((data) => {console.log(data)})
 // application.getChapterDetails(new Mangasee(cheerio), 'boku-no-hero-academia', 'Boku-No-Hero-Academia-chapter-269-page-1.html').then((data) => {console.log(data)})
 // application.filterUpdatedManga(new Mangasee(cheerio), ['Be-Blues---Ao-Ni-Nare', 'Tales-Of-Demons-And-Gods', 'Amano-Megumi-Wa-Suki-Darake'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
-//let test = createSearchRequest('one piece', ['Shounen'], [], [], [], [], [], [], [], [], ['Supernatural'])
-//application.search(new Mangasee(cheerio), test, 1).then((data) => { console.log(data) })
+// let test = createSearchRequest('one piece', ['Shounen'], [], [], [], [], [], [], [], [], ['Supernatural'])
+// application.search(new Mangasee(cheerio), test, 1).then((data) => { console.log(data) })

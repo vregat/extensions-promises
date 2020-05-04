@@ -15,7 +15,7 @@ export class MangaDex extends Source {
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
     let metadata = { 'ids': ids }
-    return createRequestObject(metadata, 'https://mangadex.org/title/')
+    return createRequestObject(metadata, 'https://mangadex.org/title/', undefined, undefined, undefined, undefined, undefined, undefined, true)
   }
 
   // TODO: TO BE IMPLEMENTED
@@ -39,7 +39,7 @@ export class MangaDex extends Source {
 
   getChapterRequest(mangaId: string): RequestObject {
     let metadata = { 'id': mangaId }
-    return createRequestObject(metadata, 'https://mangadex.org/api/manga/', [], mangaId)
+    return createRequestObject(metadata, 'https://mangadex.org/api/manga/', [], mangaId, undefined, undefined, undefined, undefined, true)
   }
 
   getChapters(data: any, mangaId: string) {
@@ -74,8 +74,8 @@ export class MangaDex extends Source {
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): RequestObject {
     let metadata = { 'ids': ids, 'referenceTime': time }
-    let cookies = [createCookie('mangadex_title_mode', (2).toString()), createCookie('mangadex_h_mode', this.hMode.toString())]
-    return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString())
+    let cookies = [createCookie('mangadex_title_mode', (2).toString(), undefined, undefined, undefined, undefined), createCookie('mangadex_h_mode', this.hMode.toString(), undefined, undefined, undefined, undefined)]
+    return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString(), undefined, undefined, undefined, undefined, true)
   }
 
   filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
@@ -103,12 +103,12 @@ export class MangaDex extends Source {
   }
 
   getHomePageSectionRequest() {
-    let request1 = createRequestObject({}, 'https://mangadex.org')
-    let request2 = createRequestObject({}, 'https://mangadex.org/updates')
+    let request1 = createRequestObject({}, 'https://mangadex.org', undefined, undefined, undefined, undefined, undefined, undefined, true)
+    let request2 = createRequestObject({}, 'https://mangadex.org/updates', undefined, undefined, undefined, undefined, undefined, undefined, true)
 
-    let section1 = createSection('featured_titles', 'FEATURED TITLES', [])
-    let section2 = createSection('new_titles', 'NEW TITLES', [])
-    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [])
+    let section1 = createSection('featured_titles', 'FEATURED TITLES', [], undefined)
+    let section2 = createSection('new_titles', 'NEW TITLES', [], undefined)
+    let section3 = createSection('recently_updated', 'RECENTLY UPDATED TITLES', [], undefined)
 
     return {
       'featured_new': createHomeRequestObject(request1, [section1, section2]),
@@ -141,7 +141,7 @@ export class MangaDex extends Source {
       let caption = title.find(".car-caption p:nth-child(2)")
       let bookmarks = caption.find("span[title=Follows]").text()
       let rating = caption.find("span[title=Rating]").text()
-      featuredManga.push(createMangaTile(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", '', 'bookmark.fill', bookmarks, 'star.fill', rating))
+      featuredManga.push(createMangaTile(id[0], img.attr("data-src") ?? " ", createIconText(img.attr("title") ?? " ", undefined), undefined, createIconText(bookmarks, 'bookmark.fill'), createIconText(rating, 'star.fill'), undefined))
     })
 
     $("#new_titles_owl_carousel .large_logo").each(function (i: any, elem: any) {
@@ -155,7 +155,8 @@ export class MangaDex extends Source {
 
       let caption = title.find(".car-caption p:nth-child(2)")
       let obj: any = { name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
-      newManga.push(createMangaTile(id[0], img.attr("title") ?? " ", img.attr("data-src") ?? " ", caption.find("a").text(), '', '', 'clock.fill', (Date.parse(caption.find("span").attr("title") ?? " ")).toString()))
+      let updateTime: string = (Date.parse(caption.find("span").attr("title") ?? " ")).toString()
+      newManga.push(createMangaTile(id[0], img.attr("data-src") ?? " ", createIconText(img.attr("title") ?? " ", undefined), createIconText(caption.find("a").text(), undefined), undefined, createIconText(updateTime, 'clock.fill'), undefined))
     })
     section[0].items = featuredManga
     section[1].items = newManga
@@ -198,7 +199,7 @@ export class MangaDex extends Source {
         hasImg = $(elem[i]).find('img').length > 0
       }
 
-      updates.push(createMangaTile(id, title, image, subTitle, pIcon, pText, sIcon, sText, badge))
+      updates.push(createMangaTile(id, image, createIconText(title, undefined),  createIconText(subTitle, undefined), createIconText(pText, pIcon), createIconText(sText, sIcon), badge))
     }
 
     section[2].items = updates

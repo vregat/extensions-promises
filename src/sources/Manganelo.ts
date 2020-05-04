@@ -15,7 +15,7 @@ export class Manganelo extends Source {
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
     let metadata = { 'ids': ids }
-    return createRequestObject(metadata, 'https://manganelo.com/manga/')
+    return createRequestObject(metadata, 'https://manganelo.com/manga/', undefined, undefined, undefined, undefined, undefined, undefined, true)
   }
 
   getMangaDetails(data: any, mangaId: string): Manga {
@@ -93,7 +93,7 @@ export class Manganelo extends Source {
 
   getChapterRequest(mangaId: string): RequestObject {
     let metadata = { 'id': mangaId }
-    return createRequestObject(metadata, 'https://manganelo.com/manga/', [], mangaId)
+    return createRequestObject(metadata, 'https://manganelo.com/manga/', [], mangaId, undefined, undefined, undefined, undefined, true)
   }
 
   getChapters(data: any, mangaId: string): Chapter[] {
@@ -113,8 +113,8 @@ export class Manganelo extends Source {
 
   getChapterDetailsRequest(mangaId: string, chId: string): RequestObject {
     let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false }
-    let cookie = createCookie('content_lazyload', 'off')
-    return createRequestObject(metadata, 'https://manganelo.com/chapter/', [cookie], `${mangaId}/${chId}`)
+    let cookie = createCookie('content_lazyload', 'off', undefined, undefined, undefined, undefined)
+    return createRequestObject(metadata, 'https://manganelo.com/chapter/', [cookie], `${mangaId}/${chId}`, undefined, undefined, undefined, undefined, true)
   }
 
   getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {

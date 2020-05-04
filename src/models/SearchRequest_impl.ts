@@ -2,10 +2,10 @@ import { SearchRequest } from "./SearchRequest"
 
 const _global = global as any
 
-_global.createSearchRequest = function (title?: string, includeDemographic?: string[], includeTheme?: string[], includeFormat?: string[],
-    includeContent?: string[], includeGenre?: string[], excludeDemographic?: string[], excludeTheme?: string[],
-    excludeFormat?: string[], excludeContent?: string[], excludeGenre?: string[], includeOperator?: number,
-    excludeOperator?: number, author?: string, artist?: string, status?: number, hStatus: boolean = false): SearchRequest {
+_global.createSearchRequest = function (title: string | undefined, includeDemographic: string[] | undefined, includeTheme: string[] | undefined, includeFormat: string[] | undefined,
+    includeContent: string[] | undefined, includeGenre: string[] | undefined, excludeDemographic: string[] | undefined, excludeTheme: string[] | undefined,
+    excludeFormat: string[] | undefined, excludeContent: string[] | undefined, excludeGenre: string[] | undefined, includeOperator: number | undefined,
+    excludeOperator: number | undefined, author: string | undefined, artist: string | undefined, status: number | undefined, hStatus: boolean = false): SearchRequest {
     return {
         title: title,
         includeDemographic: includeDemographic,

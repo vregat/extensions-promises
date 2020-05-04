@@ -15,7 +15,7 @@ export class Mangasee extends Source {
 
   getMangaDetailsRequest(ids: string[]): RequestObject {
     let metadata = { 'ids': ids }
-    return createRequestObject(metadata, 'https://mangaseeonline.us/manga/')
+    return createRequestObject(metadata, 'https://mangaseeonline.us/manga/', undefined, undefined, undefined, undefined, undefined, undefined, true)
   }
 
   getMangaDetails(data: any, mangaId: string): Manga {
@@ -81,7 +81,7 @@ export class Mangasee extends Source {
 
   getChapterRequest(mangaId: string): RequestObject {
     let metadata = { 'id': mangaId }
-    return createRequestObject(metadata, 'https://mangaseeonline.us/manga/', [], mangaId)
+    return createRequestObject(metadata, 'https://mangaseeonline.us/manga/', [], mangaId, undefined, undefined, undefined, undefined, true)
   }
 
   getChapters(data: any, mangaId: string): Chapter[] {
@@ -100,7 +100,7 @@ export class Mangasee extends Source {
 
   getChapterDetailsRequest(mangaId: string, chapId: string): RequestObject {
     let metadata = { 'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1 }
-    return createRequestObject(metadata, 'https://mangaseeonline.us/read-online/', [], chapId)
+    return createRequestObject(metadata, 'https://mangaseeonline.us/read-online/', [], chapId, undefined, undefined, undefined, undefined, true)
   }
 
   getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
@@ -125,7 +125,7 @@ export class Mangasee extends Source {
     let metadata = { 'ids': ids, 'referenceTime': time }
     let data: any = { 'page': page }
     data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
-    return createRequestObject(metadata, 'https://mangaseeonline.us/home/latest.request.php', [], '', 'POST', data)
+    return createRequestObject(metadata, 'https://mangaseeonline.us/home/latest.request.php', [], '', 'POST', data, undefined, undefined, true)
   }
 
   filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
@@ -194,7 +194,7 @@ export class Mangasee extends Source {
     }
     let metadata = data
     data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
-    return createRequestObject(metadata, 'https://mangaseeonline.us/search/request.php', [], '', 'POST', data)
+    return createRequestObject(metadata, 'https://mangaseeonline.us/search/request.php', [], '', 'POST', data, undefined, undefined, true)
   }
 
   search(data: any) {
