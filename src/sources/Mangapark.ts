@@ -6,16 +6,11 @@ import { SearchRequest } from '../models/SearchRequest/SearchRequest'
 import { Request } from '../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
 import { TagSection } from '../models/TagSection/TagSection'
+import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSection'
 
 const MP_DOMAIN = 'https://mangapark.net'
 
 export class MangaPark extends Source {
-  searchRequest(query: SearchRequest, page: number): Request | null {
-    throw new Error("Method not implemented.")
-  }
-  search(data: any): MangaTile[] | null {
-    throw new Error("Method not implemented.")
-  }
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
   }
@@ -263,17 +258,17 @@ export class MangaPark extends Source {
     return returnObject
   }
 
-  /*
-  getHomePageSectionRequest() {
-    let request = createRequestObject({}, 'https://mangapark.net/', undefined, undefined, undefined, undefined, undefined, undefined, true)
-    let section1 = createHomeSection('popular_titles', 'POPULAR MANGA', [], undefined)
-    let section2 = createHomeSection('popular_new_titles', 'POPULAR MANGA UPDATES', [], undefined)
-    let section3 = createHomeSection('recently_updated', 'RECENTLY UPDATED TITLES', [], undefined)
 
-    return { 'featured_new': createHomeSectionRequest(request, [section1, section2, section3]) }
+  getHomePageSectionRequest(): HomeSectionRequest[] {
+    let request = createRequestObject({ url: `${MP_DOMAIN}`, method: 'GET' })
+    let section1 = createHomeSection({ id: 'popular_titles', title: 'POPULAR MANGA' })
+    let section2 = createHomeSection({ id: 'popular_new_titles', title: 'POPULAR MANGA UPDATES' })
+    let section3 = createHomeSection({ id: 'recently_updated', title: 'RECENTLY UPDATED TITLES' })
+
+    return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3] })]
   }
 
-  getHomePageSections(data: any, key: any, sections: any) {
+  getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] {
     let $ = this.cheerio.load(data)
     let popManga: MangaTile[] = []
     let newManga: MangaTile[] = []
@@ -287,7 +282,13 @@ export class MangaPark extends Source {
 
       let sIcon = 'clock.fill'
       let sText = $('i', item).text()
-      popManga.push(createMangaTile(id, image, createIconText(title, undefined), createIconText(subtitle, undefined), undefined, createIconText(sText, sIcon), undefined))
+      popManga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: title }),
+        subtitleText: createIconText({ text: subtitle }),
+        secondaryText: createIconText({ text: sText, icon: sIcon })
+      }))
     }
 
     for (let item of $('ul', '.mainer').toArray()) {
@@ -297,7 +298,12 @@ export class MangaPark extends Source {
         let image: string = $('img', elem).attr('src') ?? ''
         let subtitle: string = $('.visited', elem).text() ?? ''
 
-        newManga.push(createMangaTile(id, image, createIconText(title, undefined), createIconText(subtitle, undefined), undefined, undefined, undefined))
+        newManga.push(createMangaTile({
+          id: id,
+          image: image,
+          title: createIconText({ text: title }),
+          subtitleText: createIconText({ text: subtitle })
+        }))
       }
     }
 
@@ -309,7 +315,13 @@ export class MangaPark extends Source {
 
       let sIcon = 'clock.fill'
       let sText = $('li.new', item).first().find('i').last().text() ?? ''
-      updateManga.push(createMangaTile(id, image, createIconText(title, undefined), createIconText(subtitle, undefined), undefined, createIconText(sText, sIcon), undefined))
+      updateManga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: title }),
+        subtitleText: createIconText({ text: subtitle }),
+        secondaryText: createIconText({ text: sText, icon: sIcon })
+      }))
     }
 
     // console.log(updateManga)
@@ -326,6 +338,7 @@ export class MangaPark extends Source {
   getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
     throw new Error("Method not implemented.")
   }
+
 
   searchRequest(query: SearchRequest, page: number): Request {
     let genres = ''
@@ -348,82 +361,51 @@ export class MangaPark extends Source {
     search += `&status=${status}&st-ss=1`
 
     let metadata = { 'search': search }
-    let cookie = createCookie('set', `h=${query.hStatus ? 1 : 0}`, undefined, undefined, undefined, undefined)
-    return createRequestObject(metadata, 'https://mangapark.net/search?', [cookie], search, undefined, undefined, undefined, undefined, true)
+    return createRequestObject({
+      url: `${MP_DOMAIN}/search?`,
+      method: 'GET',
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        Cookie: `set=h=${query.hStatus ? 1 : 0}`
+      },
+      param: `${search}`
+    })
   }
 
   search(data: any) {
     let $ = this.cheerio.load(data)
     let mangaList = $('.manga-list')
-    let manga: Manga[] = []
+    let manga: MangaTile[] = []
     for (let item of $('.item', mangaList).toArray()) {
       let id = $('a', item).first().attr('href')?.split('/').pop() ?? ''
       let img = $('img', item)
       let image = $(img).attr('src') ?? ''
       let title = $(img).attr('title') ?? ''
-      let titles: string[] = [title]
       let rate = $('.rate', item)
       let rating = Number($(rate).find('i').text())
-      let follows = Number($(rate).attr('title')?.match(/(\d+)(?!.*\d)/))
-
       let author = ""
-      let artist = ""
-      let status = 0
-      let genres = []
-      let demographic = []
-      let hentai = false
 
       for (let field of $('.field', item).toArray()) {
         let elem = $('b', field).first().text()
-        switch (elem) {
-          case 'Alternative:': {
-            let info = $(field).text().replace(/(\t*\n*(Alternative:)*)/g, '').split(',')
-            for (let title of info) {
-              titles.push(title.trim())
-            }
-            break
-          }
-          case 'Authors/Artists:': {
-            let authorCheerio = $('a', field).first()
-            author = $(authorCheerio).text()
-            if ($(authorCheerio).next().attr('class') == 'pd') {
-              status = $('.pd', field).next().text() == 'Ongoing' ? 1 : 0
-            }
-            else {
-              artist = $(authorCheerio).next().text()
-            }
-            break
-          }
-          case 'Genres:': {
-            for (let genre of $('a', field).toArray()) {
-              let item = $(genre).html() ?? ""
-              if (item.includes('<b>')) {
-                demographic.push({
-                  'value': item.replace(/<[a-zA-Z\/][^>]*>/g, "")
-                })
-              }
-              else if (item.includes('Hentai')) {
-                hentai = true
-              }
-              else {
-                genres.push({
-                  'value': item.replace(/<[a-zA-Z\/][^>]*>/g, "")
-                })
-              }
-            }
-          }
+        if (elem == 'Authors/Artists:') {
+          let authorCheerio = $('a', field).first()
+          author = $(authorCheerio).text()
         }
       }
 
-      let summary = $('.summary', item).text().trim()
       let lastUpdate = $('ul', item).find('i').text()
 
-      manga.push(createManga(id, image, artist, author, rating, [], [], demographic, summary, follows, [], genres, 'en', 'english', rating, status, [], titles, 0, 0, hentai, 0, [], lastUpdate))
+      manga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: title }),
+        subtitleText: createIconText({ text: author }),
+        primaryText: createIconText({ text: rating.toString(), icon: 'star.fill' }),
+        secondaryText: createIconText({ text: lastUpdate, icon: 'clock.fill' })
+      }))
     }
 
     return manga
   }
-
-  */
-
 }

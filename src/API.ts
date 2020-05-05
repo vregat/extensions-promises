@@ -250,16 +250,16 @@ class APIWrapper {
 	 * @returns {Sections[]} List of sections
 	 */
 	async getHomePageSections(source: Source) {
-		let info = source.getHomePageSectionRequest()
-		if (info == null) return Promise.resolve([])
+		let request = source.getHomePageSectionRequest()
+		if (request == null) return Promise.resolve([])
 
-		let keys: any = Object.keys(info)
+		let keys: any = Object.keys(request)
 		let configs = []
 		let sections: any = []
 		for (let key of keys) {
-			for (let section of info[key].sections)
+			for (let section of request[key].sections)
 				sections.push(section)
-			configs.push(info[key].request)
+			configs.push(request[key].request)
 		}
 
 		try {
@@ -361,9 +361,13 @@ let application = new APIWrapper()
 // application.getMangaDetails(new MangaPark(cheerio), ['radiation-house', 'boku-no-hero-academia-horikoshi-kouhei']).then((data) => { console.log(data) })
 // application.getChapters(new MangaPark(cheerio), "radiation-house").then((data) => { console.log(data) })
 // application.getChapterDetails(new MangaPark(cheerio), 'radiation-house', 'i1510452').then((data) => console.log(data))
-application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => { console.log(data) })
-// let test = createSearchRequest('one piece', ['shounen'], [], [], [], [], [], [], [], [], ['adventure'])
-// application.search(new MangaPark(cheerio), test, 1).then((data) => {console.log(data.length)})
+// application.filterUpdatedManga(new MangaPark(cheerio), ["no-longer-a-heroine-gi-meng-gi", "the-wicked-queen-shin-ji-sang", "tower-of-god"], new Date("2020-04-25 02:33:30 UTC")).then((data) => { console.log(data) })
+// let test = createSearchRequest({
+// 	title: 'one piece',
+// 	includeDemographic: ['Shounen'],
+// 	excludeGenre: ['Adventure']
+// })
+// application.search(new MangaPark(cheerio), test, 1).then((data) => { console.log(data) })
 // application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // Manganelo
