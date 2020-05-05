@@ -33,7 +33,7 @@ export class MangaPark extends Source {
   getMangaDetails(data: any[], metadata: any[]): Manga[] {
     let manga: Manga[] = []
     for (let [i, response] of data.entries()) {
-      let $ = this.cheerio.load(response.data)
+      let $ = this.cheerio.load(response)
 
       let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
       createTagSection({ id: '1', label: 'demographic', tags: [] }),
@@ -143,7 +143,7 @@ export class MangaPark extends Source {
     })
   }
 
-  getChapters(data: any, mangaId: string): Chapter[] {
+  getChapters(data: any, metadata: any): Chapter[] {
     let $ = this.cheerio.load(data)
     let chapters: Chapter[] = []
     for (let elem of $('#list').children('div').toArray()) {
@@ -165,7 +165,7 @@ export class MangaPark extends Source {
           let time = this.convertTime($('.time', chap).text().trim())
           chapters.push(createChapter({
             id: chapId ?? '',
-            mangaId: mangaId,
+            mangaId: metadata.id,
             name: name,
             chapNum: chapNum,
             volume: volNum,
@@ -197,7 +197,7 @@ export class MangaPark extends Source {
   }
 
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string } {
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null } {
     let script = JSON.parse((/var _load_pages = (.*);/.exec(data) ?? [])[1])
     let pages: string[] = []
     for (let page of script) {
@@ -213,7 +213,7 @@ export class MangaPark extends Source {
     let returnObject = {
       'details': chapterDetails,
       'nextPage': metadata.nextPage,
-      'param': ''
+      'param': null
     }
     return returnObject
   }

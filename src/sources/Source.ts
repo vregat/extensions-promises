@@ -28,7 +28,7 @@ export abstract class Source {
 
   // Get all pages for a particular chapter
   abstract getChapterDetailsRequest(mangaId: string, chapId: string): Request
-  abstract getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string }
+  abstract getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null }
 
   // Does a search request - It is capable of doing advanced searches
   // See SearchRequest interface or MangaPark implementation for more information

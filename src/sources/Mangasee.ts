@@ -34,7 +34,7 @@ export class Mangasee extends Source {
   getMangaDetails(data: any[], metadata: any[]): Manga[] {
     let manga: Manga[] = []
     for (let [i, response] of data.entries()) {
-      let $ = this.cheerio.load(response.data)
+      let $ = this.cheerio.load(response)
       let info = $('.row')
       let image = $('img', '.row').attr('src') ?? ''
       let title = $('.SeriesName', info).text() ?? ''
@@ -119,7 +119,7 @@ export class Mangasee extends Source {
     })
   }
 
-  getChapters(data: any, mangaId: string): Chapter[] {
+  getChapters(data: any, metadata: any): Chapter[] {
     let $ = this.cheerio.load(data)
     let chapters: Chapter[] = []
     for (let item of $('.list-group-item', '.list.chapter-list').toArray()) {
@@ -130,7 +130,7 @@ export class Mangasee extends Source {
       let time = new Date($('time', item).attr('datetime') ?? '')
       chapters.push(createChapter({
         id: id,
-        mangaId: mangaId,
+        mangaId: metadata.id,
         name: title,
         chapNum: chNum,
         time: time,
@@ -153,7 +153,7 @@ export class Mangasee extends Source {
     })
   }
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string } {
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null } {
     let script = JSON.parse((/PageArr=(.*);/g.exec(data) ?? [])[1])
     let pages: string[] = []
     let images: string[] = Object.values(script)
@@ -172,7 +172,7 @@ export class Mangasee extends Source {
     let returnObject = {
       'details': chapterDetails,
       'nextPage': metadata.nextPage,
-      'param': ''
+      'param': null
     }
 
     return returnObject
@@ -216,18 +216,6 @@ export class Mangasee extends Source {
     }
 
     return returnObject
-  }
-
-  getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
-
-  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
-
-  getViewMoreRequest(key: string): Request {
-    throw new Error("Method not implemented.")
-  }
-
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
-    throw new Error("Method not implemented.")
   }
 
   searchRequest(query: SearchRequest, page: number): Request | null {
@@ -291,5 +279,10 @@ export class Mangasee extends Source {
 
     return mangaTiles
   }
+
+  getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
+  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
+  getViewMoreRequest(key: string): Request | null { return null }
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
 }
 

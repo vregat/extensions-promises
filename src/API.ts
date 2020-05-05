@@ -19,6 +19,7 @@ import { Request } from './models/RequestObject/RequestObject'
 import { MangaTile } from './models/MangaTile/MangaTile'
 import { Mangasee } from './sources/Mangasee'
 import { MangaPark } from './sources/Mangapark'
+import { Manganelo } from './sources/Manganelo'
 
 // import axios from 'axios'  <- use this when you've fixed the typings
 const axios = require('axios')
@@ -53,7 +54,7 @@ class APIWrapper {
 			}
 		}
 
-		manga.push(...source.getMangaDetails(responses, requests.map(a => a.metadata)))
+		manga.push(...source.getMangaDetails(responses.map(a => a.data), requests.map(a => a.metadata)))
 
 		return manga
 	}
@@ -99,7 +100,7 @@ class APIWrapper {
 				timeout: request.timeout || 0
 			})
 
-			let chapters: Chapter[] = source.getChapters(data.data, mangaId)
+			let chapters: Chapter[] = source.getChapters(data.data, request.metadata)
 			return chapters
 		}
 		catch (e) {
@@ -371,9 +372,9 @@ let application = new APIWrapper()
 // application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // Manganelo
-// application.getMangaDetails(new Manganelo(cheerio), ["read_one_piece_manga_online_free4"]).then((data) => { console.log(data) })
-// application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => {console.log(data)})
-// application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => {console.log(data)})
+// application.getMangaDetails(new Manganelo(cheerio), ['bt920017', 'read_one_piece_manga_online_free4']).then((data) => { console.log(data) })
+// application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => { console.log(data) })
+application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => { console.log(data) })
 
 // Mangasee
 // application.getMangaDetails(new Mangasee(cheerio), ['Domestic-Na-Kanojo', 'one-piece']).then((data) => {console.log(data)})
