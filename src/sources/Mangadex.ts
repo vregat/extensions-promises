@@ -72,7 +72,7 @@ export class MangaDex extends Source {
     throw new Error("Method not implemented.")
   }
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string } {
     throw new Error("Method not implemented.")
   }
 
@@ -262,5 +262,13 @@ export class MangaDex extends Source {
     }
 
     return updates
+  }
+
+  searchRequest(query: SearchRequest, page: number): Request | null {
+    return null
+  }
+
+  search(data: any): MangaTile[] | null {
+    return null
   }
 }

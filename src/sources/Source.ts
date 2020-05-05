@@ -17,8 +17,6 @@ export abstract class Source {
     this.cheerio = cheerio
   }
 
-
-
   // <-----------        REQUIRED METHODS        -----------> //
   // Get information about particular manga
   abstract getMangaDetailsRequest(ids: string[]): Request[]
@@ -30,9 +28,12 @@ export abstract class Source {
 
   // Get all pages for a particular chapter
   abstract getChapterDetailsRequest(mangaId: string, chapId: string): Request
-  abstract getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean }
+  abstract getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string }
 
-
+  // Does a search request - It is capable of doing advanced searches
+  // See SearchRequest interface or MangaPark implementation for more information
+  abstract searchRequest(query: SearchRequest, page: number): Request | null
+  abstract search(data: any): MangaTile[] | null
 
   // <-----------        OPTIONAL METHODS        -----------> //
   // Determines if, and how many times, the passed in ids have been updated since reference time 
@@ -48,12 +49,6 @@ export abstract class Source {
   // Calling these functions will retrieve more MangaTiles for the particular section
   getViewMoreRequest(key: string): Request | null { return null }
   getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
-
-  // Does a search request - It is capable of doing advanced searches
-  // See SearchRequest interface or MangaPark implementation for more information
-  searchRequest(query: SearchRequest, page: number): Request | null { return null }
-  search(data: any): MangaTile[] | null { return null }
-
 
 
   // <-----------        PROTECTED METHODS        -----------> //
