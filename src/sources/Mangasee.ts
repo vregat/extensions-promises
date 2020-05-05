@@ -1,6 +1,3 @@
-/* Disabling this until it's updated for the new Api
-
-
 import { Source } from './Source'
 import { Manga } from '../models/Manga/Manga'
 import { Chapter } from '../models/Chapter/Chapter'
@@ -8,7 +5,10 @@ import { MangaTile } from '../models/MangaTile/MangaTile'
 import { SearchRequest } from '../models/SearchRequest/SearchRequest'
 import { Request } from '../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
-import { Tag } from '../models/TagSection/TagSection'
+import { Tag, TagSection } from '../models/TagSection/TagSection'
+import { HomeSection, HomeSectionRequest } from '../models/HomeSection/HomeSection'
+
+const MS_DOMAIN = 'https://mangaseeonline.us'
 
 export class Mangasee extends Source {
   allDemogrpahic: string[]
@@ -17,294 +17,279 @@ export class Mangasee extends Source {
     this.allDemogrpahic = ["Shounen", "Shoujo", "Seinen", "Josei"]
   }
 
-  getMangaDetailsRequest(ids: string[]): Request {
-    let metadata = { 'ids': ids }
-    // return createRequestObject(metadata, 'https://mangaseeonline.us/manga/', undefined, undefined, undefined, undefined, undefined, undefined, true)
-    return createRequestObject({
-      metadata: metadata,
-      config: createDataRequest({
-        url: "https://mangaseeonline.us/manga/",
-        headers: {
-          "content-type": "application/x-www-form-urlencoded"
-        },
-        method: "GET"
-      })
-    })
+  getMangaDetailsRequest(ids: string[]): Request[] {
+    let requests: Request[] = []
+    for (let id of ids) {
+      let metadata = { 'id': id }
+      requests.push(createRequestObject({
+        url: `${MS_DOMAIN}/manga/`,
+        metadata: metadata,
+        method: 'GET',
+        param: id
+      }))
+    }
+    return requests
   }
 
-  getMangaDetails(data: any, mangaId: string): Manga {
-    let $ = this.cheerio.load(data)
-    let info = $('.row')
-    let image = $('img', '.row').attr('src') ?? ''
-    let title = $('.SeriesName', info).text() ?? ''
-    let titles = [title]
-    let details = $('.details', info)
-    let author = ''
+  getMangaDetails(data: any[], metadata: any[]): Manga[] {
+    let manga: Manga[] = []
+    for (let [i, response] of data.entries()) {
+      let $ = this.cheerio.load(response.data)
+      let info = $('.row')
+      let image = $('img', '.row').attr('src') ?? ''
+      let title = $('.SeriesName', info).text() ?? ''
+      let titles = [title]
+      let details = $('.details', info)
+      let author = ''
 
-    let genres: Tag[] = []
-    let demographic: Tag[] = []
-    let format: Tag[] = []
+      let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+      createTagSection({ id: '1', label: 'demographic', tags: [] }),
+      createTagSection({ id: '2', label: 'format', tags: [] })]
 
-    let status = 1
-    let summary = ''
-    let hentai = false
+      let status = 1
+      let summary = ''
+      let hentai = false
 
-    for (let row of $('.row', details).toArray()) {
-      let text = $('b', row).text()
-      switch (text) {
-        case 'Alternate Name(s): ': {
-          titles.push($(row).text().replace(/(Alternate Name\(s\):)(*\t*\n*)/g, '').trim())
-break
+      for (let row of $('.row', details).toArray()) {
+        let text = $('b', row).text()
+        switch (text) {
+          case 'Alternate Name(s): ': {
+            titles.push($(row).text().replace(/(Alternate Name\(s\):)*(\t*\n*)/g, '').trim())
+            break
+          }
+          case 'Author(s): ': {
+            author = $(row).text().replace(/(Author\(s\):)*(\t*\n*)/g, '').trim()
+            break
+          }
+          case 'Genre(s): ': {
+            let items = $(row).text().replace(/(Genre\(s\):)*(\t*\n*)/g, '').split(',')
+            for (let item of items) {
+              if (item.toLowerCase().includes('hentai')) {
+                hentai = true
+                tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }))
+              }
+              else if (this.allDemogrpahic.includes(item.trim())) {
+                tagSections[1].tags.push(createTag({ id: item.trim(), label: item.trim() }))
+              }
+              else {
+                tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }))
+              }
+            }
+            break
+          }
+          case 'Type:': {
+            let type = $(row).text().replace(/(Type:)*(\t*\n*)/g, '').trim()
+            tagSections[2].tags.push(createTag({ id: type.trim(), label: type.trim() }))
+            break
+          }
+          case 'Status: ': {
+            status = $(row).text().includes('Ongoing') ? 1 : 0
+            break
+          }
         }
-        case 'Author(s): ': {
-  author = $(row).text().replace(/(Author\(s\):)(*\t*\n*)/g, '').trim()
-  break
-}
-        case 'Genre(s): ': {
-  let items = $(row).text().replace(/(Genre\(s\):)(*\t*\n*)/g, '').split(',')
-  for (let item of items) {
-    if (item.toLowerCase().includes('hentai')) {
-      hentai = true
-      genres.push(createTag({ id: item.trim(), label: item.trim() }))
+
+        summary = $('.description', row).text()
+      }
+
+      manga.push(createManga({
+        id: metadata[i].id,
+        titles: titles,
+        image: image,
+        rating: 0,
+        status: status,
+        author: author,
+        tags: tagSections,
+        description: summary,
+        hentai: hentai
+      }))
     }
-    else if (this.allDemogrpahic.includes(item.trim())) {
-      demographic.push(createTag({ id: item.trim(), label: item.trim() }))
-    }
-    else {
-      genres.push(createTag({ id: item.trim(), label: item.trim() }))
-    }
+    return manga
   }
-  break
-}
-        case 'Type:': {
-  let type = $(row).text().replace(/(Type:)(*\t*\n*)/g, '').trim()
-  format.push(createTag({ id: type.trim(), label: type.trim() }))
-  break
-}
-        case 'Status: ': {
-  status = $(row).text().includes('Ongoing') ? 1 : 0
-  break
-}
-        case 'Description: ': {
-  summary = $('.description', row).text()
-  break
-}
+
+  getChaptersRequest(mangaId: string): Request {
+    let metadata = { 'id': mangaId }
+    return createRequestObject({
+      url: `${MS_DOMAIN}/manga/`,
+      method: "GET",
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      param: mangaId
+    })
+  }
+
+  getChapters(data: any, mangaId: string): Chapter[] {
+    let $ = this.cheerio.load(data)
+    let chapters: Chapter[] = []
+    for (let item of $('.list-group-item', '.list.chapter-list').toArray()) {
+      let id = ($(item).attr('href')?.split('/').pop() ?? '').replace('.html', '')
+      let chNum = Number($(item).attr('chapter') ?? 0)
+      let title = $('.chapterLabel', item).text() ?? ''
+
+      let time = new Date($('time', item).attr('datetime') ?? '')
+      chapters.push(createChapter({
+        id: id,
+        mangaId: mangaId,
+        name: title,
+        chapNum: chNum,
+        time: time,
+        langCode: "en",
+      }))
+    }
+    return chapters
+  }
+
+  getChapterDetailsRequest(mangaId: string, chapId: string): Request {
+    let metadata = { 'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1 }
+    return createRequestObject({
+      url: `${MS_DOMAIN}/read-online/`,
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      method: 'GET',
+      param: chapId
+    })
+  }
+
+  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string } {
+    let script = JSON.parse((/PageArr=(.*);/g.exec(data) ?? [])[1])
+    let pages: string[] = []
+    let images: string[] = Object.values(script)
+    for (let [i, image] of images.entries()) {
+      if (i != images.length - 1) {
+        pages.push(image)
       }
     }
 
-// return createManga(mangaId, image, '', author, 0, [], [], demographic, summary, 0, format, genres, 'en', 'english', 0, status, [], titles, 0, 0, hentai, 0, [], '')
-return createManga({
-  id: mangaId,
-  image,
-  author,
-  rating: 0,
-  tags: [
-    createTagSection({
-      id: "demographic",
-      label: "Demographic",
-      tags: demographic
-    }),
-    createTagSection({
-      id: "genre",
-      label: "Genre",
-      tags: genres
-    }),
-    createTagSection({
-      id: "format",
-      label: "Format",
-      tags: format
+    let chapterDetails = createChapterDetails({
+      id: metadata.chapterId,
+      mangaId: metadata.mangaId,
+      pages, longStrip: false
     })
-  ],
-  description: summary,
-  status: status,
-  titles: titles,
-  hentai: hentai
-})
-  }
 
-getChapterRequest(mangaId: string): Request {
-  let metadata = { 'id': mangaId }
-  // return createRequestObject(metadata, 'https://mangaseeonline.us/manga/', [], mangaId, undefined, undefined, undefined, undefined, true)
-  return createRequestObject({
-    metadata: metadata,
-    config: createDataRequest({
-      url: "https://mangaseeonline.us/manga/",
-      headers: {
-        "content-type": "application/x-www-form-urlencoded"
-      },
-      method: "GET"
-    })
-  })
-}
-
-getChapters(data: any, mangaId: string): Chapter[] {
-  let $ = this.cheerio.load(data)
-  let chapters: Chapter[] = []
-  for (let item of $('.list-group-item', '.list.chapter-list').toArray()) {
-    let id = ($(item).attr('href')?.split('/').pop() ?? '').replace('.html', '')
-    let chNum = Number($(item).attr('chapter') ?? 0)
-    let title = $('.chapterLabel', item).text() ?? ''
-
-    let time = new Date($('time', item).attr('datetime') ?? '')
-    // chapters.push(createChapter(id, mangaId, title, chNum, 0, '', 0, time))
-    chapters.push(createChapter({
-      id: id,
-      mangaId: mangaId,
-      name: title,
-      chapNum: chNum,
-      time: time,
-      group: "",
-      langCode: "en",
-      read: false,
-      downloaded: false,
-      views: 0,
-      volume: 0
-    }))
-  }
-  return chapters
-}
-
-getChapterDetailsRequest(mangaId: string, chapId: string): Request {
-  let metadata = { 'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1 }
-  // return createRequestObject(metadata, 'https://mangaseeonline.us/read-online/', [], chapId, undefined, undefined, undefined, undefined, true)
-  return createRequestObject({
-    metadata: metadata,
-    config: createDataRequest({
-      url: "https://mangaseeonline.us/read-online/",
-      headers: {
-        "content-type": "application/x-www-form-urlencoded"
-      },
-      method: "GET"
-    })
-  })
-}
-
-getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean } {
-  let script = JSON.parse((/PageArr=(.*);/g.exec(data) ?? [])[1])
-  let pages: string[] = []
-  let images: string[] = Object.values(script)
-  for (let [i, image] of images.entries()) {
-    if (i != image.length) {
-      pages.push(image)
+    let returnObject = {
+      'details': chapterDetails,
+      'nextPage': metadata.nextPage,
+      'param': ''
     }
+
+    return returnObject
   }
 
-  let chapterDetails = createChapterDetails({
-    id: metadata.chapterId,
-    mangaId: metadata.mangaId,
-    pages, longStrip: false
-  })
-  let returnObject = {
-    'details': chapterDetails,
-    'nextPage': metadata.nextPage
-  }
-  return returnObject
-}
 
-filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
-  let metadata = { 'ids': ids, 'referenceTime': time }
-  let data: any = { 'page': page }
-  data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
-  // return createRequestObject(metadata, 'https://mangaseeonline.us/home/latest.request.php', [], '', 'POST', data, undefined, undefined, true)
-  return createRequestObject({
-    metadata: metadata,
-    config: createDataRequest({
-      url: "https://mangaseeonline.us/home/latest.request.php",
+  filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
+    let metadata = { 'ids': ids, 'referenceTime': time }
+    let data: any = { 'page': page }
+    data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
+    return createRequestObject({
+      url: `${MS_DOMAIN}/home/latest.request.php`,
+      metadata: metadata,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
+      timeout: 4000,
       method: "POST",
       data: data
     })
-  })
-}
-
-filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
-  let $ = this.cheerio.load(data)
-  let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
-    'updatedMangaIds': [],
-    'nextPage': true
   }
 
-  for (let item of $('a').toArray()) {
-    if (new Date($('time', item).attr('datetime') ?? '') > metadata.referenceTime) {
-      let id = ($(item).attr('href')?.split('/').pop()?.match(/(.*)-chapter/) ?? [])[1] ?? ''
-      if (metadata.ids.includes(id)) {
-        returnObject.updatedMangaIds.push(id)
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
+    let $ = this.cheerio.load(data)
+    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
+      'updatedMangaIds': [],
+      'nextPage': true
+    }
+
+    for (let item of $('a').toArray()) {
+      if (new Date($('time', item).attr('datetime') ?? '') > metadata.referenceTime) {
+        let id = ($(item).attr('href')?.split('/').pop()?.match(/(.*)-chapter/) ?? [])[1] ?? ''
+        if (metadata.ids.includes(id)) {
+          returnObject.updatedMangaIds.push(id)
+        }
+      }
+      else {
+        returnObject.nextPage = false
+        return returnObject
       }
     }
-    else {
-      returnObject.nextPage = false
-      return returnObject
+
+    return returnObject
+  }
+
+  getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
+
+  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
+
+  getViewMoreRequest(key: string): Request {
+    throw new Error("Method not implemented.")
+  }
+
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
+    throw new Error("Method not implemented.")
+  }
+
+  searchRequest(query: SearchRequest, page: number): Request | null {
+    let genres = (query.includeGenre ?? []).concat(query.includeDemographic ?? []).join(',')
+    let excluded = (query.excludeGenre ?? []).concat(query.excludeDemographic ?? []).join(',')
+    let status = ""
+    switch (query.status) {
+      case 0: status = 'Completed'; break
+      case 1: status = 'Ongoing'; break
+      default: status = ''
     }
-  }
 
-  return returnObject
-}
+    let data: any = {
+      'page': page,
+      'keyword': query.title,
+      'author': query.author || query.artist || '',
+      'sortBy': 'popularity',
+      'sortOrder': 'descending',
+      'status': status,
+      'genre': genres,
+      'genreNo': excluded
+    }
+    let metadata = data
+    data = Object.keys(data).map(function (key: any) {
+      if (data[key] != '')
+        return encodeURIComponent(key) + '=' + encodeURIComponent(data[key])
+    }).join('&').replace(/&&/g, '&')
 
-getHomePageSectionRequest() {
-  return null
-}
-
-getHomePageSections(data: any, key: any, sections: any) {
-  return null
-}
-
-getViewMoreRequest(key: string): Request {
-  throw new Error("Method not implemented.")
-}
-
-getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
-  throw new Error("Method not implemented.")
-}
-
-searchRequest(query: SearchRequest, page: number): Request {
-  let genres = ''
-  for (let genre of (query.includeGenre ?? []).concat(query.includeDemographic ?? [])) {
-    genres += genre + ','
-  }
-  let excluded = ''
-  for (let genre of (query.excludeGenre ?? []).concat(query.excludeDemographic ?? [])) {
-    excluded += genre + ','
-  }
-  let status = ""
-  switch (query.status) {
-    case 0: status = 'Completed'; break
-    case 1: status = 'Ongoing'; break
-    default: status = ''
-  }
-  let data: any = {
-    'page': page,
-    'keyword': encodeURI(query.title ?? ''),
-    'author': encodeURI(query.author || query.artist || ''),
-    'sortBy': 'popularity',
-    'sortOrder': 'descending',
-    'status': status,
-    'genre': genres,
-    'genreNo': excluded
-  }
-  let metadata = data
-  data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
-
-  return createRequestObject({
-    metadata: metadata,
-    config: createDataRequest({
-      url: "https://mangaseeonline.us/search/request.php",
+    return createRequestObject({
+      url: `${MS_DOMAIN}/search/request.php`,
+      metadata: metadata,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
+      timeout: 4000,
       method: "POST",
       data: data
     })
-  })
+  }
+
+  search(data: any): MangaTile[] {
+    let $ = this.cheerio.load(data)
+
+    let mangaTiles: MangaTile[] = []
+    for (let item of $('.requested').toArray()) {
+      let img = $('img', item).attr('src') ?? ''
+      let id = $('.resultLink', item).attr('href')?.split('/').pop() ?? ''
+      let title = $('.resultLink', item).text()
+      let author = $('p', item).first().find('a').text()
+      mangaTiles.push({
+        id: id,
+        title: createIconText({
+          text: title
+        }),
+        image: img,
+        subtitleText: createIconText({
+          text: author
+        })
+      })
+    }
+
+    return mangaTiles
+  }
 }
 
-search(data: any) {
-  let $ = this.cheerio.load(data)
-
-  return data
-}
-}
-
-
-*/

@@ -1,6 +1,6 @@
 export interface Request {
   url: string
-  method: string // defaults to GET when no method is supplied
+  method: string
   metadata?: any
   headers?: Record<string, string>
   data?: any
