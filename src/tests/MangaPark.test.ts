@@ -6,16 +6,17 @@ import { MangaPark } from "../sources/Mangapark";
 describe('MangaPark Tests', function() {
 
     var wrapper : APIWrapper = new APIWrapper();
-    var source: Source;
+    var source: Source = new MangaPark(cheerio);
     var chai = require('chai'), expect = chai.expect, should = chai.should();
     var chaiAsPromised = require('chai-as-promised');
     chai.use(chaiAsPromised);
 
-    var mangaId = "one-piece";
-
-    before(() => {
-        source = new MangaPark(cheerio);
-    }) 
+    /**
+     * The Manga ID which this unit test uses to base it's details off of.
+     * Try to choose a manga which is updated frequently, so that the historical checking test can 
+     * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
+     */
+    var mangaId = "one-piece";  
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, [mangaId]);
@@ -23,7 +24,6 @@ describe('MangaPark Tests', function() {
         expect(details).to.not.have.lengthOf(0, "Empty response from server");
 
         // Validate that the fields are filled
-        //TODO: We are not currently scanning the tags. Are these optional? Are these universal? Look at later
         let data = details[0];
         expect(data.id, "Missing ID").to.be.not.empty;
         expect(data.artist, "Missing Artist").to.be.not.empty;

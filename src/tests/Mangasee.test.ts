@@ -6,16 +6,17 @@ import { Mangasee } from "../sources/Mangasee";
 describe('Mangasee Tests', function() {
 
     var wrapper : APIWrapper = new APIWrapper();
-    var source: Source;
+    var source: Source = new Mangasee(cheerio);
     var chai = require('chai'), expect = chai.expect, should = chai.should();
     var chaiAsPromised = require('chai-as-promised');
     chai.use(chaiAsPromised);
 
+    /**
+     * The Manga ID which this unit test uses to base it's details off of.
+     * Try to choose a manga which is updated frequently, so that the historical checking test can 
+     * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
+     */
     var mangaId = "one-piece";
-
-    before(() => {
-        source = new Mangasee(cheerio);
-    }) 
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, [mangaId]);
@@ -61,8 +62,6 @@ describe('Mangasee Tests', function() {
 
         let search = await wrapper.search(source, testSearch, 1);
         let result = search[0];
-
-        console.log(search);
 
         expect(result, "No response from server").to.exist;
         

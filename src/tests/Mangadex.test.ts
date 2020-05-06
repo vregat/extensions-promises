@@ -6,16 +6,17 @@ import { MangaDex } from "../sources/Mangadex";
 describe('Mangadex Tests', function() {
 
     var wrapper : APIWrapper = new APIWrapper();
-    var source: Source;
+    var source: Source = new MangaDex(cheerio);
     var chai = require('chai'), expect = chai.expect, should = chai.should();
     var chaiAsPromised = require('chai-as-promised');
     chai.use(chaiAsPromised);
 
+    /**
+     * The Manga ID which this unit test uses to base it's details off of.
+     * Try to choose a manga which is updated frequently, so that the historical checking test can 
+     * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
+     */
     var mangaId = "1";  // Tower of God
-
-    before(() => {
-        source = new MangaDex(cheerio);
-    }) 
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, [mangaId]);
@@ -72,6 +73,7 @@ describe('Mangadex Tests', function() {
 
     });
 
+    //BUG: Due to the wrapper searching, and returning an empty array if there was a server error, this may not work correctly. Consider throwing an error instead of returning []? 
     it("Searching for Manga With Invalid Tags", async() => {
         let testSearch = createSearchRequest({
             title: 'Ratiaion House',
@@ -79,6 +81,7 @@ describe('Mangadex Tests', function() {
         });
 
         let search = await wrapper.search(source, testSearch, 1);
+        expect(search).to.exist;
         let result = search[0];
         expect(result).to.not.exist;    // There should be no entries with this tag!
     });
