@@ -326,11 +326,11 @@ export class MangaPark extends Source {
     return sections
   }
 
-  getViewMoreRequest(key: string): Request {
+  getViewMoreRequest(key: string, page: number): Request {
     throw new Error("Method not implemented.")
   }
 
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
+  getViewMoreItems(data: any, key: string): MangaTile[] {
     throw new Error("Method not implemented.")
   }
 

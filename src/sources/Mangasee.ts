@@ -310,7 +310,7 @@ export class Mangasee extends Source {
 
   getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
   getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
-  getViewMoreRequest(key: string): Request | null { return null }
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
+  getViewMoreRequest(key: string, page: number): Request | null { return null }
+  getViewMoreItems(data: any, key: string): MangaTile[] | null { return null }
 }
 

@@ -283,7 +283,6 @@ export class APIWrapper {
 	async getTags(source: Source) {
 		let request = source.getTagsRequest()
 		if (request == null) return Promise.resolve([])
-
 		let headers: any = request.headers == undefined ? {} : request.headers
 		headers['Cookie'] = this.formatCookie(request)
 
@@ -297,6 +296,29 @@ export class APIWrapper {
 			})
 
 			return source.getTags(data.data) ?? []
+		}
+		catch (e) {
+			console.log(e)
+			return []
+		}
+	}
+
+	async getViewMoreItems(source: Source, key: string, page: number) {
+		let request = source.getViewMoreRequest(key, page)
+		if (request == null) return Promise.resolve([])
+		let headers: any = request.headers == undefined ? {} : request.headers
+		headers['Cookie'] = this.formatCookie(request)
+
+		try {
+			var data = await axios.request({
+				url: `${request.url}${request.param ?? ''}`,
+				method: request.method,
+				headers: headers,
+				data: request.data,
+				timeout: request.timeout || 0
+			})
+
+			return source.getViewMoreItems(data.data, key)
 		}
 		catch (e) {
 			console.log(e)
@@ -338,7 +360,8 @@ let application = new APIWrapper()
 // application.getMangaDetails(new Manganelo(cheerio), ['bt920017', 'read_one_piece_manga_online_free4']).then((data) => { console.log(data) })
 // application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => { console.log(data) })
 // application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => { console.log(data) })
-application.filterUpdatedManga(new Manganelo(cheerio), ['tower_of_god_manga', 'read_one_piece_manga_online_free4'], new Date("2020-04-25 02:33:30 UTC")).then(data => console.log(data))
+// application.filterUpdatedManga(new Manganelo(cheerio), ['tower_of_god_manga', 'read_one_piece_manga_online_free4'], new Date("2020-04-25 02:33:30 UTC")).then(data => console.log(data))
+// application.getHomePageSections(new Manganelo(cheerio)).then(data => console.log(data))
 // let test = createSearchRequest({
 // 	title: 'world',
 // 	includeGenre: ['2', '6'],

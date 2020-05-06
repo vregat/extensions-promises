@@ -56,8 +56,8 @@ export abstract class Source {
 
   // For many of the home page sections, there is an ability to view more of that selection
   // Calling these functions will retrieve more MangaTiles for the particular section
-  getViewMoreRequest(key: string): Request | null { return null }
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
+  getViewMoreRequest(key: string, page: number): Request | null { return null }
+  getViewMoreItems(data: any, key: string): MangaTile[] | null { return null }
 
   // Returns the number of calls that can be done per second from the application
   // This is to avoid IP bans from many of the sources
