@@ -16,6 +16,8 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
+  getVersion(): string { return '1.0' }
+
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
     for (let id of ids) {
@@ -182,12 +184,19 @@ export class Manganelo extends Source {
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
-    throw new Error("Method not implemented.");
+    let metadata = { 'ids': ids, 'referenceTime': time }
+    return createRequestObject({
+      url: `${MN_DOMAIN}/genre-all/`,
+      method: 'GET',
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      param: `${page}`
+    })
   }
 
-  // FIXME: Current issue with site not loading the newest pages properly
-  // I will consider coming back to this later
-  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } | null {
     let $ = this.cheerio.load(data)
 
     let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
@@ -195,7 +204,28 @@ export class Manganelo extends Source {
       'nextPage': true
     }
 
-    throw new Error("Method not implemented.");
+    let panel = $('.panel-content-genres')
+    for (let item of $('.content-genres-item', panel).toArray()) {
+      let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
+      let time = new Date($('.genres-item-time').first().text())
+      // site has a quirk where if the manga what updated in the last hour
+      // it will put the update time as tomorrow
+      if (time > new Date(Date.now())) {
+        time = new Date(Date.now() - 60000)
+      }
+
+      if (time > metadata.referenceTime) {
+        if (metadata.ids.includes(id)) {
+          returnObject.updatedMangaIds.push(id)
+        }
+      }
+      else {
+        returnObject.nextPage = false
+        return returnObject
+      }
+    }
+
+    return returnObject
   }
 
   searchRequest(query: SearchRequest, page: number): Request {

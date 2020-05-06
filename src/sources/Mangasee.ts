@@ -15,6 +15,8 @@ export class Mangasee extends Source {
     super(cheerio)
   }
 
+  getVersion(): string { return '1.0' }
+
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
     for (let id of ids) {

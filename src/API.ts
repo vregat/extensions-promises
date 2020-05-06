@@ -313,7 +313,7 @@ export class APIWrapper {
 }
 
 // MY TESTING FRAMEWORK - LOL
-//let application = new APIWrapper()
+let application = new APIWrapper()
 
 // MangaDex
 //application.getMangaDetails(new MangaDex(cheerio), ['1'])
@@ -338,6 +338,7 @@ export class APIWrapper {
 // application.getMangaDetails(new Manganelo(cheerio), ['bt920017', 'read_one_piece_manga_online_free4']).then((data) => { console.log(data) })
 // application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => { console.log(data) })
 // application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => { console.log(data) })
+application.filterUpdatedManga(new Manganelo(cheerio), ['tower_of_god_manga', 'read_one_piece_manga_online_free4'], new Date("2020-04-25 02:33:30 UTC")).then(data => console.log(data))
 // let test = createSearchRequest({
 // 	title: 'world',
 // 	includeGenre: ['2', '6'],

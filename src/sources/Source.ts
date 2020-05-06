@@ -19,6 +19,10 @@ export abstract class Source {
   }
 
   // <-----------        REQUIRED METHODS        -----------> //
+  // Returns the version of the source
+  // Ensures that the app is using the most up to date version
+  abstract getVersion(): string
+
   // Get information about particular manga
   abstract getMangaDetailsRequest(ids: string[]): Request[]
   abstract getMangaDetails(data: any, metadata: any): Manga[]
@@ -37,6 +41,7 @@ export abstract class Source {
   abstract search(data: any): MangaTile[] | null
 
   // <-----------        OPTIONAL METHODS        -----------> //
+  // Retrieves all the tags for the source to help with advanced searching
   getTagsRequest(): Request | null { return null }
   getTags(data: any): TagSection[] | null { return null }
 
