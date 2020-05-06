@@ -21,7 +21,7 @@ export class MangaPark extends Source {
       let metadata = { 'id': id }
       requests.push(createRequestObject({
         url: `${MP_DOMAIN}/manga/`,
-        headers: { Cookie: 'set=h=1' },
+        cookies: [createCookie({ name: 'set', value: 'h=1' })],
         metadata: metadata,
         method: 'GET',
         param: id
@@ -36,8 +36,7 @@ export class MangaPark extends Source {
       let $ = this.cheerio.load(response)
 
       let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-      createTagSection({ id: '1', label: 'demographic', tags: [] }),
-      createTagSection({ id: '2', label: 'format', tags: [] })]
+      createTagSection({ id: '1', label: 'format', tags: [] })]
 
       // let id: string = (($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? [])[2]
       let image: string = $('img', '.manga').attr('src') ?? ""
@@ -81,16 +80,10 @@ export class MangaPark extends Source {
             for (let genre of $('a', row).toArray()) {
               let item = $(genre).html() ?? ""
               let tag = item.replace(/<[a-zA-Z\/][^>]*>/g, "")
-              if (item.includes('<b>')) {
-                tagSections[1].tags.push(createTag({ id: tag, label: tag }))
-              }
-              else if (item.includes('Hentai')) {
+              if (item.includes('Hentai')) {
                 hentai = true
-                tagSections[0].tags.push(createTag({ id: tag, label: tag }))
               }
-              else {
-                tagSections[0].tags.push(createTag({ id: tag, label: tag }))
-              }
+              tagSections[0].tags.push(createTag({ id: tag, label: tag }))
             }
             break
           }
@@ -105,7 +98,7 @@ export class MangaPark extends Source {
           }
           case 'Type': {
             let type = $('td', row).text().split('-')[0].trim()
-            tagSections[2].tags.push(createTag({ id: type.trim(), label: type.trim() }))
+            tagSections[1].tags.push(createTag({ id: type.trim(), label: type.trim() }))
           }
         }
       }
@@ -189,9 +182,9 @@ export class MangaPark extends Source {
       method: "GET",
       metadata: metadata,
       headers: {
-        "content-type": "application/x-www-form-urlencoded",
-        Cookie: 'set=h=1'
+        "content-type": "application/x-www-form-urlencoded"
       },
+      cookies: [createCookie({ name: 'set', value: 'h=1' })],
       param: `${mangaId}/${chId}`
     })
   }
@@ -226,9 +219,9 @@ export class MangaPark extends Source {
       method: 'GET',
       metadata: metadata,
       headers: {
-        "content-type": "application/x-www-form-urlencoded",
-        Cookie: 'set=h=1'
+        "content-type": "application/x-www-form-urlencoded"
       },
+      cookies: [createCookie({ name: 'set', value: 'h=1' })],
       param: `${page}`
     })
   }
@@ -341,14 +334,10 @@ export class MangaPark extends Source {
 
 
   searchRequest(query: SearchRequest, page: number): Request {
-    let genres = ''
-    for (let genre of (query.includeGenre ?? []).concat(query.includeDemographic ?? [])) {
-      genres += genre + ','
-    }
-    let excluded = ''
-    for (let genre of (query.excludeGenre ?? []).concat(query.excludeDemographic ?? [])) {
-      excluded += genre + ','
-    }
+    let genres = (query.includeGenre ?? []).join(',')
+    let excluded = (query.excludeGenre ?? []).join(',')
+    // will not let you search across more than one format
+    let format = (query.includeFormat ?? [])[0]
     let status = ""
     switch (query.status) {
       case 0: status = 'completed'; break
@@ -358,7 +347,7 @@ export class MangaPark extends Source {
     let search: string = `q=${encodeURI(query.title ?? '')}&`
     search += `autart=${encodeURI(query.author || query.artist || '')}&`
     search += `&genres=${genres}&genres-exclude=${excluded}&page=${page}`
-    search += `&status=${status}&st-ss=1`
+    search += `&types=${format}&status=${status}&st-ss=1`
 
     let metadata = { 'search': search }
     return createRequestObject({
@@ -366,9 +355,9 @@ export class MangaPark extends Source {
       method: 'GET',
       metadata: metadata,
       headers: {
-        "content-type": "application/x-www-form-urlencoded",
-        Cookie: `set=h=${query.hStatus ? 1 : 0}`
+        "content-type": "application/x-www-form-urlencoded"
       },
+      cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}` })],
       param: `${search}`
     })
   }
@@ -407,5 +396,27 @@ export class MangaPark extends Source {
     }
 
     return manga
+  }
+
+  getTagsRequest(): Request | null {
+    return createRequestObject({
+      url: `${MP_DOMAIN}/search?`,
+      method: "GET",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      cookies: [createCookie({ name: 'set', value: 'h=1' })],
+    })
+  }
+
+  getTags(data: any): TagSection[] | null {
+    let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+    createTagSection({ id: '1', label: 'format', tags: [] })]
+    let $ = this.cheerio.load(data)
+    for (let genre of $('span', '[name=genres]').toArray())
+      tagSections[0].tags.push(createTag({ id: $(genre).attr('rel') ?? '', label: $(genre).text() }))
+    for (let type of $('span', '[name=types]').toArray())
+      tagSections[1].tags.push(createTag({ id: $(type).attr('rel') ?? '', label: $(type).text() }))
+    return tagSections
   }
 }

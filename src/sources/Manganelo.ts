@@ -12,10 +12,8 @@ import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSecti
 const MN_DOMAIN = 'https://manganelo.com'
 
 export class Manganelo extends Source {
-  allDemogrpahic: string[]
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
-    this.allDemogrpahic = ["Shounen", "Shoujo", "Seinen", "Josei"]
   }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
@@ -51,8 +49,7 @@ export class Manganelo extends Source {
       let hentai = false
 
       let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-      createTagSection({ id: '1', label: 'demographic', tags: [] }),
-      createTagSection({ id: '2', label: 'format', tags: [] })]
+      createTagSection({ id: '1', label: 'format', tags: [] })]
 
       for (let row of $('tr', table).toArray()) {
         if ($(row).find('.info-alternative').length > 0) {
@@ -77,14 +74,8 @@ export class Manganelo extends Source {
             let text = $(elem).text()
             if (text.toLowerCase().includes('smut')) {
               hentai = true
-              tagSections[0].tags.push(createTag({ id: text, label: text }))
             }
-            if (this.allDemogrpahic.includes(text)) {
-              tagSections[1].tags.push(createTag({ id: text, label: text }))
-            }
-            else {
-              tagSections[0].tags.push(createTag({ id: text, label: text }))
-            }
+            tagSections[0].tags.push(createTag({ id: text, label: text }))
           }
         }
       }
@@ -207,27 +198,90 @@ export class Manganelo extends Source {
     throw new Error("Method not implemented.");
   }
 
-  getHomePageSectionRequest(): HomeSectionRequest[] {
-    throw new Error("Method not implemented.");
-  }
-
-  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null {
-    throw new Error("Method not implemented.");
-  }
-
-  getViewMoreRequest(key: string): Request {
-    throw new Error("Method not implemented.")
-  }
-
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
-    throw new Error("Method not implemented.")
-  }
-
   searchRequest(query: SearchRequest, page: number): Request {
-    throw new Error("Method not implemented.");
+    let genres = (query.includeGenre ?? []).concat(query.includeDemographic ?? []).join('_')
+    let excluded = (query.excludeGenre ?? []).concat(query.excludeDemographic ?? []).join('_')
+    let status = ""
+    switch (query.status) {
+      case 0: status = 'completed'; break
+      case 1: status = 'ongoing'; break
+      default: status = ''
+    }
+
+    let keyword = (query.title ?? '').replace(' ', '_')
+    if (query.author)
+      keyword += (query.author ?? '').replace(' ', '_')
+    let search: string = `s=all&keyw=${keyword}`
+    search += `&g_i=${genres}&g_e=${excluded}&page=${page}`
+    if (status) {
+      search += `&sts=${status}`
+    }
+
+    let metadata = { 'search': search }
+    return createRequestObject({
+      url: `${MN_DOMAIN}/advanced_search?`,
+      method: 'GET',
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      param: `${search}`
+    })
   }
 
   search(data: any): MangaTile[] | null {
-    throw new Error("Method not implemented.");
+    let $ = this.cheerio.load(data)
+    let panel = $('.panel-content-genres')
+    let manga: MangaTile[] = []
+    for (let item of $('.content-genres-item', panel).toArray()) {
+      let id = $('.genres-item-name', item).attr('href')?.split('/').pop() ?? ''
+      let title = $('.genres-item-name', item).text()
+      let subTitle = $('.genres-item-chap', item).text()
+      let image = $('.img-loading', item).attr('src') ?? ''
+      let rating = $('.genres-item-rate', item).text()
+      let updated = $('.genres-item-time', item).text()
+
+      manga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: title }),
+        subtitleText: createIconText({ text: subTitle }),
+        primaryText: createIconText({ text: rating, icon: 'star.fill' }),
+        secondaryText: createIconText({ text: updated, icon: 'clock.fill' })
+      }))
+    }
+
+    return manga
   }
+
+  getTagsRequest(): Request | null {
+    return createRequestObject({
+      url: `${MN_DOMAIN}/advanced_search?`,
+      method: 'GET',
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      }
+    })
+  }
+
+  getTags(data: any): TagSection[] | null {
+    let $ = this.cheerio.load(data)
+    let panel = $('.advanced-search-tool-genres-list')
+    let genres = createTagSection({
+      id: 'genre',
+      label: 'Genre',
+      tags: []
+    })
+    for (let item of $('span', panel).toArray()) {
+      let id = $(item).attr('data-i') ?? ''
+      let label = $(item).text()
+      genres.tags.push(createTag({ id: id, label: label }))
+    }
+    return [genres]
+  }
+
+  getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
+  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
+  getViewMoreRequest(key: string): Request | null { return null }
+  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
 }
