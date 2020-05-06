@@ -8,3 +8,5 @@ bundles
 reference
 
 .prettierrc
+.nyc_output
+coverage

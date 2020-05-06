@@ -24,7 +24,7 @@ import { Manganelo } from './sources/Manganelo'
 // import axios from 'axios'  <- use this when you've fixed the typings
 const axios = require('axios')
 
-class APIWrapper {
+export class APIWrapper {
 	/**
 	 * Retrieves all relevant metadata from a source about particular manga
 	 * 
@@ -49,7 +49,6 @@ class APIWrapper {
 				}))
 			}
 			catch (e) {
-				console.log(e)
 				return []
 			}
 		}
@@ -83,7 +82,6 @@ class APIWrapper {
 			return chapters
 		}
 		catch (e) {
-			console.log(e)
 			return []
 		}
 	}
@@ -95,7 +93,7 @@ class APIWrapper {
 	 * @param mangaId 
 	 * @param chId 
 	 */
-	async getChapterDetails(source: Source, mangaId: string, chId: string) {
+	async getChapterDetails(source: Source, mangaId: string, chId: string): Promise<ChapterDetails> {
 		let request = source.getChapterDetailsRequest(mangaId, chId)
 		let metadata = request.metadata
 		let headers: any = request.headers == undefined ? {} : request.headers
@@ -111,8 +109,7 @@ class APIWrapper {
 			})
 		}
 		catch (e) {
-			console.log(e)
-			return []
+			throw "error";
 		}
 
 		let response = source.getChapterDetails(data.data, metadata)
@@ -131,7 +128,6 @@ class APIWrapper {
 				})
 			}
 			catch (e) {
-				console.log(e)
 				return details
 			}
 
@@ -164,7 +160,6 @@ class APIWrapper {
 			var data = await this.makeFilterRequest(url, request, headers, currentPage)
 			if (data.code || data.code == 'ECONNABORTED') retries++
 			else if (!data.data) {
-				console.log(data)
 				return []
 			}
 		} while (data.code && retries < 5)
@@ -180,7 +175,6 @@ class APIWrapper {
 					data = await this.makeFilterRequest(url, request, headers, currentPage)
 					if (data.code || data.code == 'ECONNABORTED') retries++
 					else if (!data.data) {
-						console.log(data)
 						return manga
 					}
 				} while (data.code && retries < 5)
@@ -253,7 +247,6 @@ class APIWrapper {
 			return sections
 		}
 		catch (e) {
-			console.log(e)
 			return []
 		}
 	}
@@ -283,7 +276,6 @@ class APIWrapper {
 			return source.search(data.data) ?? []
 		}
 		catch (e) {
-			console.log(e)
 			return []
 		}
 	}
@@ -321,10 +313,10 @@ class APIWrapper {
 }
 
 // MY TESTING FRAMEWORK - LOL
-let application = new APIWrapper()
+//let application = new APIWrapper()
 
 // MangaDex
-// application.getMangaDetails(new MangaDex(cheerio), ['1'])
+//application.getMangaDetails(new MangaDex(cheerio), ['1'])
 // application.filterUpdatedManga(new MangaDex(cheerio), ['1'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
 // application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(data)))
 
