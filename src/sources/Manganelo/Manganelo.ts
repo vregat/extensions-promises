@@ -1,13 +1,13 @@
 
-import { Source } from './Source'
-import { Manga } from '../models/Manga/Manga'
-import { Chapter } from '../models/Chapter/Chapter'
-import { MangaTile } from '../models/MangaTile/MangaTile'
-import { SearchRequest } from '../models/SearchRequest/SearchRequest'
-import { Request } from '../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
-import { TagSection } from '../models/TagSection/TagSection'
-import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSection'
+import { Source } from '../Source'
+import { Manga } from '../../models/Manga/Manga'
+import { Chapter } from '../../models/Chapter/Chapter'
+import { MangaTile } from '../../models/MangaTile/MangaTile'
+import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
+import { Request } from '../../models/RequestObject/RequestObject'
+import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
+import { TagSection } from '../../models/TagSection/TagSection'
+import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
 
 const MN_DOMAIN = 'https://manganelo.com'
 
@@ -237,7 +237,7 @@ export class Manganelo extends Source {
   }
 
   getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] | null {
-    let $ = this.cheerio.load(data)
+    let $ = cheerio.load(data)
     let topManga: MangaTile[] = []
     let updateManga: MangaTile[] = []
     let newManga: MangaTile[] = []

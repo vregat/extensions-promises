@@ -6,7 +6,7 @@ import cheerio from 'cheerio'
 import { Source } from './sources/Source'
 
 // Sources
-import { MangaDex } from './sources/Mangadex'
+import { MangaDex } from './sources/MangaDex/MangaDex'
 // import { MangaPark } from './sources/Mangapark'
 // import { Manganelo } from './sources/Manganelo'
 // import { Mangasee } from './sources/Mangasee'
@@ -17,9 +17,9 @@ import { ChapterDetails } from './models/ChapterDetails/ChapterDetails'
 import { SearchRequest } from './models/SearchRequest/SearchRequest'
 import { Request } from './models/RequestObject/RequestObject'
 import { MangaTile } from './models/MangaTile/MangaTile'
-import { Mangasee } from './sources/Mangasee'
-import { MangaPark } from './sources/Mangapark'
-import { Manganelo } from './sources/Manganelo'
+import { Mangasee } from './sources/Mangasee/Mangasee'
+import { MangaPark } from './sources/MangaPark/MangaPark'
+import { Manganelo } from './sources/Manganelo/Manganelo'
 
 // import axios from 'axios'  <- use this when you've fixed the typings
 const axios = require('axios')
