@@ -10,6 +10,7 @@ import { Chapter } from "../models/Chapter/Chapter"
 import { ChapterDetails } from "../models/ChapterDetails/ChapterDetails"
 import { MangaTile } from "../models/MangaTile/MangaTile"
 import { HomeSectionRequest, HomeSection } from "../models/HomeSection/HomeSection"
+import { TagSection } from "../models/TagSection/TagSection"
 
 export abstract class Source {
   protected cheerio: CheerioAPI
@@ -18,6 +19,10 @@ export abstract class Source {
   }
 
   // <-----------        REQUIRED METHODS        -----------> //
+  // Returns the version of the source
+  // Ensures that the app is using the most up to date version
+  abstract getVersion(): string
+
   // Get information about particular manga
   abstract getMangaDetailsRequest(ids: string[]): Request[]
   abstract getMangaDetails(data: any, metadata: any): Manga[]
@@ -36,6 +41,10 @@ export abstract class Source {
   abstract search(data: any): MangaTile[] | null
 
   // <-----------        OPTIONAL METHODS        -----------> //
+  // Retrieves all the tags for the source to help with advanced searching
+  getTagsRequest(): Request | null { return null }
+  getTags(data: any): TagSection[] | null { return null }
+
   // Determines if, and how many times, the passed in ids have been updated since reference time 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request | null { return null }
   filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } | null { return null }
@@ -47,8 +56,13 @@ export abstract class Source {
 
   // For many of the home page sections, there is an ability to view more of that selection
   // Calling these functions will retrieve more MangaTiles for the particular section
-  getViewMoreRequest(key: string): Request | null { return null }
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
+  getViewMoreRequest(key: string, page: number): Request | null { return null }
+  getViewMoreItems(data: any, key: string): MangaTile[] | null { return null }
+
+  // Returns the number of calls that can be done per second from the application
+  // This is to avoid IP bans from many of the sources
+  // Can be adjusted per source since different sites have different limits
+  getRateLimit(): Number { return 2 }
 
 
   // <-----------        PROTECTED METHODS        -----------> //
@@ -66,8 +80,11 @@ export abstract class Source {
     else if (timeAgo.includes('days')) {
       time = new Date(Date.now() - trimmed * 86400000)
     }
+    else if (timeAgo.includes('year') || timeAgo.includes('years')) {
+      time = new Date(Date.now() - trimmed * 31556952000)
+    }
     else {
-      time = new Date(Date.now() - 31556952000)
+      time = new Date(Date.now())
     }
 
     return time

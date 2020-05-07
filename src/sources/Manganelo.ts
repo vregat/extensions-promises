@@ -12,11 +12,11 @@ import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSecti
 const MN_DOMAIN = 'https://manganelo.com'
 
 export class Manganelo extends Source {
-  allDemogrpahic: string[]
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
-    this.allDemogrpahic = ["Shounen", "Shoujo", "Seinen", "Josei"]
   }
+
+  getVersion(): string { return '1.0' }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -51,8 +51,7 @@ export class Manganelo extends Source {
       let hentai = false
 
       let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-      createTagSection({ id: '1', label: 'demographic', tags: [] }),
-      createTagSection({ id: '2', label: 'format', tags: [] })]
+      createTagSection({ id: '1', label: 'format', tags: [] })]
 
       for (let row of $('tr', table).toArray()) {
         if ($(row).find('.info-alternative').length > 0) {
@@ -77,14 +76,8 @@ export class Manganelo extends Source {
             let text = $(elem).text()
             if (text.toLowerCase().includes('smut')) {
               hentai = true
-              tagSections[0].tags.push(createTag({ id: text, label: text }))
             }
-            if (this.allDemogrpahic.includes(text)) {
-              tagSections[1].tags.push(createTag({ id: text, label: text }))
-            }
-            else {
-              tagSections[0].tags.push(createTag({ id: text, label: text }))
-            }
+            tagSections[0].tags.push(createTag({ id: text, label: text }))
           }
         }
       }
@@ -191,12 +184,19 @@ export class Manganelo extends Source {
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
-    throw new Error("Method not implemented.");
+    let metadata = { 'ids': ids, 'referenceTime': time }
+    return createRequestObject({
+      url: `${MN_DOMAIN}/genre-all/`,
+      method: 'GET',
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      param: `${page}`
+    })
   }
 
-  // FIXME: Current issue with site not loading the newest pages properly
-  // I will consider coming back to this later
-  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
+  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } | null {
     let $ = this.cheerio.load(data)
 
     let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
@@ -204,30 +204,202 @@ export class Manganelo extends Source {
       'nextPage': true
     }
 
-    throw new Error("Method not implemented.");
+    let panel = $('.panel-content-genres')
+    for (let item of $('.content-genres-item', panel).toArray()) {
+      let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
+      let time = new Date($('.genres-item-time').first().text())
+      // site has a quirk where if the manga what updated in the last hour
+      // it will put the update time as tomorrow
+      if (time > new Date(Date.now())) {
+        time = new Date(Date.now() - 60000)
+      }
+
+      if (time > metadata.referenceTime) {
+        if (metadata.ids.includes(id)) {
+          returnObject.updatedMangaIds.push(id)
+        }
+      }
+      else {
+        returnObject.nextPage = false
+        return returnObject
+      }
+    }
+
+    return returnObject
   }
 
-  getHomePageSectionRequest(): HomeSectionRequest[] {
-    throw new Error("Method not implemented.");
+  getHomePageSectionRequest(): HomeSectionRequest[] | null {
+    let request = createRequestObject({ url: `${MN_DOMAIN}`, method: 'GET', })
+    let section1 = createHomeSection({ id: 'top_week', title: 'TOP OF THE WEEK' })
+    let section2 = createHomeSection({ id: 'latest_updates', title: 'LATEST UPDATES' })
+    let section3 = createHomeSection({ id: 'new_manga', title: 'NEW MANGA' })
+    return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3] })]
   }
 
-  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null {
-    throw new Error("Method not implemented.");
-  }
+  getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] | null {
+    let $ = this.cheerio.load(data)
+    let topManga: MangaTile[] = []
+    let updateManga: MangaTile[] = []
+    let newManga: MangaTile[] = []
 
-  getViewMoreRequest(key: string): Request {
-    throw new Error("Method not implemented.")
-  }
+    for (let item of $('.item', '.owl-carousel').toArray()) {
+      let id = $('a', item).first().attr('href')?.split('/').pop() ?? ''
+      let image = $('img', item).attr('src') ?? ''
+      topManga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: $('a', item).first().text() }),
+        subtitleText: createIconText({ text: $('[rel=nofollow]', item).text() })
+      }))
+    }
 
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] {
-    throw new Error("Method not implemented.")
+    for (let item of $('.content-homepage-item', '.panel-content-homepage').toArray()) {
+      let id = $('a', item).first().attr('href')?.split('/').pop() ?? ''
+      let image = $('img', item).attr('src') ?? ''
+      let itemRight = $('.content-homepage-item-right', item)
+      let latestUpdate = $('.item-chapter', itemRight).first()
+      updateManga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: $('a', itemRight).first().text() }),
+        subtitleText: createIconText({ text: $('.item-author', itemRight).text() }),
+        primaryText: createIconText({ text: $('em', item).text(), icon: 'star.fill' }),
+        secondaryText: createIconText({ text: $('i', latestUpdate).text(), icon: 'clock.fill' })
+      }))
+    }
+
+    for (let item of $('a', '.panel-newest-content').toArray()) {
+      let id = $(item).attr('href')?.split('/').pop() ?? ''
+      let image = $('img', item).attr('src') ?? ''
+      let title = $('img', item).attr('alt') ?? ''
+      newManga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: title })
+      }))
+    }
+
+    sections[0].items = topManga
+    sections[1].items = updateManga
+    sections[2].items = newManga
+    return sections
   }
 
   searchRequest(query: SearchRequest, page: number): Request {
-    throw new Error("Method not implemented.");
+    let genres = (query.includeGenre ?? []).concat(query.includeDemographic ?? []).join('_')
+    let excluded = (query.excludeGenre ?? []).concat(query.excludeDemographic ?? []).join('_')
+    let status = ""
+    switch (query.status) {
+      case 0: status = 'completed'; break
+      case 1: status = 'ongoing'; break
+      default: status = ''
+    }
+
+    let keyword = (query.title ?? '').replace(' ', '_')
+    if (query.author)
+      keyword += (query.author ?? '').replace(' ', '_')
+    let search: string = `s=all&keyw=${keyword}`
+    search += `&g_i=${genres}&g_e=${excluded}&page=${page}`
+    if (status) {
+      search += `&sts=${status}`
+    }
+
+    let metadata = { 'search': search }
+    return createRequestObject({
+      url: `${MN_DOMAIN}/advanced_search?`,
+      method: 'GET',
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      param: `${search}`
+    })
   }
 
   search(data: any): MangaTile[] | null {
-    throw new Error("Method not implemented.");
+    let $ = this.cheerio.load(data)
+    let panel = $('.panel-content-genres')
+    let manga: MangaTile[] = []
+    for (let item of $('.content-genres-item', panel).toArray()) {
+      let id = $('.genres-item-name', item).attr('href')?.split('/').pop() ?? ''
+      let title = $('.genres-item-name', item).text()
+      let subTitle = $('.genres-item-chap', item).text()
+      let image = $('.img-loading', item).attr('src') ?? ''
+      let rating = $('.genres-item-rate', item).text()
+      let updated = $('.genres-item-time', item).text()
+
+      manga.push(createMangaTile({
+        id: id,
+        image: image,
+        title: createIconText({ text: title }),
+        subtitleText: createIconText({ text: subTitle }),
+        primaryText: createIconText({ text: rating, icon: 'star.fill' }),
+        secondaryText: createIconText({ text: updated, icon: 'clock.fill' })
+      }))
+    }
+
+    return manga
+  }
+
+  getTagsRequest(): Request | null {
+    return createRequestObject({
+      url: `${MN_DOMAIN}/advanced_search?`,
+      method: 'GET',
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      }
+    })
+  }
+
+  getTags(data: any): TagSection[] | null {
+    let $ = this.cheerio.load(data)
+    let panel = $('.advanced-search-tool-genres-list')
+    let genres = createTagSection({
+      id: 'genre',
+      label: 'Genre',
+      tags: []
+    })
+    for (let item of $('span', panel).toArray()) {
+      let id = $(item).attr('data-i') ?? ''
+      let label = $(item).text()
+      genres.tags.push(createTag({ id: id, label: label }))
+    }
+    return [genres]
+  }
+
+  getViewMoreRequest(key: string, page: number): Request | null {
+    let param = ''
+    switch (key) {
+      case 'latest_updates': {
+        param = `/genre-all${page}`
+        break
+      }
+      case 'new_manga': {
+        param = `/genre-all/${page}?type=newest`
+        break
+      }
+      default: return null
+    }
+
+    return createRequestObject({
+      url: `${MN_DOMAIN}`,
+      method: 'GET',
+      param: param
+    })
+  }
+
+  getViewMoreItems(data: any, key: string): MangaTile[] | null {
+    let $ = this.cheerio.load(data)
+
+    let manga: MangaTile[] = []
+    if (key == 'latest_updates') {
+
+    }
+    else if (key == 'new_manga') {
+
+    }
+    else return null
+
+    return null
   }
 }

@@ -21,6 +21,8 @@ export class MangaDex extends Source {
     this.hMode = 0
   }
 
+  getVersion(): string { return '1.0' }
+
   getMangaDetailsRequest(ids: string[]): Request[] {
     return [createRequestObject({
       metadata: { ids },

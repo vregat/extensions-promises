@@ -58,27 +58,6 @@ export class APIWrapper {
 		return manga
 	}
 
-	// /**
-	//  * Returns the json payload from the cache server
-	//  * 
-	//  * @param ids 
-	//  */
-	// async getMangaDetailsBulk(ids: string[]): Promise<Manga[]> {
-	// 	let mangaDetailUrls = this.mangadex.getMangaDetailsRequest(ids)
-	// 	let url = mangaDetailUrls.url
-	// 	let payload = { 'id': ids }
-	// 	try {
-	// 		var data = await axios.post(url, payload)
-	// 	}
-	// 	catch (e) {
-	// 		console.log(e)
-	// 		return []
-	// 	}
-
-	// 	let manga: Manga[] = this.mangadex.getMangaDetailsBulk(data)
-	// 	return manga
-	// }
-
 	/**
 	 * Retrieves all the chapters for a particular manga
 	 * 
@@ -114,7 +93,7 @@ export class APIWrapper {
 	 * @param mangaId 
 	 * @param chId 
 	 */
-	async getChapterDetails(source: Source, mangaId: string, chId: string) : Promise<ChapterDetails> {
+	async getChapterDetails(source: Source, mangaId: string, chId: string): Promise<ChapterDetails> {
 		let request = source.getChapterDetailsRequest(mangaId, chId)
 		let metadata = request.metadata
 		let headers: any = request.headers == undefined ? {} : request.headers
@@ -301,38 +280,51 @@ export class APIWrapper {
 		}
 	}
 
-	// /**
-	//  * Returns the json payload from the cache server
-	//  * 
-	//  * @param query 
-	//  * @param page 
-	//  */
-	// async searchMangaCached(query: SearchRequest, page: number): Promise<Manga[]> {
-	// 	let url = this.mangadex.searchRequest(query, page).url
-	// 	try {
-	// 		var data = await axios.post(url + `?page=${page}&items=100`, query)
-	// 	}
-	// 	catch (e) {
-	// 		console.log(e)
-	// 		return []
-	// 	}
+	async getTags(source: Source) {
+		let request = source.getTagsRequest()
+		if (request == null) return Promise.resolve([])
+		let headers: any = request.headers == undefined ? {} : request.headers
+		headers['Cookie'] = this.formatCookie(request)
 
-	// 	return this.mangadex.searchMangaCached(data.data)
-	// }
+		try {
+			var data = await axios.request({
+				url: `${request.url}${request.param ?? ''}`,
+				method: request.method,
+				headers: headers,
+				data: request.data,
+				timeout: request.timeout || 0
+			})
 
-	// async getTags() {
-	// 	let url = this.mangadex.getTagsUrl().url
-	// 	try {
-	// 		var data = await axios.get(url)
-	// 	}
-	// 	catch (e) {
-	// 		console.log(e)
-	// 		return []
-	// 	}
+			return source.getTags(data.data) ?? []
+		}
+		catch (e) {
+			console.log(e)
+			return []
+		}
+	}
 
-	// 	let tags = this.mangadex.getTags(data.data)
-	// 	return tags
-	// }
+	async getViewMoreItems(source: Source, key: string, page: number) {
+		let request = source.getViewMoreRequest(key, page)
+		if (request == null) return Promise.resolve([])
+		let headers: any = request.headers == undefined ? {} : request.headers
+		headers['Cookie'] = this.formatCookie(request)
+
+		try {
+			var data = await axios.request({
+				url: `${request.url}${request.param ?? ''}`,
+				method: request.method,
+				headers: headers,
+				data: request.data,
+				timeout: request.timeout || 0
+			})
+
+			return source.getViewMoreItems(data.data, key)
+		}
+		catch (e) {
+			console.log(e)
+			return []
+		}
+	}
 
 	private formatCookie(info: Request): string {
 		let fCookie = ''
@@ -343,7 +335,7 @@ export class APIWrapper {
 }
 
 // MY TESTING FRAMEWORK - LOL
-//let application = new APIWrapper()
+let application = new APIWrapper()
 
 // MangaDex
 //application.getMangaDetails(new MangaDex(cheerio), ['1'])
@@ -362,11 +354,21 @@ export class APIWrapper {
 // })
 // application.search(new MangaPark(cheerio), test, 1).then((data) => { console.log(data) })
 // application.getHomePageSections(new MangaPark(cheerio)).then((data) => console.log(data))
+// application.getTags(new MangaPark(cheerio)).then((data) => console.log(data))
 
 // Manganelo
 // application.getMangaDetails(new Manganelo(cheerio), ['bt920017', 'read_one_piece_manga_online_free4']).then((data) => { console.log(data) })
 // application.getChapters(new Manganelo(cheerio), 'radiation_house').then((data) => { console.log(data) })
-//application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => { console.log(data) })
+// application.getChapterDetails(new Manganelo(cheerio), 'radiation_house', 'chapter_1').then((data) => { console.log(data) })
+// application.filterUpdatedManga(new Manganelo(cheerio), ['tower_of_god_manga', 'read_one_piece_manga_online_free4'], new Date("2020-04-25 02:33:30 UTC")).then(data => console.log(data))
+// application.getHomePageSections(new Manganelo(cheerio)).then(data => console.log(data))
+// let test = createSearchRequest({
+// 	title: 'world',
+// 	includeGenre: ['2', '6'],
+// 	excludeGenre: ['4']
+// })
+// application.search(new Manganelo(cheerio), test, 1).then((data) => { console.log(data) })
+// application.getTags(new Manganelo(cheerio)).then((data) => { console.log(data) })
 
 // Mangasee
 // application.getMangaDetails(new Mangasee(cheerio), ['Domestic-Na-Kanojo', 'one-piece']).then((data) => {console.log(data)})
@@ -374,8 +376,9 @@ export class APIWrapper {
 // application.getChapterDetails(new Mangasee(cheerio), 'boku-no-hero-academia', 'Boku-No-Hero-Academia-chapter-269-page-1.html').then((data) => {console.log(data)})
 // application.filterUpdatedManga(new Mangasee(cheerio), ['Be-Blues---Ao-Ni-Nare', 'Tales-Of-Demons-And-Gods', 'Amano-Megumi-Wa-Suki-Darake'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
 // let test = createSearchRequest({
-	// title: 'one piece', 
-	// includeDemographic: ['Shounen'], 
-	// excludeGenre: ['Supernatural']
+// title: 'one piece', 
+// includeDemographic: ['Shounen'], 
+// excludeGenre: ['Supernatural']
 // })
 // application.search(new Mangasee(cheerio), test, 1).then((data) => { console.log(data) })
+// application.getTags(new Mangasee(cheerio)).then((data) => { console.log(data) })

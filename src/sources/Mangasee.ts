@@ -11,11 +11,11 @@ import { HomeSection, HomeSectionRequest } from '../models/HomeSection/HomeSecti
 const MS_DOMAIN = 'https://mangaseeonline.us'
 
 export class Mangasee extends Source {
-  allDemogrpahic: string[]
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
-    this.allDemogrpahic = ["Shounen", "Shoujo", "Seinen", "Josei"]
   }
+
+  getVersion(): string { return '1.0' }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -43,8 +43,7 @@ export class Mangasee extends Source {
       let author = ''
 
       let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-      createTagSection({ id: '1', label: 'demographic', tags: [] }),
-      createTagSection({ id: '2', label: 'format', tags: [] })]
+      createTagSection({ id: '1', label: 'format', tags: [] })]
 
       let status = 1
       let summary = ''
@@ -66,10 +65,6 @@ export class Mangasee extends Source {
             for (let item of items) {
               if (item.toLowerCase().includes('hentai')) {
                 hentai = true
-                tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }))
-              }
-              else if (this.allDemogrpahic.includes(item.trim())) {
-                tagSections[1].tags.push(createTag({ id: item.trim(), label: item.trim() }))
               }
               else {
                 tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }))
@@ -79,7 +74,7 @@ export class Mangasee extends Source {
           }
           case 'Type:': {
             let type = $(row).text().replace(/(Type:)*(\t*\n*)/g, '').trim()
-            tagSections[2].tags.push(createTag({ id: type.trim(), label: type.trim() }))
+            tagSections[1].tags.push(createTag({ id: type.trim(), label: type.trim() }))
             break
           }
           case 'Status: ': {
@@ -220,7 +215,8 @@ export class Mangasee extends Source {
 
   searchRequest(query: SearchRequest, page: number): Request | null {
     let genres = (query.includeGenre ?? []).concat(query.includeDemographic ?? []).join(',')
-    let excluded = (query.excludeGenre ?? []).concat(query.excludeDemographic ?? []).join(',')
+    let excluded = (query.excludeGenre ?? ['Any']).concat(query.excludeDemographic ?? []).join(',')
+    let iFormat = (query.includeFormat ?? []).join(',')
     let status = ""
     switch (query.status) {
       case 0: status = 'Completed'; break
@@ -235,6 +231,7 @@ export class Mangasee extends Source {
       'sortBy': 'popularity',
       'sortOrder': 'descending',
       'status': status,
+      'type': iFormat,
       'genre': genres,
       'genreNo': excluded
     }
@@ -280,9 +277,40 @@ export class Mangasee extends Source {
     return mangaTiles
   }
 
+  getTagsRequest(): Request | null {
+    return createRequestObject({
+      url: `${MS_DOMAIN}/search/`,
+      method: 'GET',
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      }
+    })
+  }
+
+  getTags(data: any): TagSection[] | null {
+    let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+    createTagSection({ id: '1', label: 'format', tags: [] })]
+
+    let $ = this.cheerio.load(data)
+    let types = $('#typeCollapse')
+    for (let type of $('.list-group-item', types).toArray()) {
+      let value = $(type).attr('value') ?? ''
+      if (value != '') {
+        tagSections[1].tags.push(createTag({ id: value, label: $(type).text() }))
+      }
+    }
+
+    let genres = $('#genreCollapse')
+    for (let genre of $('.list-group-item', genres).toArray()) {
+      tagSections[0].tags.push(createTag({ id: $(genre).attr('value') ?? '', label: $(genre).text() }))
+    }
+
+    return tagSections
+  }
+
   getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
   getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
-  getViewMoreRequest(key: string): Request | null { return null }
-  getViewMoreItems(data: any, key: string, page: number): MangaTile[] | null { return null }
+  getViewMoreRequest(key: string, page: number): Request | null { return null }
+  getViewMoreItems(data: any, key: string): MangaTile[] | null { return null }
 }
 
