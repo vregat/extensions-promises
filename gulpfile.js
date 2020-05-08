@@ -124,7 +124,7 @@ const generateVersioningFile = async function () {
 
     // Write the JSON payload to file
     fs.writeFileSync(
-        directoryPath + '\\versioning.json',
+        path.join(directoryPath, 'versioning.json'),
         JSON.stringify(jsonObject)
     )
 }
