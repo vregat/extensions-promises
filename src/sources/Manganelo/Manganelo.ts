@@ -1,13 +1,13 @@
 
-import { Source } from './Source'
-import { Manga } from '../models/Manga/Manga'
-import { Chapter } from '../models/Chapter/Chapter'
-import { MangaTile } from '../models/MangaTile/MangaTile'
-import { SearchRequest } from '../models/SearchRequest/SearchRequest'
-import { Request } from '../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
-import { TagSection } from '../models/TagSection/TagSection'
-import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSection'
+import { Source } from '../Source'
+import { Manga } from '../../models/Manga/Manga'
+import { Chapter } from '../../models/Chapter/Chapter'
+import { MangaTile } from '../../models/MangaTile/MangaTile'
+import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
+import { Request } from '../../models/RequestObject/RequestObject'
+import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
+import { TagSection } from '../../models/TagSection/TagSection'
+import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
 
 const MN_DOMAIN = 'https://manganelo.com'
 
@@ -16,7 +16,9 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
-  getVersion(): string { return '1.0' }
+  get version(): string { return '1.0' }
+  get name(): string { return 'Manganelo' }
+  get description(): string { return 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching' }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -237,7 +239,7 @@ export class Manganelo extends Source {
   }
 
   getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] | null {
-    let $ = this.cheerio.load(data)
+    let $ = cheerio.load(data)
     let topManga: MangaTile[] = []
     let updateManga: MangaTile[] = []
     let newManga: MangaTile[] = []
@@ -263,7 +265,7 @@ export class Manganelo extends Source {
         image: image,
         title: createIconText({ text: $('a', itemRight).first().text() }),
         subtitleText: createIconText({ text: $('.item-author', itemRight).text() }),
-        primaryText: createIconText({ text: $('em', item).text(), icon: 'star.fill' }),
+        primaryText: createIconText({ text: $('.genres-item-rate', item).text(), icon: 'star.fill' }),
         secondaryText: createIconText({ text: $('i', latestUpdate).text(), icon: 'clock.fill' })
       }))
     }
@@ -371,7 +373,7 @@ export class Manganelo extends Source {
     let param = ''
     switch (key) {
       case 'latest_updates': {
-        param = `/genre-all${page}`
+        param = `/genre-all/${page}`
         break
       }
       case 'new_manga': {
@@ -390,16 +392,30 @@ export class Manganelo extends Source {
 
   getViewMoreItems(data: any, key: string): MangaTile[] | null {
     let $ = this.cheerio.load(data)
-
     let manga: MangaTile[] = []
-    if (key == 'latest_updates') {
-
-    }
-    else if (key == 'new_manga') {
-
+    if (key == 'latest_updates' || key == 'new_manga') {
+      let panel = $('.panel-content-genres')
+      for (let item of $('.content-genres-item', panel).toArray()) {
+        let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
+        let image = $('img', item).attr('src') ?? ''
+        let title = $('.genres-item-name', item).text()
+        let subtitle = $('.genres-item-chap', item).text()
+        let time = new Date($('.genres-item-time').first().text())
+        if (time > new Date(Date.now())) {
+          time = new Date(Date.now() - 60000)
+        }
+        let rating = $('.genres-item-rate', item).text()
+        manga.push(createMangaTile({
+          id: id,
+          image: image,
+          title: createIconText({ text: title }),
+          subtitleText: createIconText({ text: subtitle }),
+          primaryText: createIconText({ text: rating, icon: 'star.fill' }),
+          secondaryText: createIconText({ text: time.toDateString(), icon: 'clock.fill' })
+        }))
+      }
     }
     else return null
-
-    return null
+    return manga
   }
 }

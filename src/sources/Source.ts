@@ -21,7 +21,9 @@ export abstract class Source {
   // <-----------        REQUIRED METHODS        -----------> //
   // Returns the version of the source
   // Ensures that the app is using the most up to date version
-  abstract getVersion(): string
+  abstract get version(): string
+  abstract get name(): string
+  abstract get description(): string
 
   // Get information about particular manga
   abstract getMangaDetailsRequest(ids: string[]): Request[]

@@ -1,12 +1,12 @@
-import { Source } from './Source'
-import { Manga } from '../models/Manga/Manga'
-import { Chapter } from '../models/Chapter/Chapter'
-import { MangaTile } from '../models/MangaTile/MangaTile'
-import { SearchRequest } from '../models/SearchRequest/SearchRequest'
-import { Request } from '../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
-import { TagSection } from '../models/TagSection/TagSection'
-import { HomeSectionRequest, HomeSection } from '../models/HomeSection/HomeSection'
+import { Source } from '../Source'
+import { Manga } from '../../models/Manga/Manga'
+import { Chapter } from '../../models/Chapter/Chapter'
+import { MangaTile } from '../../models/MangaTile/MangaTile'
+import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
+import { Request } from '../../models/RequestObject/RequestObject'
+import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
+import { TagSection } from '../../models/TagSection/TagSection'
+import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
 
 const MP_DOMAIN = 'https://mangapark.net'
 
@@ -15,7 +15,9 @@ export class MangaPark extends Source {
     super(cheerio)
   }
 
-  getVersion(): string { return '1.0' }
+  get version(): string { return '1.0' }
+  get name(): string { return 'MangaPark' }
+  get description(): string { return 'Extension that pulls manga from MangaPark, includes Advanced Search and Updated manga fetching' }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []

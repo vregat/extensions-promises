@@ -13,8 +13,18 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
+    "browserify": "^16.5.1",
     "cheerio": "^1.0.0-rc.3",
-    "typescript": "^3.8.3"
+    "glob": "^7.1.6",
+    "gulp": "^4.0.2",
+    "gulp-rename": "^2.0.0",
+    "gulp-streamify": "^1.0.2",
+    "gulp-uglify": "^3.0.2",
+    "merge-stream": "^2.0.0",
+    "tsify": "^4.0.1",
+    "typescript": "^3.8.3",
+    "vinyl-source-stream": "^2.0.0",
+    "vinyl-transform": "^1.0.0"
   },
   "devDependencies": {
     "chai-as-promised": "^7.1.1",

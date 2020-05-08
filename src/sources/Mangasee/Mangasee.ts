@@ -1,12 +1,12 @@
-import { Source } from './Source'
-import { Manga } from '../models/Manga/Manga'
-import { Chapter } from '../models/Chapter/Chapter'
-import { MangaTile } from '../models/MangaTile/MangaTile'
-import { SearchRequest } from '../models/SearchRequest/SearchRequest'
-import { Request } from '../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../models/ChapterDetails/ChapterDetails'
-import { Tag, TagSection } from '../models/TagSection/TagSection'
-import { HomeSection, HomeSectionRequest } from '../models/HomeSection/HomeSection'
+import { Source } from '../Source'
+import { Manga } from '../../models/Manga/Manga'
+import { Chapter } from '../../models/Chapter/Chapter'
+import { MangaTile } from '../../models/MangaTile/MangaTile'
+import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
+import { Request } from '../../models/RequestObject/RequestObject'
+import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
+import { Tag, TagSection } from '../../models/TagSection/TagSection'
+import { HomeSection, HomeSectionRequest } from '../../models/HomeSection/HomeSection'
 
 const MS_DOMAIN = 'https://mangaseeonline.us'
 
@@ -15,7 +15,9 @@ export class Mangasee extends Source {
     super(cheerio)
   }
 
-  getVersion(): string { return '1.0' }
+  get version(): string { return '1.0' }
+  get name(): string { return 'Mangasee' }
+  get description(): string { return 'Extension that pulls manga from Mangasee, includes Advanced Search and Updated manga fetching' }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
