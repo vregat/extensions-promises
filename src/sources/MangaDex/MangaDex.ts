@@ -21,7 +21,9 @@ export class MangaDex extends Source {
     this.hMode = 0
   }
 
-  getVersion(): string { return '1.0' }
+  get version(): string { return '1.0' }
+  get name(): string { return 'MangaDex' }
+  get description(): string { return 'Extension that pulls manga from MangaDex, includes Advanced Search and Updated manga fetching' }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     return [createRequestObject({
