@@ -17,6 +17,7 @@ export class MangaPark extends Source {
 
 	get version(): string { return '1.0' }
 	get name(): string { return 'MangaPark' }
+	get icon(): string { return '//static.mangapark.net/img/logo-2019.png' }
 	get author(): string { return 'Daniel Kovalevich' }
 	get authorWebsite(): string { return 'https://github.com/DanielKovalevich' }
 	get description(): string { return 'Extension that pulls manga from MangaPark, includes Advanced Search and Updated manga fetching' }
@@ -330,12 +331,90 @@ export class MangaPark extends Source {
 		return sections
 	}
 
-	getViewMoreRequest(key: string, page: number): Request {
-		throw new Error("Method not implemented.")
+	getViewMoreRequest(key: string, page: number): Request | null {
+		let param = ''
+		switch (key) {
+			case 'popular_titles': {
+				param = `/genre/${page}`
+				break
+			}
+			case 'popular_new_titles': {
+				param = `/search?orderby=views&page=${page}`
+				break
+			}
+			case 'recently_updated': {
+				param = `/latest/${page}`
+				break
+			}
+			default: return null
+		}
+
+		return createRequestObject({
+			url: `${MP_DOMAIN}`,
+			method: 'GET',
+			param: param
+		})
 	}
 
-	getViewMoreItems(data: any, key: string): MangaTile[] {
-		throw new Error("Method not implemented.")
+	getViewMoreItems(data: any, key: string): MangaTile[] | null {
+		let $ = this.cheerio.load(data)
+		let manga: MangaTile[] = []
+		if (key == 'popular_titles') {
+			for (let item of $('.item', '.row.mt-2.ls1').toArray()) {
+				let id = $('a', item).first().attr('href')?.split('/').pop() ?? ''
+				let title = $('a', item).first().attr('title') ?? ''
+				let image = $('img', item).attr('src') ?? ''
+				let elems = $('small.ml-1', item)
+				let rating = $(elems[0]).text().trim()
+				let rank = $(elems[1]).text().split('-')[0].trim()
+				let chapters = $('span.small', item).text().trim()
+
+				manga.push(createMangaTile({
+					id: id,
+					image: image,
+					title: createIconText({ text: title }),
+					subtitleText: createIconText({ text: chapters }),
+					primaryText: createIconText({ text: rating, icon: 'star.fill' }),
+					secondaryText: createIconText({ text: rank, icon: 'chart.bar.fill' })
+				}))
+			}
+		}
+		else if (key == 'popular_new_titles') {
+			for (let item of $('.item', '.manga-list').toArray()) {
+				let id = $('.cover', item).attr('href')?.split('/').pop() ?? ''
+				let title = $('.cover', item).attr('title') ?? ''
+				let image = $('img', item).attr('src') ?? ''
+				let rank = $('[title=rank]', item).text().split('·')[1].trim()
+				let rating = $('.rate', item).text().trim()
+				let time = $('.justify-content-between', item).first().find('i').text()
+				manga.push(createMangaTile({
+					id: id,
+					image: image,
+					title: createIconText({ text: title }),
+					subtitleText: createIconText({ text: time }),
+					primaryText: createIconText({ text: rating, icon: 'star.fill' }),
+					secondaryText: createIconText({ text: rank, icon: 'chart.bar.fill' })
+				}))
+			}
+		}
+		else if (key == 'recently_updated') {
+			for (let item of $('.item', '.ls1').toArray()) {
+				let id = $('.cover', item).attr('href')?.split('/').pop() ?? ''
+				let title = $('.cover', item).attr('title') ?? ''
+				let image = $('img', item).attr('src') ?? ''
+				let chapter = $('.visited', item).first().text()
+				let time = $('.time', item).first().text()
+				manga.push(createMangaTile({
+					id: id,
+					image: image,
+					title: createIconText({ text: title }),
+					subtitleText: createIconText({ text: chapter }),
+					secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+				}))
+			}
+		}
+		else return null
+		return manga
 	}
 
 
