@@ -369,6 +369,7 @@ let application = new APIWrapper()
 // })
 // application.search(new Manganelo(cheerio), test, 1).then((data) => { console.log(data) })
 // application.getTags(new Manganelo(cheerio)).then((data) => { console.log(data) })
+// application.getViewMoreItems(new Manganelo(cheerio), 'new_manga', 1).then(data => console.log(data))
 
 // Mangasee
 // application.getMangaDetails(new Mangasee(cheerio), ['Domestic-Na-Kanojo', 'one-piece']).then((data) => {console.log(data)})

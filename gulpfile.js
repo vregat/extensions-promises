@@ -17,6 +17,11 @@ const bundleSources = async function () {
     const directoryPath = path.join(__dirname, 'src/sources')
     const destDir = "./bundles"
 
+    // If the bundles directory does not exist, create it here
+    if(!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir);
+    }
+
     var promises = []
 
     var bundleThis = function (srcArray) {
@@ -62,7 +67,12 @@ const bundleSources = async function () {
     await Promise.all(promises)//.then(function () { done() })
 }
 
-const getVersions = function () {
+const generateVersioningFile = async function () {
+
+    let jsonObject = {
+        buildTime: new Date(),
+        sources: []
+    };
 
     //joining path of directory 
     const directoryPath = path.join(__dirname, 'bundles')
@@ -71,8 +81,9 @@ const getVersions = function () {
     var generateSourceList = function (srcArray) {
         for (let file of srcArray) {
             let filePath = file
-            console.log(filePath)
-
+            let tags = filePath.match(/source.(\w*).*/);
+            let sourceName = tags[1];   // Pull the sourceName from the path
+            
             // If its a directory
             if (fs.statSync(path.join(directoryPath, filePath)).isDirectory()) {
                 console.log("Directory, skipping " + filePath)
@@ -86,16 +97,26 @@ const getVersions = function () {
                 let className = file.split('.')[1]
                 let extension = req[className]
 
-                console.log(new extension(null).getVersion())
+                let classInstance = new extension(null);
+
+                jsonObject.sources.push({
+                    id: sourceName,
+                    name: classInstance.name,
+                    desc: classInstance.description,
+                    version: classInstance.version
+                })
+
                 res()
             }))
         }
     }
 
     generateSourceList(fs.readdirSync(directoryPath))
+    await Promise.all(promises)
 
-    return Promise.all(promises)
+    // Write the JSON payload to file
+    fs.writeFileSync(directoryPath + "\\versioning.json", JSON.stringify(jsonObject));
 }
 
 // exports.bundle = bundleSources
-exports.bundle = gulp.series(bundleSources, getVersions)
+exports.bundle = gulp.series(bundleSources, generateVersioningFile)
