@@ -19,7 +19,7 @@ const bundleSources = async function () {
 
     // If the bundles directory does not exist, create it here
     if(!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir);
+        fs.mkdirSync(destDir)
     }
 
     var promises = []
@@ -72,7 +72,7 @@ const generateVersioningFile = async function () {
     let jsonObject = {
         buildTime: new Date(),
         sources: []
-    };
+    }
 
     //joining path of directory 
     const directoryPath = path.join(__dirname, 'bundles')
@@ -81,8 +81,8 @@ const generateVersioningFile = async function () {
     var generateSourceList = function (srcArray) {
         for (let file of srcArray) {
             let filePath = file
-            let tags = filePath.match(/source.(\w*).*/);
-            let sourceName = tags[1];   // Pull the sourceName from the path
+            let tags = filePath.match(/source.(\w*).*/)
+            let sourceName = tags[1]   // Pull the sourceName from the path
             
             // If its a directory
             if (fs.statSync(path.join(directoryPath, filePath)).isDirectory()) {
@@ -97,7 +97,7 @@ const generateVersioningFile = async function () {
                 let className = file.split('.')[1]
                 let extension = req[className]
 
-                let classInstance = new extension(null);
+                let classInstance = new extension(null)
 
                 jsonObject.sources.push({
                     id: sourceName,
@@ -115,7 +115,7 @@ const generateVersioningFile = async function () {
     await Promise.all(promises)
 
     // Write the JSON payload to file
-    fs.writeFileSync(directoryPath + "\\versioning.json", JSON.stringify(jsonObject));
+    fs.writeFileSync(directoryPath + "\\versioning.json", JSON.stringify(jsonObject))
 }
 
 // exports.bundle = bundleSources
