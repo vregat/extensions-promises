@@ -7,9 +7,9 @@ class MangaPark extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0'; }
+    get version() { return '1.0.1'; }
     get name() { return 'MangaPark'; }
-    get icon() { return '//static.mangapark.net/img/logo-2019.png'; }
+    get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
     get authorWebsite() { return 'https://github.com/DanielKovalevich'; }
     get description() { return 'Extension that pulls manga from MangaPark, includes Advanced Search and Updated manga fetching'; }

@@ -7,9 +7,9 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0'; }
+    get version() { return '1.0.1'; }
     get name() { return 'Manganelo'; }
-    get icon() { return 'https://manganelo.com/themes/hm/images/logo.png'; }
+    get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
     get authorWebsite() { return 'https://github.com/DanielKovalevich'; }
     get description() { return 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching'; }
