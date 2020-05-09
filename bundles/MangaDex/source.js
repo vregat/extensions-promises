@@ -17,7 +17,7 @@ class MangaDex extends Source_1.Source {
     }
     get version() { return '1.0'; }
     get name() { return 'MangaDex'; }
-    get icon() { return 'https://mangadex.org/images/misc/navbar.svg?3'; }
+    get icon() { return 'includes/icon.png'; }
     get author() { return 'Faizan Durrani'; }
     get authorWebsite() { return 'https://github.com/FaizanDurrani'; }
     get description() { return 'Extension that pulls manga from MangaDex, includes Advanced Search and Updated manga fetching'; }
