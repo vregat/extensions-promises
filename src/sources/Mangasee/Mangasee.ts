@@ -15,9 +15,9 @@ export class Mangasee extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0' }
+  get version(): string { return '1.0.1' }
   get name(): string { return 'Mangasee' }
-  get icon(): string { return 'https://mangaseeonline.us/img/navbar.brand.png' }
+  get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
   get authorWebsite(): string { return 'https://github.com/DanielKovalevich' }
   get description(): string { return 'Extension that pulls manga from Mangasee, includes Advanced Search and Updated manga fetching' }
