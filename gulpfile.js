@@ -97,6 +97,13 @@ const generateVersioningFile = async function () {
 
                     let classInstance = new extension(null)
 
+                    // make sure the icon is present in the includes folder.
+                    if (!fs.existsSync(path.join(directoryPath, sourceId, 'includes', classInstance.icon))) {
+                        console.log('[ERROR] [' + sourceId + '] Icon must be inside the includes folder')
+                        rej()
+                        return
+                    }
+
                     jsonObject.sources.push({
                         id: sourceId,
                         name: classInstance.name,
