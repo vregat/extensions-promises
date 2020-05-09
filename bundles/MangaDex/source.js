@@ -15,7 +15,7 @@ class MangaDex extends Source_1.Source {
         super(cheerio);
         this.hMode = 0;
     }
-    get version() { return '1.0'; }
+    get version() { return '1.0.1'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'includes/icon.png'; }
     get author() { return 'Faizan Durrani'; }
