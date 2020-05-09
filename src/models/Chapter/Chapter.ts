@@ -1,3 +1,5 @@
+import { LanguageCode } from "../Constants/Constants";
+
 export interface Chapter {
 
   /**
@@ -18,13 +20,12 @@ export interface Chapter {
    * An identifier of which chapter number this is, in a given {@link Manga}
    */
   chapNum: number
-
-  //TODO: The langCode should be enumerated
+  
   /**
    * The language code which this chapter is associated with.
    * This allows the application to filter by language
    */
-  langCode: string
+  langCode: LanguageCode
 
   /**
    * The title of this chapter, if one exists

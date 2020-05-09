@@ -24,13 +24,12 @@ export interface Manga {
 	 * The rating which users have given this manga
 	 */
 	rating: number
-
-	//TODO: Add an enumeration of this maybe
+  
 	/**
 	 * A status code for this manga. This is likely different each source.
 	 * For example, a zero might mean that it is unreleased. A one may mean it is ongoing. etc.
 	 */
-	status: number
+	status: MangaStatus
 
 	/**
 	 * A language code for the Manga, if one is available.
@@ -104,6 +103,11 @@ export interface Manga {
 	 * The time which this manga has been updated last
 	 */
 	lastUpdate?: string
+}
+
+export enum MangaStatus {
+	ONGOING = 0,
+	COMPLETED = 1
 }
 
 declare global {

@@ -1,6 +1,6 @@
 
 import { Source } from '../Source'
-import { Manga } from '../../models/Manga/Manga'
+import { Manga, MangaStatus } from '../../models/Manga/Manga'
 import { Chapter } from '../../models/Chapter/Chapter'
 import { MangaTile } from '../../models/MangaTile/MangaTile'
 import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
@@ -8,6 +8,7 @@ import { Request } from '../../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 import { TagSection } from '../../models/TagSection/TagSection'
 import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
+import { LanguageCode } from '../../models/Constants/Constants'
 
 const MN_DOMAIN = 'https://manganelo.com'
 
@@ -48,7 +49,7 @@ export class Manganelo extends Source {
       let author = ''
       let artist = ''
       let rating = 0
-      let status = 0
+      let status = MangaStatus.ONGOING
       let titles = [title]
       let follows = 0
       let views = 0
@@ -72,7 +73,7 @@ export class Manganelo extends Source {
           }
         }
         else if ($(row).find('.info-status').length > 0) {
-          status = $('.table-value', row).text() == 'Ongoing' ? 1 : 0
+          status = $('.table-value', row).text() == 'Ongoing' ? MangaStatus.ONGOING : MangaStatus.COMPLETED
         }
         else if ($(row).find('.info-genres').length > 0) {
           let elems = $('.table-value', row).find('a').toArray()
@@ -145,7 +146,7 @@ export class Manganelo extends Source {
         id: id,
         mangaId: metadata.id,
         name: name,
-        langCode: 'en',
+        langCode: LanguageCode.ENGLISH,
         chapNum: chNum,
         time: time
       }))
