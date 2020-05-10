@@ -9,7 +9,7 @@ class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.5'; }
+    get version() { return '1.0.6'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -32,7 +32,7 @@ class MangaDex extends Source_1.Source {
     getMangaDetails(data, metadata) {
         let result = JSON.parse(data);
         let mangas = [];
-        for (let mangaDetails of result["results"]) {
+        for (let mangaDetails of result["result"]) {
             mangas.push(createManga({
                 id: mangaDetails["id"].toString(),
                 titles: mangaDetails["titles"],
