@@ -6,8 +6,8 @@ import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
 import { Request } from '../../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 
-import { CACHE_MANGA_DETAILS } from '../../models/Constants/Constants'
 import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
+import { CACHE_MANGA } from '../../models/Constants/Constants'
 
 const MD_DOMAIN = 'https://mangadex.org'
 const MD_CHAPTERS_API = `${MD_DOMAIN}/api/manga`                // /:mangaId
@@ -30,7 +30,7 @@ export class MangaDex extends Source {
   getMangaDetailsRequest(ids: string[]): Request[] {
     return [createRequestObject({
       metadata: { ids },
-      url: `${CACHE_MANGA_DETAILS}`,
+      url: `${CACHE_MANGA}`,
       method: 'POST',
       headers: {
         "content-type": "application/json"
