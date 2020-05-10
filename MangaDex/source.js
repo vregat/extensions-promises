@@ -1,55 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Sources = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var LanguageCode;
-(function (LanguageCode) {
-    LanguageCode["UNKNOWN"] = "?";
-    LanguageCode["BENGALI"] = "bd";
-    LanguageCode["BULGARIAN"] = "bg";
-    LanguageCode["BRAZILIAN"] = "br";
-    LanguageCode["CHINEESE"] = "cn";
-    LanguageCode["CZECH"] = "cz";
-    LanguageCode["GERMAN"] = "de";
-    LanguageCode["DANISH"] = "dk";
-    LanguageCode["ENGLISH"] = "en";
-    LanguageCode["SPANISH"] = "es";
-    LanguageCode["FINNISH"] = "fi";
-    LanguageCode["FRENCH"] = "fr";
-    LanguageCode["WELSH"] = "gb";
-    LanguageCode["GREEK"] = "gr";
-    LanguageCode["CHINEESE_HONGKONG"] = "hk";
-    LanguageCode["HUNGARIAN"] = "hu";
-    LanguageCode["INDONESIAN"] = "id";
-    LanguageCode["ISRELI"] = "il";
-    LanguageCode["INDIAN"] = "in";
-    LanguageCode["IRAN"] = "ir";
-    LanguageCode["ITALIAN"] = "it";
-    LanguageCode["JAPANESE"] = "jp";
-    LanguageCode["KOREAN"] = "kr";
-    LanguageCode["LITHUANIAN"] = "lt";
-    LanguageCode["MONGOLIAN"] = "mn";
-    LanguageCode["MEXIAN"] = "mx";
-    LanguageCode["MALAY"] = "my";
-    LanguageCode["DUTCH"] = "nl";
-    LanguageCode["NORWEGIAN"] = "no";
-    LanguageCode["PHILIPPINE"] = "ph";
-    LanguageCode["POLISH"] = "pl";
-    LanguageCode["PORTUGUESE"] = "pt";
-    LanguageCode["ROMANIAN"] = "ro";
-    LanguageCode["RUSSIAN"] = "ru";
-    LanguageCode["SANSKRIT"] = "sa";
-    LanguageCode["SAMI"] = "si";
-    LanguageCode["THAI"] = "th";
-    LanguageCode["TURKISH"] = "tr";
-    LanguageCode["UKRAINIAN"] = "ua";
-    LanguageCode["VIETNAMESE"] = "vn";
-})(LanguageCode = exports.LanguageCode || (exports.LanguageCode = {}));
-
-},{}],2:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const Source_1 = require("../Source");
-const Constants_1 = require("../../models/Constants/Constants");
 const MD_DOMAIN = 'https://mangadex.org';
 const MD_CHAPTERS_API = `${MD_DOMAIN}/api/manga`; // /:mangaId
 const MD_CHAPTER_DETAILS_API = `${MD_DOMAIN}/api/chapter`; // /:chapterId
@@ -57,7 +9,7 @@ class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.4'; }
+    get version() { return '1.0.5'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -67,7 +19,7 @@ class MangaDex extends Source_1.Source {
     getMangaDetailsRequest(ids) {
         return [createRequestObject({
                 metadata: { ids },
-                url: `${Constants_1.CACHE_MANGA}`,
+                url: CACHE_MANGA,
                 method: 'POST',
                 headers: {
                     "content-type": "application/json"
@@ -332,7 +284,7 @@ class MangaDex extends Source_1.Source {
 }
 exports.MangaDex = MangaDex;
 
-},{"../../models/Constants/Constants":1,"../Source":3}],3:[function(require,module,exports){
+},{"../Source":2}],2:[function(require,module,exports){
 "use strict";
 /**
  * Request objects hold information for a particular source (see sources for example)
@@ -459,5 +411,5 @@ class Source {
 }
 exports.Source = Source;
 
-},{}]},{},[2])(2)
+},{}]},{},[1])(1)
 });

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var LanguageCode;
 (function (LanguageCode) {
-    LanguageCode["UNKNOWN"] = "?";
+    LanguageCode["UNKNOWN"] = "_unknown";
     LanguageCode["BENGALI"] = "bd";
     LanguageCode["BULGARIAN"] = "bg";
     LanguageCode["BRAZILIAN"] = "br";
@@ -49,7 +49,7 @@ var LanguageCode;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Source_1 = require("../Source");
-const Constants_1 = require("../../models/Constants/Constants");
+const Languages_1 = require("../../models/Languages/Languages");
 const NHENTAI_DOMAIN = 'https://nhentai.net';
 class NHentai extends Source_1.Source {
     constructor(cheerio) {
@@ -63,10 +63,10 @@ class NHentai extends Source_1.Source {
     get hentaiSource() { return true; }
     convertLanguageToCode(language) {
         switch (language.toLowerCase()) {
-            case "english": return Constants_1.LanguageCode.ENGLISH;
-            case "japanese": return Constants_1.LanguageCode.JAPANESE;
-            case "chinese": return Constants_1.LanguageCode.CHINEESE;
-            default: return Constants_1.LanguageCode.UNKNOWN;
+            case "english": return Languages_1.LanguageCode.ENGLISH;
+            case "japanese": return Languages_1.LanguageCode.JAPANESE;
+            case "chinese": return Languages_1.LanguageCode.CHINEESE;
+            default: return Languages_1.LanguageCode.UNKNOWN;
         }
     }
     getMangaDetailsRequest(ids) {
@@ -332,7 +332,7 @@ class NHentai extends Source_1.Source {
 }
 exports.NHentai = NHentai;
 
-},{"../../models/Constants/Constants":1,"../Source":3}],3:[function(require,module,exports){
+},{"../../models/Languages/Languages":1,"../Source":3}],3:[function(require,module,exports){
 "use strict";
 /**
  * Request objects hold information for a particular source (see sources for example)

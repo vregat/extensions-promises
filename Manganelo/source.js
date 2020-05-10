@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var LanguageCode;
 (function (LanguageCode) {
-    LanguageCode["UNKNOWN"] = "?";
+    LanguageCode["UNKNOWN"] = "_unknown";
     LanguageCode["BENGALI"] = "bd";
     LanguageCode["BULGARIAN"] = "bg";
     LanguageCode["BRAZILIAN"] = "br";
@@ -59,13 +59,13 @@ var MangaStatus;
 Object.defineProperty(exports, "__esModule", { value: true });
 const Source_1 = require("../Source");
 const Manga_1 = require("../../models/Manga/Manga");
-const Constants_1 = require("../../models/Constants/Constants");
+const Languages_1 = require("../../models/Languages/Languages");
 const MN_DOMAIN = 'https://manganelo.com';
 class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.3'; }
+    get version() { return '1.0.4'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -187,7 +187,7 @@ class Manganelo extends Source_1.Source {
                 id: id,
                 mangaId: metadata.id,
                 name: name,
-                langCode: Constants_1.LanguageCode.ENGLISH,
+                langCode: Languages_1.LanguageCode.ENGLISH,
                 chapNum: chNum,
                 time: time
             }));
@@ -452,7 +452,7 @@ class Manganelo extends Source_1.Source {
 }
 exports.Manganelo = Manganelo;
 
-},{"../../models/Constants/Constants":1,"../../models/Manga/Manga":2,"../Source":4}],4:[function(require,module,exports){
+},{"../../models/Languages/Languages":1,"../../models/Manga/Manga":2,"../Source":4}],4:[function(require,module,exports){
 "use strict";
 /**
  * Request objects hold information for a particular source (see sources for example)
