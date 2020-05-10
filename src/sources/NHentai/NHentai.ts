@@ -111,7 +111,7 @@ export class NHentai extends Source {
         status: status,
         artist: artist,
         tags: tagSections,
-        description: summary,
+        desc: summary,
         hentai: hentai
       }))
     }

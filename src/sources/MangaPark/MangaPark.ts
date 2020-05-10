@@ -129,7 +129,7 @@ export class MangaPark extends Source {
 				author: author,
 				tags: tagSections,
 				views: views,
-				description: summary,
+				desc: summary,
 				hentai: hentai
 			})
 		}

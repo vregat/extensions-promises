@@ -101,7 +101,7 @@ export class Mangasee extends Source {
         status: status,
         author: author,
         tags: tagSections,
-        description: summary,
+        desc: summary,
         hentai: hentai
       }))
     }

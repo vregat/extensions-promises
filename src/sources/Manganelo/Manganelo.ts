@@ -116,7 +116,7 @@ export class Manganelo extends Source {
         views: views,
         follows: follows,
         lastUpdate: lastUpdate,
-        description: summary,
+        desc: summary,
         hentai: hentai
       })
     }
