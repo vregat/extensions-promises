@@ -51,11 +51,6 @@ export abstract class Source {
   abstract get author(): string
 
   /**
- * An optional field where the author may put a link to their website
- */
-  get authorWebsite(): string | null { return null }
-
-  /**
    * A brief description of what this source targets. This is additional content displayed to the user when 
    * browsing sources. 
    * What website does it target? What features are working? Etc.
@@ -67,6 +62,16 @@ export abstract class Source {
    * if the user doesn't have hentai enabled
    */
   abstract get hentaiSource(): boolean
+
+  /**
+   * An optional field where the author may put a link to their website
+   */
+  get authorWebsite(): string | null { return null }
+
+  /**
+   * An optional field that defines the language of the extension's source
+   */
+  get language(): string { return 'all' }
 
   /**
    * A function returning a request for manga information on a list of multiple mangas.
