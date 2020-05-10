@@ -19,7 +19,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.5' }
+  get version(): string { return '1.0.6' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -44,7 +44,7 @@ export class MangaDex extends Source {
     let result = JSON.parse(data)
 
     let mangas = []
-    for (let mangaDetails of result["results"]) {
+    for (let mangaDetails of result["result"]) {
       mangas.push(createManga({
         id: mangaDetails["id"].toString(),
         titles: mangaDetails["titles"],
