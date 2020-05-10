@@ -67,7 +67,7 @@ class MangaDex extends Source_1.Source {
     getMangaDetailsRequest(ids) {
         return [createRequestObject({
                 metadata: { ids },
-                url: `${Constants_1.CACHE_MANGA_DETAILS}`,
+                url: `${Constants_1.CACHE_MANGA}`,
                 method: 'POST',
                 headers: {
                     "content-type": "application/json"
