@@ -7,7 +7,7 @@ import { Request } from '../../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 import { Tag, TagSection } from '../../models/TagSection/TagSection'
 import { HomeSection, HomeSectionRequest } from '../../models/HomeSection/HomeSection'
-import { LanguageCode } from '../../models/Constants/Constants'
+import { LanguageCode } from '../../models/Languages/Languages'
 
 const MS_DOMAIN = 'https://mangaseeonline.us'
 
@@ -16,7 +16,7 @@ export class Mangasee extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.2' }
+  get version(): string { return '1.0.3' }
   get name(): string { return 'Mangasee' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }

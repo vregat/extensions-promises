@@ -8,7 +8,7 @@ import { Request } from '../../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 import { TagSection } from '../../models/TagSection/TagSection'
 import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
-import { LanguageCode } from '../../models/Constants/Constants'
+import { LanguageCode } from '../../models/Languages/Languages'
 
 const MN_DOMAIN = 'https://manganelo.com'
 
@@ -17,7 +17,7 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.3' }
+  get version(): string { return '1.0.4' }
   get name(): string { return 'Manganelo' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }

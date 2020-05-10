@@ -7,7 +7,7 @@ import { Request } from '../../models/RequestObject/RequestObject'
 import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 
 import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
-import { CACHE_MANGA } from '../../models/Constants/Constants'
+import { LanguageCode } from '../../models/Languages/Languages'
 
 const MD_DOMAIN = 'https://mangadex.org'
 const MD_CHAPTERS_API = `${MD_DOMAIN}/api/manga`                // /:mangaId
@@ -19,7 +19,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.4' }
+  get version(): string { return '1.0.5' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -30,7 +30,7 @@ export class MangaDex extends Source {
   getMangaDetailsRequest(ids: string[]): Request[] {
     return [createRequestObject({
       metadata: { ids },
-      url: `${CACHE_MANGA}`,
+      url: CACHE_MANGA,
       method: 'POST',
       headers: {
         "content-type": "application/json"
