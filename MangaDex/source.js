@@ -56,7 +56,6 @@ const MD_CHAPTER_DETAILS_API = `${MD_DOMAIN}/api/chapter`; // /:chapterId
 class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
-        this.hMode = 0;
     }
     get version() { return '1.0.2'; }
     get name() { return 'MangaDex'; }
@@ -289,7 +288,7 @@ class MangaDex extends Source_1.Source {
             let idStr = (_a = $('a.manga_title', elem[i]).attr('href')) !== null && _a !== void 0 ? _a : '';
             let id = (_c = ((_b = idStr.match(/(\d+)(?=\/)/)) !== null && _b !== void 0 ? _b : '')[0]) !== null && _c !== void 0 ? _c : '';
             let title = (_d = $('a.manga_title', elem[i]).text()) !== null && _d !== void 0 ? _d : '';
-            let image = (_e = $('img', elem[i]).attr('src')) !== null && _e !== void 0 ? _e : '';
+            let image = (_e = (MD_DOMAIN + $('img', elem[i]).attr('src'))) !== null && _e !== void 0 ? _e : '';
             // in this case: badge will be number of updates
             // that the manga has received within last week
             let badge = 0;
