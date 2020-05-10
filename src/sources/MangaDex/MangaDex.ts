@@ -37,14 +37,66 @@ export class MangaDex extends Source {
       headers: {
         "content-type": "application/json"
       },
-      data: JSON.stringify({
+      data: {
         ids: ids
-      })
+      }
     })]
   }
-
   getMangaDetails(data: any, metadata: any): Manga[] {
-    throw new Error("Method not implemented.");
+    let result = JSON.parse(data)
+
+    let mangas = []
+    for (let mangaDetails of result["results"]) {
+      mangas.push(createManga({
+        id: mangaDetails["id"].toString(),
+        titles: mangaDetails["titles"],
+        image: mangaDetails["image"],
+        rating: mangaDetails["rating"],
+        status: mangaDetails["status"],
+        langFlag: mangaDetails["langFlag"],
+        langName: mangaDetails["langName"],
+        artist: mangaDetails["artist"],
+        author: mangaDetails["author"],
+        avgRating: mangaDetails["avgRating"],
+        covers: mangaDetails["covers"],
+        desc: mangaDetails["description"],
+        follows: mangaDetails["follows"],
+        tags: [
+          createTagSection({
+            id: "content",
+            label: "Content",
+            tags: mangaDetails["content"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+          }),
+          createTagSection({
+            id: "demographic",
+            label: "Demographic",
+            tags: mangaDetails["demographic"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+          }),
+          createTagSection({
+            id: "formats",
+            label: "Formats",
+            tags: mangaDetails["formats"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+          }),
+          createTagSection({
+            id: "genres",
+            label: "Genres",
+            tags: mangaDetails["genres"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+          }),
+          createTagSection({
+            id: "themes",
+            label: "Themes",
+            tags: mangaDetails["themes"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+          })
+        ],
+        users: mangaDetails["users"],
+        views: mangaDetails["views"],
+        hentai: mangaDetails["hentai"],
+        relatedIds: mangaDetails["relatedIds"],
+        lastUpdate: mangaDetails["lastUpdate"]
+      }))
+    }
+
+    return mangas
   }
 
   getChaptersRequest(mangaId: string): Request {
