@@ -65,7 +65,7 @@ class Mangasee extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.3'; }
+    get version() { return '1.0.4'; }
     get name() { return 'Mangasee'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -88,66 +88,64 @@ class Mangasee extends Source_1.Source {
     getMangaDetails(data, metadata) {
         var _a, _b;
         let manga = [];
-        for (let [i, response] of data.entries()) {
-            let $ = this.cheerio.load(response);
-            let info = $('.row');
-            let image = (_a = $('img', '.row').attr('src')) !== null && _a !== void 0 ? _a : '';
-            let title = (_b = $('.SeriesName', info).text()) !== null && _b !== void 0 ? _b : '';
-            let titles = [title];
-            let details = $('.details', info);
-            let author = '';
-            let tagSections = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-                createTagSection({ id: '1', label: 'format', tags: [] })];
-            let status = Manga_1.MangaStatus.ONGOING;
-            let summary = '';
-            let hentai = false;
-            for (let row of $('.row', details).toArray()) {
-                let text = $('b', row).text();
-                switch (text) {
-                    case 'Alternate Name(s): ': {
-                        titles.push($(row).text().replace(/(Alternate Name\(s\):)*(\t*\n*)/g, '').trim());
-                        break;
-                    }
-                    case 'Author(s): ': {
-                        author = $(row).text().replace(/(Author\(s\):)*(\t*\n*)/g, '').trim();
-                        break;
-                    }
-                    case 'Genre(s): ': {
-                        let items = $(row).text().replace(/(Genre\(s\):)*(\t*\n*)/g, '').split(',');
-                        for (let item of items) {
-                            if (item.toLowerCase().includes('hentai')) {
-                                hentai = true;
-                            }
-                            else {
-                                tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }));
-                            }
-                        }
-                        break;
-                    }
-                    case 'Type:': {
-                        let type = $(row).text().replace(/(Type:)*(\t*\n*)/g, '').trim();
-                        tagSections[1].tags.push(createTag({ id: type.trim(), label: type.trim() }));
-                        break;
-                    }
-                    case 'Status: ': {
-                        status = $(row).text().includes('Ongoing') ? Manga_1.MangaStatus.ONGOING : Manga_1.MangaStatus.COMPLETED;
-                        break;
-                    }
+        let $ = this.cheerio.load(data);
+        let info = $('.row');
+        let image = (_a = $('img', '.row').attr('src')) !== null && _a !== void 0 ? _a : '';
+        let title = (_b = $('.SeriesName', info).text()) !== null && _b !== void 0 ? _b : '';
+        let titles = [title];
+        let details = $('.details', info);
+        let author = '';
+        let tagSections = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+            createTagSection({ id: '1', label: 'format', tags: [] })];
+        let status = Manga_1.MangaStatus.ONGOING;
+        let summary = '';
+        let hentai = false;
+        for (let row of $('.row', details).toArray()) {
+            let text = $('b', row).text();
+            switch (text) {
+                case 'Alternate Name(s): ': {
+                    titles.push($(row).text().replace(/(Alternate Name\(s\):)*(\t*\n*)/g, '').trim());
+                    break;
                 }
-                summary = $('.description', row).text();
+                case 'Author(s): ': {
+                    author = $(row).text().replace(/(Author\(s\):)*(\t*\n*)/g, '').trim();
+                    break;
+                }
+                case 'Genre(s): ': {
+                    let items = $(row).text().replace(/(Genre\(s\):)*(\t*\n*)/g, '').split(',');
+                    for (let item of items) {
+                        if (item.toLowerCase().includes('hentai')) {
+                            hentai = true;
+                        }
+                        else {
+                            tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }));
+                        }
+                    }
+                    break;
+                }
+                case 'Type:': {
+                    let type = $(row).text().replace(/(Type:)*(\t*\n*)/g, '').trim();
+                    tagSections[1].tags.push(createTag({ id: type.trim(), label: type.trim() }));
+                    break;
+                }
+                case 'Status: ': {
+                    status = $(row).text().includes('Ongoing') ? Manga_1.MangaStatus.ONGOING : Manga_1.MangaStatus.COMPLETED;
+                    break;
+                }
             }
-            manga.push(createManga({
-                id: metadata[i].id,
-                titles: titles,
-                image: image,
-                rating: 0,
-                status: status,
-                author: author,
-                tags: tagSections,
-                desc: summary,
-                hentai: hentai
-            }));
+            summary = $('.description', row).text();
         }
+        manga.push(createManga({
+            id: metadata.id,
+            titles: titles,
+            image: image,
+            rating: 0,
+            status: status,
+            author: author,
+            tags: tagSections,
+            desc: summary,
+            hentai: hentai
+        }));
         return manga;
     }
     getChaptersRequest(mangaId) {
@@ -344,10 +342,6 @@ class Mangasee extends Source_1.Source {
         }
         return tagSections;
     }
-    getHomePageSectionRequest() { return null; }
-    getHomePageSections(data, section) { return null; }
-    getViewMoreRequest(key, page) { return null; }
-    getViewMoreItems(data, key) { return null; }
 }
 exports.Mangasee = Mangasee;
 

@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.5'; }
+    get version() { return '1.0.6'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -88,80 +88,78 @@ class Manganelo extends Source_1.Source {
     getMangaDetails(data, metadata) {
         var _a, _b, _c, _d, _e;
         let manga = [];
-        for (let [i, response] of data.entries()) {
-            let $ = this.cheerio.load(response);
-            let panel = $('.panel-story-info');
-            let title = (_a = $('.img-loading', panel).attr('title')) !== null && _a !== void 0 ? _a : '';
-            let image = (_b = $('.img-loading', panel).attr('src')) !== null && _b !== void 0 ? _b : '';
-            let table = $('.variations-tableInfo', panel);
-            let author = '';
-            let artist = '';
-            let rating = 0;
-            let status = Manga_1.MangaStatus.ONGOING;
-            let titles = [title];
-            let follows = 0;
-            let views = 0;
-            let lastUpdate = '';
-            let hentai = false;
-            let tagSections = [createTagSection({ id: '0', label: 'genres', tags: [] })];
-            for (let row of $('tr', table).toArray()) {
-                if ($(row).find('.info-alternative').length > 0) {
-                    let alts = $('h2', table).text().split(/,|;/);
-                    for (let alt of alts) {
-                        titles.push(alt.trim());
-                    }
-                }
-                else if ($(row).find('.info-author').length > 0) {
-                    let autart = $('.table-value', row).find('a').toArray();
-                    author = $(autart[0]).text();
-                    if (autart.length > 1) {
-                        artist = $(autart[1]).text();
-                    }
-                }
-                else if ($(row).find('.info-status').length > 0) {
-                    status = $('.table-value', row).text() == 'Ongoing' ? Manga_1.MangaStatus.ONGOING : Manga_1.MangaStatus.COMPLETED;
-                }
-                else if ($(row).find('.info-genres').length > 0) {
-                    let elems = $('.table-value', row).find('a').toArray();
-                    for (let elem of elems) {
-                        let text = $(elem).text();
-                        let id = (_e = (_d = (_c = $(elem).attr('href')) === null || _c === void 0 ? void 0 : _c.split('/').pop()) === null || _d === void 0 ? void 0 : _d.split('-').pop()) !== null && _e !== void 0 ? _e : '';
-                        if (text.toLowerCase().includes('smut')) {
-                            hentai = true;
-                        }
-                        tagSections[0].tags.push(createTag({ id: id, label: text }));
-                    }
+        let $ = this.cheerio.load(data);
+        let panel = $('.panel-story-info');
+        let title = (_a = $('.img-loading', panel).attr('title')) !== null && _a !== void 0 ? _a : '';
+        let image = (_b = $('.img-loading', panel).attr('src')) !== null && _b !== void 0 ? _b : '';
+        let table = $('.variations-tableInfo', panel);
+        let author = '';
+        let artist = '';
+        let rating = 0;
+        let status = Manga_1.MangaStatus.ONGOING;
+        let titles = [title];
+        let follows = 0;
+        let views = 0;
+        let lastUpdate = '';
+        let hentai = false;
+        let tagSections = [createTagSection({ id: '0', label: 'genres', tags: [] })];
+        for (let row of $('tr', table).toArray()) {
+            if ($(row).find('.info-alternative').length > 0) {
+                let alts = $('h2', table).text().split(/,|;/);
+                for (let alt of alts) {
+                    titles.push(alt.trim());
                 }
             }
-            table = $('.story-info-right-extent', panel);
-            for (let row of $('p', table).toArray()) {
-                if ($(row).find('.info-time').length > 0) {
-                    let time = new Date($('.stre-value', row).text().replace(/(-*(AM)*(PM)*)/g, ''));
-                    lastUpdate = time.toDateString();
-                }
-                else if ($(row).find('.info-view').length > 0) {
-                    views = Number($('.stre-value', row).text().replace(/,/g, ''));
+            else if ($(row).find('.info-author').length > 0) {
+                let autart = $('.table-value', row).find('a').toArray();
+                author = $(autart[0]).text();
+                if (autart.length > 1) {
+                    artist = $(autart[1]).text();
                 }
             }
-            rating = Number($('[property=v\\:average]', table).text());
-            follows = Number($('[property=v\\:votes]', table).text());
-            let summary = $('.panel-story-info-description', panel).text();
-            manga.push({
-                id: metadata[i].id,
-                titles: titles,
-                image: image,
-                rating: Number(rating),
-                status: status,
-                artist: artist,
-                author: author,
-                tags: tagSections,
-                views: views,
-                follows: follows,
-                lastUpdate: lastUpdate,
-                desc: summary,
-                hentai: hentai
-            });
+            else if ($(row).find('.info-status').length > 0) {
+                status = $('.table-value', row).text() == 'Ongoing' ? Manga_1.MangaStatus.ONGOING : Manga_1.MangaStatus.COMPLETED;
+            }
+            else if ($(row).find('.info-genres').length > 0) {
+                let elems = $('.table-value', row).find('a').toArray();
+                for (let elem of elems) {
+                    let text = $(elem).text();
+                    let id = (_e = (_d = (_c = $(elem).attr('href')) === null || _c === void 0 ? void 0 : _c.split('/').pop()) === null || _d === void 0 ? void 0 : _d.split('-').pop()) !== null && _e !== void 0 ? _e : '';
+                    if (text.toLowerCase().includes('smut')) {
+                        hentai = true;
+                    }
+                    tagSections[0].tags.push(createTag({ id: id, label: text }));
+                }
+            }
         }
+        table = $('.story-info-right-extent', panel);
+        for (let row of $('p', table).toArray()) {
+            if ($(row).find('.info-time').length > 0) {
+                let time = new Date($('.stre-value', row).text().replace(/(-*(AM)*(PM)*)/g, ''));
+                lastUpdate = time.toDateString();
+            }
+            else if ($(row).find('.info-view').length > 0) {
+                views = Number($('.stre-value', row).text().replace(/,/g, ''));
+            }
+        }
+        rating = Number($('[property=v\\:average]', table).text());
+        follows = Number($('[property=v\\:votes]', table).text());
+        let summary = $('.panel-story-info-description', panel).text();
+        manga.push({
+            id: metadata.id,
+            titles: titles,
+            image: image,
+            rating: Number(rating),
+            status: status,
+            artist: artist,
+            author: author,
+            tags: tagSections,
+            views: views,
+            follows: follows,
+            lastUpdate: lastUpdate,
+            desc: summary,
+            hentai: hentai
+        });
         return manga;
     }
     getChaptersRequest(mangaId) {
@@ -220,11 +218,6 @@ class Manganelo extends Source_1.Source {
             pages: pages,
             longStrip: false
         });
-        let returnObject = {
-            'details': chapterDetails,
-            'nextPage': metadata.nextPage,
-            'param': null
-        };
         return chapterDetails;
     }
     filterUpdatedMangaRequest(ids, time, page) {
