@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6'; }
+    get version() { return '0.7'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -84,67 +84,65 @@ class NHentai extends Source_1.Source {
     getMangaDetails(data, metadata) {
         var _a, _b, _c, _d, _e, _f;
         let manga = [];
-        for (let [i, response] of data.entries()) {
-            let $ = this.cheerio.load(response);
-            let info = $('[itemprop=name]');
-            let image = (_a = $('[itemprop=image]').attr('content')) !== null && _a !== void 0 ? _a : '';
-            let title = (_b = $('[itemprop=name]').attr('content')) !== null && _b !== void 0 ? _b : '';
-            // Comma seperate all of the tags and store them in our tag section 
-            let tagSections = [createTagSection({ id: '0', label: 'tag', tags: [] })];
-            let tags = (_d = (_c = $('meta[name="twitter:description"]').attr('content')) === null || _c === void 0 ? void 0 : _c.split(",")) !== null && _d !== void 0 ? _d : [];
-            for (let i = 0; i < tags.length; i++) {
-                tagSections[0].tags.push(createTag({
-                    id: i.toString().trim(),
-                    label: tags[i]
-                }));
-            }
-            // Grab the alternative titles
-            let titles = [title];
-            let altTitleBlock = $('#info');
-            let altNameTop = (_e = $('h1', altTitleBlock).text()) !== null && _e !== void 0 ? _e : '';
-            let altNameBottom = (_f = $('h2', altTitleBlock).text()) !== null && _f !== void 0 ? _f : '';
-            if (altNameTop) {
-                titles.push(altNameTop);
-            }
-            if (altNameBottom) {
-                titles.push(altNameBottom);
-            }
-            // Get the artist and language information
-            let context = $("#info-block");
-            let artist = '';
-            let language = '';
-            for (let item of $('.tag-container', context).toArray()) {
-                if ($(item).text().indexOf("Artists") > -1) {
-                    let temp = $("a", item).text();
-                    artist = temp.substring(0, temp.indexOf(" ("));
-                }
-                else if ($(item).text().indexOf("Languages") > -1) {
-                    let temp = $("a", item);
-                    if (temp.toArray().length > 1) {
-                        let temptext = $(temp.toArray()[1]).text();
-                        language = temptext.substring(0, temptext.indexOf(" ("));
-                    }
-                    else {
-                        let temptext = temp.text();
-                        language = temptext.substring(0, temptext.indexOf(" ("));
-                    }
-                }
-            }
-            let status = 1;
-            let summary = '';
-            let hentai = true; // I'm assuming that's why you're here!
-            manga.push(createManga({
-                id: metadata[i].id,
-                titles: titles,
-                image: image,
-                rating: 0,
-                status: status,
-                artist: artist,
-                tags: tagSections,
-                desc: summary,
-                hentai: hentai
+        let $ = this.cheerio.load(data);
+        let info = $('[itemprop=name]');
+        let image = (_a = $('[itemprop=image]').attr('content')) !== null && _a !== void 0 ? _a : '';
+        let title = (_b = $('[itemprop=name]').attr('content')) !== null && _b !== void 0 ? _b : '';
+        // Comma seperate all of the tags and store them in our tag section 
+        let tagSections = [createTagSection({ id: '0', label: 'tag', tags: [] })];
+        let tags = (_d = (_c = $('meta[name="twitter:description"]').attr('content')) === null || _c === void 0 ? void 0 : _c.split(",")) !== null && _d !== void 0 ? _d : [];
+        for (let i = 0; i < tags.length; i++) {
+            tagSections[0].tags.push(createTag({
+                id: i.toString().trim(),
+                label: tags[i]
             }));
         }
+        // Grab the alternative titles
+        let titles = [title];
+        let altTitleBlock = $('#info');
+        let altNameTop = (_e = $('h1', altTitleBlock).text()) !== null && _e !== void 0 ? _e : '';
+        let altNameBottom = (_f = $('h2', altTitleBlock).text()) !== null && _f !== void 0 ? _f : '';
+        if (altNameTop) {
+            titles.push(altNameTop);
+        }
+        if (altNameBottom) {
+            titles.push(altNameBottom);
+        }
+        // Get the artist and language information
+        let context = $("#info-block");
+        let artist = '';
+        let language = '';
+        for (let item of $('.tag-container', context).toArray()) {
+            if ($(item).text().indexOf("Artists") > -1) {
+                let temp = $("a", item).text();
+                artist = temp.substring(0, temp.indexOf(" ("));
+            }
+            else if ($(item).text().indexOf("Languages") > -1) {
+                let temp = $("a", item);
+                if (temp.toArray().length > 1) {
+                    let temptext = $(temp.toArray()[1]).text();
+                    language = temptext.substring(0, temptext.indexOf(" ("));
+                }
+                else {
+                    let temptext = temp.text();
+                    language = temptext.substring(0, temptext.indexOf(" ("));
+                }
+            }
+        }
+        let status = 1;
+        let summary = '';
+        let hentai = true; // I'm assuming that's why you're here!
+        manga.push(createManga({
+            id: metadata.id,
+            titles: titles,
+            image: image,
+            rating: 0,
+            status: status,
+            artist: artist,
+            tags: tagSections,
+            desc: summary,
+            hentai: hentai
+        }));
         return manga;
     }
     getChaptersRequest(mangaId) {
