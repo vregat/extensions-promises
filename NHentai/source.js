@@ -222,12 +222,13 @@ class NHentai extends Source_1.Source {
             mangaId: metadata.mangaId,
             pages, longStrip: false
         });
+        // Unused, idk if you'll need this later so keeping it
         let returnObject = {
             'details': chapterDetails,
             'nextPage': metadata.nextPage,
             'param': null
         };
-        return returnObject;
+        return chapterDetails;
     }
     searchRequest(query, page) {
         var _a;

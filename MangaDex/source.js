@@ -2,14 +2,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Source_1 = require("../Source");
-const MD_DOMAIN = 'https://mangadex.org';
-const MD_CHAPTERS_API = `${MD_DOMAIN}/api/manga`; // /:mangaId
-const MD_CHAPTER_DETAILS_API = `${MD_DOMAIN}/api/chapter`; // /:chapterId
 class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.6'; }
+    get version() { return '1.0.8'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -24,9 +21,9 @@ class MangaDex extends Source_1.Source {
                 headers: {
                     "content-type": "application/json"
                 },
-                data: {
-                    ids: ids
-                }
+                data: JSON.stringify({
+                    id: ids.map(x => parseInt(x))
+                })
             })];
     }
     getMangaDetails(data, metadata) {
@@ -51,27 +48,27 @@ class MangaDex extends Source_1.Source {
                     createTagSection({
                         id: "content",
                         label: "Content",
-                        tags: mangaDetails["content"].map((x) => createTag({ id: x["id"], label: x["value"] }))
+                        tags: mangaDetails["content"].map((x) => createTag({ id: x["id"].toString(), label: x["value"] }))
                     }),
                     createTagSection({
                         id: "demographic",
                         label: "Demographic",
-                        tags: mangaDetails["demographic"].map((x) => createTag({ id: x["id"], label: x["value"] }))
+                        tags: mangaDetails["demographic"].map((x) => createTag({ id: x["id"].toString(), label: x["value"] }))
                     }),
                     createTagSection({
-                        id: "formats",
-                        label: "Formats",
-                        tags: mangaDetails["formats"].map((x) => createTag({ id: x["id"], label: x["value"] }))
+                        id: "format",
+                        label: "Format",
+                        tags: mangaDetails["format"].map((x) => createTag({ id: x["id"].toString(), label: x["value"] }))
                     }),
                     createTagSection({
-                        id: "genres",
-                        label: "Genres",
-                        tags: mangaDetails["genres"].map((x) => createTag({ id: x["id"], label: x["value"] }))
+                        id: "genre",
+                        label: "Genre",
+                        tags: mangaDetails["genre"].map((x) => createTag({ id: x["id"].toString(), label: x["value"] }))
                     }),
                     createTagSection({
-                        id: "themes",
-                        label: "Themes",
-                        tags: mangaDetails["themes"].map((x) => createTag({ id: x["id"], label: x["value"] }))
+                        id: "theme",
+                        label: "Theme",
+                        tags: mangaDetails["theme"].map((x) => createTag({ id: x["id"].toString(), label: x["value"] }))
                     })
                 ],
                 users: mangaDetails["users"],
@@ -87,15 +84,15 @@ class MangaDex extends Source_1.Source {
         let metadata = { mangaId };
         return createRequestObject({
             metadata,
-            url: MD_CHAPTERS_API,
-            param: mangaId,
+            url: `${MD_MANGA_API}/${mangaId}`,
             method: "GET"
         });
     }
     getChapters(data, metadata) {
-        data = data.chapter;
-        return Object.keys(data).map(id => {
-            const chapter = data[id];
+        let chapters = JSON.parse(data).chapter;
+        console.log(data);
+        return Object.keys(chapters).map(id => {
+            const chapter = chapters[id];
             return createChapter({
                 id: id,
                 chapNum: parseFloat(chapter.chapter),
@@ -109,10 +106,20 @@ class MangaDex extends Source_1.Source {
         });
     }
     getChapterDetailsRequest(mangaId, chapId) {
-        throw new Error("Method not implemented.");
+        return createRequestObject({
+            url: `${MD_CHAPTER_API}/${chapId}`,
+            method: 'GET',
+            incognito: true
+        });
     }
     getChapterDetails(data, metadata) {
-        throw new Error("Method not implemented.");
+        let chapterDetails = JSON.parse(data);
+        return createChapterDetails({
+            id: chapterDetails['id'].toString(),
+            longStrip: parseInt(chapterDetails['long_strip']) == 1,
+            mangaId: chapterDetails['manga_id'].toString(),
+            pages: chapterDetails['page_array'].map((x) => `${chapterDetails['server']}${chapterDetails['hash']}/${x}`)
+        });
     }
     filterUpdatedMangaRequest(ids, time, page) {
         return null;
@@ -200,8 +207,8 @@ class MangaDex extends Source_1.Source {
             let rating = caption.find("span[title=Rating]").text();
             featuredManga.push(createMangaTile({
                 id: id[0],
-                image: (_b = img.attr("data-src")) !== null && _b !== void 0 ? _b : " ",
-                title: createIconText({ text: (_c = img.attr("title")) !== null && _c !== void 0 ? _c : " " }),
+                image: (_b = img.attr("data-src")) !== null && _b !== void 0 ? _b : "",
+                title: createIconText({ text: (_c = img.attr("title")) !== null && _c !== void 0 ? _c : "" }),
                 primaryText: createIconText({ text: bookmarks, icon: 'bookmark.fill' }),
                 secondaryText: createIconText({ text: rating, icon: 'star.fill' })
             }));

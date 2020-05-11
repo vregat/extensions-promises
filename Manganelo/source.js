@@ -225,7 +225,7 @@ class Manganelo extends Source_1.Source {
             'nextPage': metadata.nextPage,
             'param': null
         };
-        return returnObject;
+        return chapterDetails;
     }
     filterUpdatedMangaRequest(ids, time, page) {
         let metadata = { 'ids': ids, 'referenceTime': time };

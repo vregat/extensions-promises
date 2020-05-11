@@ -209,12 +209,13 @@ class Mangasee extends Source_1.Source {
             mangaId: metadata.mangaId,
             pages, longStrip: false
         });
+        // Unused, idk what you're using this for so keeping it
         let returnObject = {
             'details': chapterDetails,
             'nextPage': metadata.nextPage,
             'param': null
         };
-        return returnObject;
+        return chapterDetails;
     }
     filterUpdatedMangaRequest(ids, time, page) {
         let metadata = { 'ids': ids, 'referenceTime': time };

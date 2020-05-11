@@ -77,11 +77,10 @@ class MangaPark extends Source_1.Source {
         for (let id of ids) {
             let metadata = { 'id': id };
             requests.push(createRequestObject({
-                url: `${MP_DOMAIN}/manga/`,
-                cookies: [createCookie({ name: 'set', value: 'h=1' })],
+                url: `${MP_DOMAIN}/manga/${id}`,
+                cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })],
                 metadata: metadata,
-                method: 'GET',
-                param: id
+                method: 'GET'
             }));
         }
         return requests;
@@ -190,13 +189,9 @@ class MangaPark extends Source_1.Source {
     getChaptersRequest(mangaId) {
         let metadata = { 'id': mangaId };
         return createRequestObject({
-            url: `${MP_DOMAIN}/manga/`,
+            url: `${MP_DOMAIN}/manga/${mangaId}`,
             method: "GET",
-            metadata: metadata,
-            headers: {
-                "content-type": "application/x-www-form-urlencoded"
-            },
-            param: mangaId
+            metadata: metadata
         });
     }
     getChapters(data, metadata) {
@@ -238,14 +233,10 @@ class MangaPark extends Source_1.Source {
     getChapterDetailsRequest(mangaId, chId) {
         let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false, 'page': 1 };
         return createRequestObject({
-            url: `${MP_DOMAIN}/manga/`,
+            url: `${MP_DOMAIN}/manga/${mangaId}/${chId}`,
             method: "GET",
             metadata: metadata,
-            headers: {
-                "content-type": "application/x-www-form-urlencoded"
-            },
-            cookies: [createCookie({ name: 'set', value: 'h=1' })],
-            param: `${mangaId}/${chId}`
+            cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })]
         });
     }
     getChapterDetails(data, metadata) {
@@ -261,24 +252,21 @@ class MangaPark extends Source_1.Source {
             pages: pages,
             longStrip: false
         });
+        // Unused, idk if you'll need this later so keeping it
         let returnObject = {
             'details': chapterDetails,
             'nextPage': metadata.nextPage,
             'param': null
         };
-        return returnObject;
+        return chapterDetails;
     }
     filterUpdatedMangaRequest(ids, time, page) {
         let metadata = { 'ids': ids, 'referenceTime': time };
         return createRequestObject({
-            url: `${MP_DOMAIN}/latest/`,
+            url: `${MP_DOMAIN}/latest/${page}`,
             method: 'GET',
             metadata: metadata,
-            headers: {
-                "content-type": "application/x-www-form-urlencoded"
-            },
-            cookies: [createCookie({ name: 'set', value: 'h=1' })],
-            param: `${page}`
+            cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })]
         });
     }
     filterUpdatedManga(data, metadata) {
@@ -325,7 +313,7 @@ class MangaPark extends Source_1.Source {
             let sText = $('i', item).text();
             popManga.push(createMangaTile({
                 id: id,
-                image: image,
+                image: image.replace(/(https:)?\/\//gi, 'https://'),
                 title: createIconText({ text: title }),
                 subtitleText: createIconText({ text: subtitle }),
                 secondaryText: createIconText({ text: sText, icon: sIcon })
@@ -339,7 +327,7 @@ class MangaPark extends Source_1.Source {
                 let subtitle = (_k = $('.visited', elem).text()) !== null && _k !== void 0 ? _k : '';
                 newManga.push(createMangaTile({
                     id: id,
-                    image: image,
+                    image: image.replace(/(https:)?\/\//gi, 'https://'),
                     title: createIconText({ text: title }),
                     subtitleText: createIconText({ text: subtitle })
                 }));
@@ -354,7 +342,7 @@ class MangaPark extends Source_1.Source {
             let sText = (_r = $('li.new', item).first().find('i').last().text()) !== null && _r !== void 0 ? _r : '';
             updateManga.push(createMangaTile({
                 id: id,
-                image: image,
+                image: image.replace(/(https:)?\/\//gi, 'https://'),
                 title: createIconText({ text: title }),
                 subtitleText: createIconText({ text: subtitle }),
                 secondaryText: createIconText({ text: sText, icon: sIcon })
@@ -384,9 +372,8 @@ class MangaPark extends Source_1.Source {
             default: return null;
         }
         return createRequestObject({
-            url: `${MP_DOMAIN}`,
-            method: 'GET',
-            param: param
+            url: `${MP_DOMAIN}${param}`,
+            method: 'GET'
         });
     }
     getViewMoreItems(data, key) {
@@ -472,14 +459,10 @@ class MangaPark extends Source_1.Source {
         search += `&types=${format}&status=${status}&st-ss=1`;
         let metadata = { 'search': search };
         return createRequestObject({
-            url: `${MP_DOMAIN}/search?`,
+            url: `${MP_DOMAIN}/search?${search}`,
             method: 'GET',
             metadata: metadata,
-            headers: {
-                "content-type": "application/x-www-form-urlencoded"
-            },
-            cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}` })],
-            param: `${search}`
+            cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}`, domain: MP_DOMAIN })]
         });
     }
     search(data) {
@@ -518,10 +501,7 @@ class MangaPark extends Source_1.Source {
         return createRequestObject({
             url: `${MP_DOMAIN}/search?`,
             method: "GET",
-            headers: {
-                "content-type": "application/x-www-form-urlencoded"
-            },
-            cookies: [createCookie({ name: 'set', value: 'h=1' })],
+            cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })],
         });
     }
     getTags(data) {
