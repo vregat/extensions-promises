@@ -11,7 +11,7 @@ var LanguageCode;
     LanguageCode["CZECH"] = "cz";
     LanguageCode["GERMAN"] = "de";
     LanguageCode["DANISH"] = "dk";
-    LanguageCode["ENGLISH"] = "en";
+    LanguageCode["ENGLISH"] = "gb";
     LanguageCode["SPANISH"] = "es";
     LanguageCode["FINNISH"] = "fi";
     LanguageCode["FRENCH"] = "fr";
