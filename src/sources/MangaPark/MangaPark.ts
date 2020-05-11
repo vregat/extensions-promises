@@ -16,7 +16,7 @@ export class MangaPark extends Source {
 		super(cheerio)
 	}
 
-	get version(): string { return '1.0.4' }
+	get version(): string { return '1.0.5' }
 	get name(): string { return 'MangaPark' }
 	get icon(): string { return 'icon.png' }
 	get author(): string { return 'Daniel Kovalevich' }
@@ -38,100 +38,98 @@ export class MangaPark extends Source {
 		return requests
 	}
 
-	getMangaDetails(data: any[], metadata: any[]): Manga[] {
+	getMangaDetails(data: any, metadata: any): Manga[] {
 		let manga: Manga[] = []
-		for (let [i, response] of data.entries()) {
-			let $ = this.cheerio.load(response)
+		let $ = this.cheerio.load(data)
 
-			let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-			createTagSection({ id: '1', label: 'format', tags: [] })]
+		let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+		createTagSection({ id: '1', label: 'format', tags: [] })]
 
-			// let id: string = (($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? [])[2]
-			let image: string = $('img', '.manga').attr('src') ?? ""
-			let rating: string = $('i', '#rating').text()
-			let tableBody = $('tbody', '.manga')
-			let titles: string[] = []
-			let title = $('.manga').find('a').first().text()
-			titles.push(title.substring(0, title.lastIndexOf(' ')))
+		// let id: string = (($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? [])[2]
+		let image: string = $('img', '.manga').attr('src') ?? ""
+		let rating: string = $('i', '#rating').text()
+		let tableBody = $('tbody', '.manga')
+		let titles: string[] = []
+		let title = $('.manga').find('a').first().text()
+		titles.push(title.substring(0, title.lastIndexOf(' ')))
 
-			let hentai = false
-			let author = ""
-			let artist = ""
-			let views = 0
-			let status = MangaStatus.ONGOING
-			for (let row of $('tr', tableBody).toArray()) {
-				let elem = $('th', row).html()
-				switch (elem) {
-					case 'Author(s)': author = $('a', row).text(); break
-					case 'Artist(s)': artist = $('a', row).first().text(); break
-					case 'Popularity': {
-						let pop = (/has (\d*(\.?\d*\w)?)/g.exec($('td', row).text()) ?? [])[1]
-						if (pop.includes('k')) {
-							pop = pop.replace('k', '')
-							views = Number(pop) * 1000
-						}
-						else {
-							views = Number(pop) ?? 0
-						}
-						break
+		let hentai = false
+		let author = ""
+		let artist = ""
+		let views = 0
+		let status = MangaStatus.ONGOING
+		for (let row of $('tr', tableBody).toArray()) {
+			let elem = $('th', row).html()
+			switch (elem) {
+				case 'Author(s)': author = $('a', row).text(); break
+				case 'Artist(s)': artist = $('a', row).first().text(); break
+				case 'Popularity': {
+					let pop = (/has (\d*(\.?\d*\w)?)/g.exec($('td', row).text()) ?? [])[1]
+					if (pop.includes('k')) {
+						pop = pop.replace('k', '')
+						views = Number(pop) * 1000
 					}
-					case 'Alternative': {
-						let alts = $('td', row).text().split('  ')
-						for (let alt of alts) {
-							let trim = alt.trim().replace(/(;*\t*)/g, '')
-							if (trim != '')
-								titles.push(trim)
+					else {
+						views = Number(pop) ?? 0
+					}
+					break
+				}
+				case 'Alternative': {
+					let alts = $('td', row).text().split('  ')
+					for (let alt of alts) {
+						let trim = alt.trim().replace(/(;*\t*)/g, '')
+						if (trim != '')
+							titles.push(trim)
+					}
+					break
+				}
+				case 'Genre(s)': {
+					for (let genre of $('a', row).toArray()) {
+						let item = $(genre).html() ?? ""
+						let id = $(genre).attr('href')?.split('/').pop() ?? ''
+						let tag = item.replace(/<[a-zA-Z\/][^>]*>/g, "")
+						if (item.includes('Hentai')) {
+							hentai = true
 						}
-						break
+						tagSections[0].tags.push(createTag({ id: id, label: tag }))
 					}
-					case 'Genre(s)': {
-						for (let genre of $('a', row).toArray()) {
-							let item = $(genre).html() ?? ""
-							let id = $(genre).attr('href')?.split('/').pop() ?? ''
-							let tag = item.replace(/<[a-zA-Z\/][^>]*>/g, "")
-							if (item.includes('Hentai')) {
-								hentai = true
-							}
-							tagSections[0].tags.push(createTag({ id: id, label: tag }))
-						}
-						break
+					break
+				}
+				case 'Status': {
+					let stat = $('td', row).text()
+					if (stat.includes('Ongoing'))
+						status = MangaStatus.ONGOING
+					else if (stat.includes('Completed')) {
+						status = MangaStatus.COMPLETED
 					}
-					case 'Status': {
-						let stat = $('td', row).text()
-						if (stat.includes('Ongoing'))
-							status = MangaStatus.ONGOING
-						else if (stat.includes('Completed')) {
-							status = MangaStatus.COMPLETED
-						}
-						break
-					}
-					case 'Type': {
-						let type = $('td', row).text().split('-')[0].trim()
-						let id = ''
-						if (type.includes('Manga')) id = 'manga'
-						else if (type.includes('Manhwa')) id = 'manhwa'
-						else if (type.includes('Manhua')) id = 'manhua'
-						else id = 'unknown'
-						tagSections[1].tags.push(createTag({ id: id, label: type.trim() }))
-					}
+					break
+				}
+				case 'Type': {
+					let type = $('td', row).text().split('-')[0].trim()
+					let id = ''
+					if (type.includes('Manga')) id = 'manga'
+					else if (type.includes('Manhwa')) id = 'manhwa'
+					else if (type.includes('Manhua')) id = 'manhua'
+					else id = 'unknown'
+					tagSections[1].tags.push(createTag({ id: id, label: type.trim() }))
 				}
 			}
-
-			let summary = $('.summary').html() ?? ""
-			manga.push({
-				id: metadata[i].id,
-				titles: titles,
-				image: image,
-				rating: Number(rating),
-				status: status,
-				artist: artist,
-				author: author,
-				tags: tagSections,
-				views: views,
-				desc: summary,
-				hentai: hentai
-			})
 		}
+
+		let summary = $('.summary').html() ?? ""
+		manga.push({
+			id: metadata.id,
+			titles: titles,
+			image: image,
+			rating: Number(rating),
+			status: status,
+			artist: artist,
+			author: author,
+			tags: tagSections,
+			views: views,
+			desc: summary,
+			hentai: hentai
+		})
 
 		return manga
 	}

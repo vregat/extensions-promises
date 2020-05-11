@@ -34,27 +34,26 @@ export class APIWrapper {
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
 		let requests = source.getMangaDetailsRequest(ids)
 		let manga: Manga[] = []
-		let responses: any[] = []
-		for (let request of requests) {
+		for (let [i, request] of requests.entries()) {
 			let headers: any = request.headers == undefined ? {} : request.headers
 			headers['Cookie'] = this.formatCookie(request)
 			headers['User-Agent'] = 'Paperback-iOS'
 
 			try {
-				responses.push(await axios.request({
+				var response = await axios.request({
 					url: `${request.url}${request.param ?? ''}`,
 					method: request.method,
 					headers: headers,
 					data: request.data,
 					timeout: request.timeout || 0
-				}))
+				})
 			}
 			catch (e) {
 				return []
 			}
-		}
 
-		manga.push(...source.getMangaDetails(responses.map(a => a.data), requests.map(a => a.metadata)))
+			manga.push(...source.getMangaDetails(response.data, request.metadata))
+		}
 
 		return manga
 	}
@@ -116,35 +115,29 @@ export class APIWrapper {
 		}
 
 		let response = source.getChapterDetails(data.data, metadata)
-		let details: ChapterDetails = response
+		/*let details: ChapterDetails = response.details
 
 		// there needs to be a way to handle sites that only show one page per link
+		while (response.nextPage && metadata.page) {
+			metadata.page++
+			try {
+				data = await axios.request({
+					url: `${request.url}${metadata.page}`,
+					method: request.method,
+					headers: headers,
+					data: request.data,
+					timeout: request.timeout || 0
+				})
+			}
+			catch (e) {
+				return details
+			}
 
+			response = source.getChapterDetails(data.data, metadata)
+			details.pages.push(response.details.pages[0])
+		}*/
 
-		// TODO: DK you need to change this to support the new non-paged return
-
-
-
-		// while (response.nextPage && metadata.page) {
-		// 	metadata.page++
-		// 	try {
-		// 		data = await axios.request({
-		// 			url: `${request.url}${metadata.page}`,
-		// 			method: request.method,
-		// 			headers: headers,
-		// 			data: request.data,
-		// 			timeout: request.timeout || 0
-		// 		})
-		// 	}
-		// 	catch (e) {
-		// 		return details
-		// 	}
-
-		// 	response = source.getChapterDetails(data.data, metadata)
-		// 	details.pages.push(response.details.pages[0])
-		// }
-
-		return details
+		return response
 	}
 
 	/**
@@ -389,7 +382,7 @@ let application = new APIWrapper()
 // application.getMangaDetails(new Mangasee(cheerio), ['Domestic-Na-Kanojo', 'one-piece']).then((data) => {console.log(data)})
 // application.getChapters(new Mangasee(cheerio), 'Boku-no-hero-academia').then((data) => { console.log(data) })
 // application.getChapterDetails(new Mangasee(cheerio), 'boku-no-hero-academia', 'Boku-No-Hero-Academia-chapter-269-page-1.html').then((data) => {console.log(data)})
-// application.filterUpdatedManga(new Mangasee(cheerio), ['Be-Blues---Ao-Ni-Nare', 'Tales-Of-Demons-And-Gods', 'Amano-Megumi-Wa-Suki-Darake'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
+// application.filterUpdatedManga(new Mangasee(cheerio), ['Be-Blues---Ao-Ni-Nare', 'Tales-Of-Demons-And-Gods', 'Amano-Megumi-Wa-Suki-Darake'], new Date("2020-04-11 02:33:30 UTC")).then((data) => { console.log(data) })
 // let test = createSearchRequest({
 // title: 'one piece', 
 // includeDemographic: ['Shounen'], 

@@ -16,7 +16,7 @@ export class Mangasee extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.3' }
+  get version(): string { return '1.0.4' }
   get name(): string { return 'Mangasee' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -38,73 +38,71 @@ export class Mangasee extends Source {
     return requests
   }
 
-  getMangaDetails(data: any[], metadata: any[]): Manga[] {
+  getMangaDetails(data: any, metadata: any): Manga[] {
     let manga: Manga[] = []
-    for (let [i, response] of data.entries()) {
-      let $ = this.cheerio.load(response)
-      let info = $('.row')
-      let image = $('img', '.row').attr('src') ?? ''
-      let title = $('.SeriesName', info).text() ?? ''
-      let titles = [title]
-      let details = $('.details', info)
-      let author = ''
+    let $ = this.cheerio.load(data)
+    let info = $('.row')
+    let image = $('img', '.row').attr('src') ?? ''
+    let title = $('.SeriesName', info).text() ?? ''
+    let titles = [title]
+    let details = $('.details', info)
+    let author = ''
 
-      let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-      createTagSection({ id: '1', label: 'format', tags: [] })]
+    let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+    createTagSection({ id: '1', label: 'format', tags: [] })]
 
-      let status = MangaStatus.ONGOING
-      let summary = ''
-      let hentai = false
+    let status = MangaStatus.ONGOING
+    let summary = ''
+    let hentai = false
 
-      for (let row of $('.row', details).toArray()) {
-        let text = $('b', row).text()
-        switch (text) {
-          case 'Alternate Name(s): ': {
-            titles.push($(row).text().replace(/(Alternate Name\(s\):)*(\t*\n*)/g, '').trim())
-            break
-          }
-          case 'Author(s): ': {
-            author = $(row).text().replace(/(Author\(s\):)*(\t*\n*)/g, '').trim()
-            break
-          }
-          case 'Genre(s): ': {
-            let items = $(row).text().replace(/(Genre\(s\):)*(\t*\n*)/g, '').split(',')
-            for (let item of items) {
-              if (item.toLowerCase().includes('hentai')) {
-                hentai = true
-              }
-              else {
-                tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }))
-              }
-            }
-            break
-          }
-          case 'Type:': {
-            let type = $(row).text().replace(/(Type:)*(\t*\n*)/g, '').trim()
-            tagSections[1].tags.push(createTag({ id: type.trim(), label: type.trim() }))
-            break
-          }
-          case 'Status: ': {
-            status = $(row).text().includes('Ongoing') ? MangaStatus.ONGOING : MangaStatus.COMPLETED
-            break
-          }
+    for (let row of $('.row', details).toArray()) {
+      let text = $('b', row).text()
+      switch (text) {
+        case 'Alternate Name(s): ': {
+          titles.push($(row).text().replace(/(Alternate Name\(s\):)*(\t*\n*)/g, '').trim())
+          break
         }
-
-        summary = $('.description', row).text()
+        case 'Author(s): ': {
+          author = $(row).text().replace(/(Author\(s\):)*(\t*\n*)/g, '').trim()
+          break
+        }
+        case 'Genre(s): ': {
+          let items = $(row).text().replace(/(Genre\(s\):)*(\t*\n*)/g, '').split(',')
+          for (let item of items) {
+            if (item.toLowerCase().includes('hentai')) {
+              hentai = true
+            }
+            else {
+              tagSections[0].tags.push(createTag({ id: item.trim(), label: item.trim() }))
+            }
+          }
+          break
+        }
+        case 'Type:': {
+          let type = $(row).text().replace(/(Type:)*(\t*\n*)/g, '').trim()
+          tagSections[1].tags.push(createTag({ id: type.trim(), label: type.trim() }))
+          break
+        }
+        case 'Status: ': {
+          status = $(row).text().includes('Ongoing') ? MangaStatus.ONGOING : MangaStatus.COMPLETED
+          break
+        }
       }
 
-      manga.push(createManga({
-        id: metadata[i].id,
-        titles: titles,
-        image: image,
-        rating: 0,
-        status: status,
-        author: author,
-        tags: tagSections,
-        desc: summary,
-        hentai: hentai
-      }))
+      summary = $('.description', row).text()
     }
+
+    manga.push(createManga({
+      id: metadata.id,
+      titles: titles,
+      image: image,
+      rating: 0,
+      status: status,
+      author: author,
+      tags: tagSections,
+      desc: summary,
+      hentai: hentai
+    }))
     return manga
   }
 
@@ -315,10 +313,5 @@ export class Mangasee extends Source {
 
     return tagSections
   }
-
-  getHomePageSectionRequest(): HomeSectionRequest[] | null { return null }
-  getHomePageSections(data: any, section: HomeSection[]): HomeSection[] | null { return null }
-  getViewMoreRequest(key: string, page: number): Request | null { return null }
-  getViewMoreItems(data: any, key: string): MangaTile[] | null { return null }
 }
 
