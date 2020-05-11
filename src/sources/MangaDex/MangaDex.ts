@@ -180,6 +180,7 @@ export class MangaDex extends Source {
   }
 
   getHomePageSectionRequest(): HomeSectionRequest[] {
+    console.log(JSON.stringify(this))
     let request1 = createRequestObject({
       url: 'https://mangadex.org',
       method: "GET"
@@ -206,6 +207,8 @@ export class MangaDex extends Source {
   }
 
   getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] {
+    console.log(JSON.stringify(this))
+
     let $ = this.cheerio.load(data)
     return sections.map(section => {
       switch (section.id) {

@@ -9,9 +9,9 @@ import { TagSection } from '../../models/TagSection/TagSection'
 import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
 import { LanguageCode } from '../../models/Languages/Languages'
 
-const MP_DOMAIN = 'https://mangapark.net'
-
 export class MangaPark extends Source {
+	readonly MP_DOMAIN = 'https://mangapark.net'
+
 	constructor(cheerio: CheerioAPI) {
 		super(cheerio)
 	}
@@ -29,8 +29,8 @@ export class MangaPark extends Source {
 		for (let id of ids) {
 			let metadata = { 'id': id }
 			requests.push(createRequestObject({
-				url: `${MP_DOMAIN}/manga/${id}`,
-				cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })],
+				url: `${this.MP_DOMAIN}/manga/${id}`,
+				cookies: [createCookie({ name: 'set', value: 'h=1', domain: this.MP_DOMAIN })],
 				metadata: metadata,
 				method: 'GET'
 			}))
@@ -38,109 +38,106 @@ export class MangaPark extends Source {
 		return requests
 	}
 
-	getMangaDetails(data: any[], metadata: any[]): Manga[] {
-		let manga: Manga[] = []
-		for (let [i, response] of data.entries()) {
-			let $ = this.cheerio.load(response)
+	getMangaDetails(data: any, metadata: any): Manga[] {
+		let $ = this.cheerio.load(data)
 
-			let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
-			createTagSection({ id: '1', label: 'format', tags: [] })]
+		let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+		createTagSection({ id: '1', label: 'format', tags: [] })]
 
-			// let id: string = (($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? [])[2]
-			let image: string = $('img', '.manga').attr('src') ?? ""
-			let rating: string = $('i', '#rating').text()
-			let tableBody = $('tbody', '.manga')
-			let titles: string[] = []
-			let title = $('.manga').find('a').first().text()
-			titles.push(title.substring(0, title.lastIndexOf(' ')))
+		// let id: string = (($('head').html() ?? "").match((/(_manga_name\s*=\s)'([\S]+)'/)) ?? [])[2]
+		let image: string = $('img', '.manga').attr('src') ?? ""
+		let rating: string = $('i', '#rating').text()
+		let tableBody = $('tbody', '.manga')
+		let titles: string[] = []
+		let title = $('.manga').find('a').first().text()
+		titles.push(title.substring(0, title.lastIndexOf(' ')))
 
-			let hentai = false
-			let author = ""
-			let artist = ""
-			let views = 0
-			let status = MangaStatus.ONGOING
-			for (let row of $('tr', tableBody).toArray()) {
-				let elem = $('th', row).html()
-				switch (elem) {
-					case 'Author(s)': author = $('a', row).text(); break
-					case 'Artist(s)': artist = $('a', row).first().text(); break
-					case 'Popularity': {
-						let pop = (/has (\d*(\.?\d*\w)?)/g.exec($('td', row).text()) ?? [])[1]
-						if (pop.includes('k')) {
-							pop = pop.replace('k', '')
-							views = Number(pop) * 1000
-						}
-						else {
-							views = Number(pop) ?? 0
-						}
-						break
+		let hentai = false
+		let author = ""
+		let artist = ""
+		let views = 0
+		let status = MangaStatus.ONGOING
+		for (let row of $('tr', tableBody).toArray()) {
+			let elem = $('th', row).html()
+			switch (elem) {
+				case 'Author(s)': author = $('a', row).text(); break
+				case 'Artist(s)': artist = $('a', row).first().text(); break
+				case 'Popularity': {
+					let pop = (/has (\d*(\.?\d*\w)?)/g.exec($('td', row).text()) ?? [])[1]
+					if (pop.includes('k')) {
+						pop = pop.replace('k', '')
+						views = Number(pop) * 1000
 					}
-					case 'Alternative': {
-						let alts = $('td', row).text().split('  ')
-						for (let alt of alts) {
-							let trim = alt.trim().replace(/(;*\t*)/g, '')
-							if (trim != '')
-								titles.push(trim)
+					else {
+						views = Number(pop) ?? 0
+					}
+					break
+				}
+				case 'Alternative': {
+					let alts = $('td', row).text().split('  ')
+					for (let alt of alts) {
+						let trim = alt.trim().replace(/(;*\t*)/g, '')
+						if (trim != '')
+							titles.push(trim)
+					}
+					break
+				}
+				case 'Genre(s)': {
+					for (let genre of $('a', row).toArray()) {
+						let item = $(genre).html() ?? ""
+						let id = $(genre).attr('href')?.split('/').pop() ?? ''
+						let tag = item.replace(/<[a-zA-Z\/][^>]*>/g, "")
+						if (item.includes('Hentai')) {
+							hentai = true
 						}
-						break
+						tagSections[0].tags.push(createTag({ id: id, label: tag }))
 					}
-					case 'Genre(s)': {
-						for (let genre of $('a', row).toArray()) {
-							let item = $(genre).html() ?? ""
-							let id = $(genre).attr('href')?.split('/').pop() ?? ''
-							let tag = item.replace(/<[a-zA-Z\/][^>]*>/g, "")
-							if (item.includes('Hentai')) {
-								hentai = true
-							}
-							tagSections[0].tags.push(createTag({ id: id, label: tag }))
-						}
-						break
+					break
+				}
+				case 'Status': {
+					let stat = $('td', row).text()
+					if (stat.includes('Ongoing'))
+						status = MangaStatus.ONGOING
+					else if (stat.includes('Completed')) {
+						status = MangaStatus.COMPLETED
 					}
-					case 'Status': {
-						let stat = $('td', row).text()
-						if (stat.includes('Ongoing'))
-							status = MangaStatus.ONGOING
-						else if (stat.includes('Completed')) {
-							status = MangaStatus.COMPLETED
-						}
-						break
-					}
-					case 'Type': {
-						let type = $('td', row).text().split('-')[0].trim()
-						let id = ''
-						if (type.includes('Manga')) id = 'manga'
-						else if (type.includes('Manhwa')) id = 'manhwa'
-						else if (type.includes('Manhua')) id = 'manhua'
-						else id = 'unknown'
-						tagSections[1].tags.push(createTag({ id: id, label: type.trim() }))
-					}
+					break
+				}
+				case 'Type': {
+					let type = $('td', row).text().split('-')[0].trim()
+					let id = ''
+					if (type.includes('Manga')) id = 'manga'
+					else if (type.includes('Manhwa')) id = 'manhwa'
+					else if (type.includes('Manhua')) id = 'manhua'
+					else id = 'unknown'
+					tagSections[1].tags.push(createTag({ id: id, label: type.trim() }))
 				}
 			}
-
-			let summary = $('.summary').html() ?? ""
-			manga.push({
-				id: metadata[i].id,
-				titles: titles,
-				image: image,
-				rating: Number(rating),
-				status: status,
-				artist: artist,
-				author: author,
-				tags: tagSections,
-				views: views,
-				desc: summary,
-				hentai: hentai
-			})
 		}
 
-		return manga
+		let summary = $('.summary').html() ?? ""
+
+
+		return [createManga({
+			id: metadata.id,
+			titles: titles,
+			image: image.replace(/(https:)?\/\//gi, 'https://'),
+			rating: Number(rating),
+			status: status,
+			artist: artist,
+			author: author,
+			tags: tagSections,
+			views: views,
+			desc: summary,
+			hentai: hentai
+		})]
 	}
 
 
 	getChaptersRequest(mangaId: string): Request {
 		let metadata = { 'id': mangaId }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/manga/${mangaId}`,
+			url: `${this.MP_DOMAIN}/manga/${mangaId}`,
 			method: "GET",
 			metadata: metadata
 		})
@@ -188,10 +185,10 @@ export class MangaPark extends Source {
 	getChapterDetailsRequest(mangaId: string, chId: string): Request {
 		let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false, 'page': 1 }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/manga/${mangaId}/${chId}`,
+			url: `${this.MP_DOMAIN}/manga/${mangaId}/${chId}`,
 			method: "GET",
 			metadata: metadata,
-			cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })]
+			cookies: [createCookie({ name: 'set', value: 'h=1', domain: this.MP_DOMAIN })]
 		})
 	}
 
@@ -224,10 +221,10 @@ export class MangaPark extends Source {
 	filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
 		let metadata = { 'ids': ids, 'referenceTime': time }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/latest/${page}`,
+			url: `${this.MP_DOMAIN}/latest/${page}`,
 			method: 'GET',
 			metadata: metadata,
-			cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })]
+			cookies: [createCookie({ name: 'set', value: 'h=1', domain: this.MP_DOMAIN })]
 		})
 	}
 
@@ -258,7 +255,7 @@ export class MangaPark extends Source {
 
 
 	getHomePageSectionRequest(): HomeSectionRequest[] {
-		let request = createRequestObject({ url: `${MP_DOMAIN}`, method: 'GET' })
+		let request = createRequestObject({ url: `${this.MP_DOMAIN}`, method: 'GET' })
 		let section1 = createHomeSection({ id: 'popular_titles', title: 'POPULAR MANGA' })
 		let section2 = createHomeSection({ id: 'popular_new_titles', title: 'POPULAR MANGA UPDATES' })
 		let section3 = createHomeSection({ id: 'recently_updated', title: 'RECENTLY UPDATED TITLES' })
@@ -348,7 +345,7 @@ export class MangaPark extends Source {
 		}
 
 		return createRequestObject({
-			url: `${MP_DOMAIN}${param}`,
+			url: `${this.MP_DOMAIN}${param}`,
 			method: 'GET'
 		})
 	}
@@ -368,7 +365,7 @@ export class MangaPark extends Source {
 
 				manga.push(createMangaTile({
 					id: id,
-					image: image,
+					image: image.replace(/(https:)?\/\//gi, 'https://'),
 					title: createIconText({ text: title }),
 					subtitleText: createIconText({ text: chapters }),
 					primaryText: createIconText({ text: rating, icon: 'star.fill' }),
@@ -386,7 +383,7 @@ export class MangaPark extends Source {
 				let time = $('.justify-content-between', item).first().find('i').text()
 				manga.push(createMangaTile({
 					id: id,
-					image: image,
+					image: image.replace(/(https:)?\/\//gi, 'https://'),
 					title: createIconText({ text: title }),
 					subtitleText: createIconText({ text: time }),
 					primaryText: createIconText({ text: rating, icon: 'star.fill' }),
@@ -403,7 +400,7 @@ export class MangaPark extends Source {
 				let time = $('.time', item).first().text()
 				manga.push(createMangaTile({
 					id: id,
-					image: image,
+					image: image.replace(/(https:)?\/\//gi, 'https://'),
 					title: createIconText({ text: title }),
 					subtitleText: createIconText({ text: chapter }),
 					secondaryText: createIconText({ text: time, icon: 'clock.fill' })
@@ -433,10 +430,10 @@ export class MangaPark extends Source {
 
 		let metadata = { 'search': search }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/search?${search}`,
+			url: `${this.MP_DOMAIN}/search?${search}`,
 			method: 'GET',
 			metadata: metadata,
-			cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}`, domain: MP_DOMAIN })]
+			cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}`, domain: this.MP_DOMAIN })]
 		})
 	}
 
@@ -465,7 +462,7 @@ export class MangaPark extends Source {
 
 			manga.push(createMangaTile({
 				id: id,
-				image: image,
+				image: image.replace(/(https:)?\/\//gi, 'https://'),
 				title: createIconText({ text: title }),
 				subtitleText: createIconText({ text: author }),
 				primaryText: createIconText({ text: rating.toString(), icon: 'star.fill' }),
@@ -478,9 +475,9 @@ export class MangaPark extends Source {
 
 	getTagsRequest(): Request | null {
 		return createRequestObject({
-			url: `${MP_DOMAIN}/search?`,
+			url: `${this.MP_DOMAIN}/search?`,
 			method: "GET",
-			cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })],
+			cookies: [createCookie({ name: 'set', value: 'h=1', domain: this.MP_DOMAIN })],
 		})
 	}
 

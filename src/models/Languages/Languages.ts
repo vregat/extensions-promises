@@ -8,7 +8,7 @@ export enum LanguageCode {
     CZECH = 'cz',
     GERMAN = 'de',
     DANISH = 'dk',
-    ENGLISH = 'en',
+    ENGLISH = 'gb',
     SPANISH = 'es',
     FINNISH = 'fi',
     FRENCH = 'fr',
