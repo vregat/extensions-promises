@@ -34,7 +34,7 @@ export class APIWrapper {
 	async getMangaDetails(source: Source, ids: string[]): Promise<Manga[]> {
 		let requests = source.getMangaDetailsRequest(ids)
 		let manga: Manga[] = []
-		for (let [i, request] of requests.entries()) {
+		for (let request of requests) {
 			let headers: any = request.headers == undefined ? {} : request.headers
 			headers['Cookie'] = this.formatCookie(request)
 			headers['User-Agent'] = 'Paperback-iOS'
@@ -344,7 +344,7 @@ export class APIWrapper {
 let application = new APIWrapper()
 
 // MangaDex
-//application.getMangaDetails(new MangaDex(cheerio), ['1'])
+// application.getMangaDetails(new MangaDex(cheerio), ['1'])
 // application.filterUpdatedManga(new MangaDex(cheerio), ['1'], new Date("2020-04-25 02:33:30 UTC")).then((data) => {console.log(data)})
 // application.getHomePageSections(new MangaDex(cheerio)).then((data => console.log(JSON.stringify(data, null, 4))))
 
