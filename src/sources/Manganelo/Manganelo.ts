@@ -17,7 +17,7 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.4' }
+  get version(): string { return '1.0.5' }
   get name(): string { return 'Manganelo' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -244,7 +244,7 @@ export class Manganelo extends Source {
   }
 
   getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] | null {
-    let $ = cheerio.load(data)
+    let $ = this.cheerio.load(data)
     let topManga: MangaTile[] = []
     let updateManga: MangaTile[] = []
     let newManga: MangaTile[] = []
