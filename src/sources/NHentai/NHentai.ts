@@ -17,7 +17,7 @@ export class NHentai extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.6' }
+  get version(): string { return '0.7' }
   get name(): string { return 'nHentai' }
   get description(): string { return 'Extension that pulls manga from nHentai' }
   get author(): string { return 'Conrad Weiser' }
@@ -47,74 +47,72 @@ export class NHentai extends Source {
     return requests
   }
 
-  getMangaDetails(data: any[], metadata: any[]): Manga[] {
+  getMangaDetails(data: any, metadata: any): Manga[] {
     let manga: Manga[] = []
-    for (let [i, response] of data.entries()) {
-      let $ = this.cheerio.load(response)
-      let info = $('[itemprop=name]')
-      let image = $('[itemprop=image]').attr('content') ?? ''
-      let title = $('[itemprop=name]').attr('content') ?? ''
+    let $ = this.cheerio.load(data)
+    let info = $('[itemprop=name]')
+    let image = $('[itemprop=image]').attr('content') ?? ''
+    let title = $('[itemprop=name]').attr('content') ?? ''
 
-      // Comma seperate all of the tags and store them in our tag section 
-      let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'tag', tags: [] })]
-      let tags = $('meta[name="twitter:description"]').attr('content')?.split(",") ?? []
-      for (let i = 0; i < tags.length; i++) {
-        tagSections[0].tags.push(createTag({
-          id: i.toString().trim(),
-          label: tags[i]
-        }))
-      }
-
-      // Grab the alternative titles
-      let titles = [title]
-      let altTitleBlock = $('#info')
-      let altNameTop = $('h1', altTitleBlock).text() ?? ''
-      let altNameBottom = $('h2', altTitleBlock).text() ?? ''
-      if (altNameTop) {
-        titles.push(altNameTop)
-      }
-      if (altNameBottom) {
-        titles.push(altNameBottom)
-      }
-
-      // Get the artist and language information
-      let context = $("#info-block")
-      let artist = ''
-      let language = ''
-      for (let item of $('.tag-container', context).toArray()) {
-        if ($(item).text().indexOf("Artists") > -1) {
-          let temp = $("a", item).text()
-          artist = temp.substring(0, temp.indexOf(" ("))
-        }
-        else if ($(item).text().indexOf("Languages") > -1) {
-          let temp = $("a", item)
-          if (temp.toArray().length > 1) {
-            let temptext = $(temp.toArray()[1]).text()
-            language = temptext.substring(0, temptext.indexOf(" ("))
-          }
-          else {
-            let temptext = temp.text()
-            language = temptext.substring(0, temptext.indexOf(" ("))
-          }
-        }
-      }
-
-      let status = 1
-      let summary = ''
-      let hentai = true                 // I'm assuming that's why you're here!
-
-      manga.push(createManga({
-        id: metadata[i].id,
-        titles: titles,
-        image: image,
-        rating: 0,
-        status: status,
-        artist: artist,
-        tags: tagSections,
-        desc: summary,
-        hentai: hentai
+    // Comma seperate all of the tags and store them in our tag section 
+    let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'tag', tags: [] })]
+    let tags = $('meta[name="twitter:description"]').attr('content')?.split(",") ?? []
+    for (let i = 0; i < tags.length; i++) {
+      tagSections[0].tags.push(createTag({
+        id: i.toString().trim(),
+        label: tags[i]
       }))
     }
+
+    // Grab the alternative titles
+    let titles = [title]
+    let altTitleBlock = $('#info')
+    let altNameTop = $('h1', altTitleBlock).text() ?? ''
+    let altNameBottom = $('h2', altTitleBlock).text() ?? ''
+    if (altNameTop) {
+      titles.push(altNameTop)
+    }
+    if (altNameBottom) {
+      titles.push(altNameBottom)
+    }
+
+    // Get the artist and language information
+    let context = $("#info-block")
+    let artist = ''
+    let language = ''
+    for (let item of $('.tag-container', context).toArray()) {
+      if ($(item).text().indexOf("Artists") > -1) {
+        let temp = $("a", item).text()
+        artist = temp.substring(0, temp.indexOf(" ("))
+      }
+      else if ($(item).text().indexOf("Languages") > -1) {
+        let temp = $("a", item)
+        if (temp.toArray().length > 1) {
+          let temptext = $(temp.toArray()[1]).text()
+          language = temptext.substring(0, temptext.indexOf(" ("))
+        }
+        else {
+          let temptext = temp.text()
+          language = temptext.substring(0, temptext.indexOf(" ("))
+        }
+      }
+    }
+
+    let status = 1
+    let summary = ''
+    let hentai = true                 // I'm assuming that's why you're here!
+
+    manga.push(createManga({
+      id: metadata.id,
+      titles: titles,
+      image: image,
+      rating: 0,
+      status: status,
+      artist: artist,
+      tags: tagSections,
+      desc: summary,
+      hentai: hentai
+    }))
     return manga
   }
 
