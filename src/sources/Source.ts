@@ -129,7 +129,7 @@ export abstract class Source {
    * The param will only utilized if nextPage is true. The param is what is attached to the base url. This allows
    * us to change the page in url in the http request
    */
-  abstract getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null }
+  abstract getChapterDetails(data: any, metadata: any): ChapterDetails
 
   /**
    * Using a {@link SearchRequest}, this method should generate a HTML request which will yield in a page 

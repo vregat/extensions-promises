@@ -172,7 +172,7 @@ export class NHentai extends Source {
     })
   }
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null } {
+  getChapterDetails(data: any, metadata: any): ChapterDetails {
     let $ = this.cheerio.load(data)
 
     // Get the number of chapters, we can generate URLs using that as a basis
@@ -207,13 +207,14 @@ export class NHentai extends Source {
       pages, longStrip: false
     })
 
+    // Unused, idk if you'll need this later so keeping it
     let returnObject = {
       'details': chapterDetails,
       'nextPage': metadata.nextPage,
       'param': null
     }
 
-    return returnObject
+    return chapterDetails
   }
 
 

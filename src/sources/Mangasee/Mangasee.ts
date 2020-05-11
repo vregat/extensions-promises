@@ -155,7 +155,7 @@ export class Mangasee extends Source {
     })
   }
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null } {
+  getChapterDetails(data: any, metadata: any): ChapterDetails {
     let script = JSON.parse((/PageArr=(.*);/g.exec(data) ?? [])[1])
     let pages: string[] = []
     let images: string[] = Object.values(script)
@@ -171,13 +171,14 @@ export class Mangasee extends Source {
       pages, longStrip: false
     })
 
+    // Unused, idk what you're using this for so keeping it
     let returnObject = {
       'details': chapterDetails,
       'nextPage': metadata.nextPage,
       'param': null
     }
 
-    return returnObject
+    return chapterDetails
   }
 
 

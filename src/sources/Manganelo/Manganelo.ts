@@ -169,7 +169,7 @@ export class Manganelo extends Source {
     })
   }
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null } {
+  getChapterDetails(data: any, metadata: any): ChapterDetails {
     let $ = this.cheerio.load(data)
     let pages: string[] = []
     for (let item of $('img', '.container-chapter-reader').toArray()) {
@@ -182,12 +182,14 @@ export class Manganelo extends Source {
       pages: pages,
       longStrip: false
     })
+
     let returnObject = {
       'details': chapterDetails,
       'nextPage': metadata.nextPage,
       'param': null
     }
-    return returnObject
+
+    return chapterDetails
   }
 
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {

@@ -29,11 +29,10 @@ export class MangaPark extends Source {
 		for (let id of ids) {
 			let metadata = { 'id': id }
 			requests.push(createRequestObject({
-				url: `${MP_DOMAIN}/manga/`,
-				cookies: [createCookie({ name: 'set', value: 'h=1' })],
+				url: `${MP_DOMAIN}/manga/${id}`,
+				cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })],
 				metadata: metadata,
-				method: 'GET',
-				param: id
+				method: 'GET'
 			}))
 		}
 		return requests
@@ -141,13 +140,9 @@ export class MangaPark extends Source {
 	getChaptersRequest(mangaId: string): Request {
 		let metadata = { 'id': mangaId }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/manga/`,
+			url: `${MP_DOMAIN}/manga/${mangaId}`,
 			method: "GET",
-			metadata: metadata,
-			headers: {
-				"content-type": "application/x-www-form-urlencoded"
-			},
-			param: mangaId
+			metadata: metadata
 		})
 	}
 
@@ -193,19 +188,15 @@ export class MangaPark extends Source {
 	getChapterDetailsRequest(mangaId: string, chId: string): Request {
 		let metadata = { 'mangaId': mangaId, 'chapterId': chId, 'nextPage': false, 'page': 1 }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/manga/`,
+			url: `${MP_DOMAIN}/manga/${mangaId}/${chId}`,
 			method: "GET",
 			metadata: metadata,
-			headers: {
-				"content-type": "application/x-www-form-urlencoded"
-			},
-			cookies: [createCookie({ name: 'set', value: 'h=1' })],
-			param: `${mangaId}/${chId}`
+			cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })]
 		})
 	}
 
 
-	getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string | null } {
+	getChapterDetails(data: any, metadata: any): ChapterDetails {
 		let script = JSON.parse((/var _load_pages = (.*);/.exec(data) ?? [])[1])
 		let pages: string[] = []
 		for (let page of script) {
@@ -218,26 +209,25 @@ export class MangaPark extends Source {
 			pages: pages,
 			longStrip: false
 		})
+
+		// Unused, idk if you'll need this later so keeping it
 		let returnObject = {
 			'details': chapterDetails,
 			'nextPage': metadata.nextPage,
 			'param': null
 		}
-		return returnObject
+
+		return chapterDetails
 	}
 
 
 	filterUpdatedMangaRequest(ids: any, time: Date, page: number): any {
 		let metadata = { 'ids': ids, 'referenceTime': time }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/latest/`,
+			url: `${MP_DOMAIN}/latest/${page}`,
 			method: 'GET',
 			metadata: metadata,
-			headers: {
-				"content-type": "application/x-www-form-urlencoded"
-			},
-			cookies: [createCookie({ name: 'set', value: 'h=1' })],
-			param: `${page}`
+			cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })]
 		})
 	}
 
@@ -292,7 +282,7 @@ export class MangaPark extends Source {
 			let sText = $('i', item).text()
 			popManga.push(createMangaTile({
 				id: id,
-				image: image,
+				image: image.replace(/(https:)?\/\//gi, 'https://'),
 				title: createIconText({ text: title }),
 				subtitleText: createIconText({ text: subtitle }),
 				secondaryText: createIconText({ text: sText, icon: sIcon })
@@ -308,7 +298,7 @@ export class MangaPark extends Source {
 
 				newManga.push(createMangaTile({
 					id: id,
-					image: image,
+					image: image.replace(/(https:)?\/\//gi, 'https://'),
 					title: createIconText({ text: title }),
 					subtitleText: createIconText({ text: subtitle })
 				}))
@@ -325,7 +315,7 @@ export class MangaPark extends Source {
 			let sText = $('li.new', item).first().find('i').last().text() ?? ''
 			updateManga.push(createMangaTile({
 				id: id,
-				image: image,
+				image: image.replace(/(https:)?\/\//gi, 'https://'),
 				title: createIconText({ text: title }),
 				subtitleText: createIconText({ text: subtitle }),
 				secondaryText: createIconText({ text: sText, icon: sIcon })
@@ -358,9 +348,8 @@ export class MangaPark extends Source {
 		}
 
 		return createRequestObject({
-			url: `${MP_DOMAIN}`,
-			method: 'GET',
-			param: param
+			url: `${MP_DOMAIN}${param}`,
+			method: 'GET'
 		})
 	}
 
@@ -444,14 +433,10 @@ export class MangaPark extends Source {
 
 		let metadata = { 'search': search }
 		return createRequestObject({
-			url: `${MP_DOMAIN}/search?`,
+			url: `${MP_DOMAIN}/search?${search}`,
 			method: 'GET',
 			metadata: metadata,
-			headers: {
-				"content-type": "application/x-www-form-urlencoded"
-			},
-			cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}` })],
-			param: `${search}`
+			cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}`, domain: MP_DOMAIN })]
 		})
 	}
 
@@ -495,10 +480,7 @@ export class MangaPark extends Source {
 		return createRequestObject({
 			url: `${MP_DOMAIN}/search?`,
 			method: "GET",
-			headers: {
-				"content-type": "application/x-www-form-urlencoded"
-			},
-			cookies: [createCookie({ name: 'set', value: 'h=1' })],
+			cookies: [createCookie({ name: 'set', value: 'h=1', domain: MP_DOMAIN })],
 		})
 	}
 

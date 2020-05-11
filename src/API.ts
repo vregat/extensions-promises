@@ -116,27 +116,33 @@ export class APIWrapper {
 		}
 
 		let response = source.getChapterDetails(data.data, metadata)
-		let details: ChapterDetails = response.details
+		let details: ChapterDetails = response
 
 		// there needs to be a way to handle sites that only show one page per link
-		while (response.nextPage && metadata.page) {
-			metadata.page++
-			try {
-				data = await axios.request({
-					url: `${request.url}${metadata.page}`,
-					method: request.method,
-					headers: headers,
-					data: request.data,
-					timeout: request.timeout || 0
-				})
-			}
-			catch (e) {
-				return details
-			}
 
-			response = source.getChapterDetails(data.data, metadata)
-			details.pages.push(response.details.pages[0])
-		}
+
+		// TODO: DK you need to change this to support the new non-paged return
+
+
+
+		// while (response.nextPage && metadata.page) {
+		// 	metadata.page++
+		// 	try {
+		// 		data = await axios.request({
+		// 			url: `${request.url}${metadata.page}`,
+		// 			method: request.method,
+		// 			headers: headers,
+		// 			data: request.data,
+		// 			timeout: request.timeout || 0
+		// 		})
+		// 	}
+		// 	catch (e) {
+		// 		return details
+		// 	}
+
+		// 	response = source.getChapterDetails(data.data, metadata)
+		// 	details.pages.push(response.details.pages[0])
+		// }
 
 		return details
 	}

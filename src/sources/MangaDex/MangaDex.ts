@@ -9,17 +9,13 @@ import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
 import { LanguageCode } from '../../models/Languages/Languages'
 
-const MD_DOMAIN = 'https://mangadex.org'
-const MD_CHAPTERS_API = `${MD_DOMAIN}/api/manga`                // /:mangaId
-const MD_CHAPTER_DETAILS_API = `${MD_DOMAIN}/api/chapter`       // /:chapterId
-
 export class MangaDex extends Source {
 
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.6' }
+  get version(): string { return '1.0.8' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -35,9 +31,9 @@ export class MangaDex extends Source {
       headers: {
         "content-type": "application/json"
       },
-      data: {
-        ids: ids
-      }
+      data: JSON.stringify({
+        id: ids.map(x => parseInt(x))
+      })
     })]
   }
   getMangaDetails(data: any, metadata: any): Manga[] {
@@ -63,27 +59,27 @@ export class MangaDex extends Source {
           createTagSection({
             id: "content",
             label: "Content",
-            tags: mangaDetails["content"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+            tags: mangaDetails["content"].map((x: any) => createTag({ id: x["id"].toString(), label: x["value"] }))
           }),
           createTagSection({
             id: "demographic",
             label: "Demographic",
-            tags: mangaDetails["demographic"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+            tags: mangaDetails["demographic"].map((x: any) => createTag({ id: x["id"].toString(), label: x["value"] }))
           }),
           createTagSection({
-            id: "formats",
-            label: "Formats",
-            tags: mangaDetails["formats"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+            id: "format",
+            label: "Format",
+            tags: mangaDetails["format"].map((x: any) => createTag({ id: x["id"].toString(), label: x["value"] }))
           }),
           createTagSection({
-            id: "genres",
-            label: "Genres",
-            tags: mangaDetails["genres"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+            id: "genre",
+            label: "Genre",
+            tags: mangaDetails["genre"].map((x: any) => createTag({ id: x["id"].toString(), label: x["value"] }))
           }),
           createTagSection({
-            id: "themes",
-            label: "Themes",
-            tags: mangaDetails["themes"].map((x: any) => createTag({ id: x["id"], label: x["value"] }))
+            id: "theme",
+            label: "Theme",
+            tags: mangaDetails["theme"].map((x: any) => createTag({ id: x["id"].toString(), label: x["value"] }))
           })
         ],
         users: mangaDetails["users"],
@@ -101,17 +97,18 @@ export class MangaDex extends Source {
     let metadata = { mangaId }
     return createRequestObject({
       metadata,
-      url: MD_CHAPTERS_API,
-      param: mangaId,
+      url: `${MD_MANGA_API}/${mangaId}`,
       method: "GET"
     })
   }
 
   getChapters(data: any, metadata: any): Chapter[] {
-    data = data.chapter as any
+    let chapters = JSON.parse(data).chapter as any
 
-    return Object.keys(data).map(id => {
-      const chapter = data[id]
+    console.log(data)
+
+    return Object.keys(chapters).map(id => {
+      const chapter = chapters[id]
 
       return createChapter({
         id: id,
@@ -127,11 +124,22 @@ export class MangaDex extends Source {
   }
 
   getChapterDetailsRequest(mangaId: string, chapId: string): Request {
-    throw new Error("Method not implemented.")
+    return createRequestObject({
+      url: `${MD_CHAPTER_API}/${chapId}`,
+      method: 'GET',
+      incognito: true
+    })
   }
 
-  getChapterDetails(data: any, metadata: any): { 'details': ChapterDetails, 'nextPage': boolean, 'param': string } {
-    throw new Error("Method not implemented.")
+  getChapterDetails(data: any, metadata: any): ChapterDetails {
+    let chapterDetails = JSON.parse(data) as any
+
+    return createChapterDetails({
+      id: chapterDetails['id'].toString(),
+      longStrip: parseInt(chapterDetails['long_strip']) == 1,
+      mangaId: chapterDetails['manga_id'].toString(),
+      pages: chapterDetails['page_array'].map((x: string) => `${chapterDetails['server']}${chapterDetails['hash']}/${x}`)
+    })
   }
 
   filterUpdatedMangaRequest(ids: string[], time: Date, page: number): Request | null {
@@ -234,8 +242,8 @@ export class MangaDex extends Source {
 
       featuredManga.push(createMangaTile({
         id: id[0],
-        image: img.attr("data-src") ?? " ",
-        title: createIconText({ text: img.attr("title") ?? " " }),
+        image: img.attr("data-src") ?? "",
+        title: createIconText({ text: img.attr("title") ?? "" }),
         primaryText: createIconText({ text: bookmarks, icon: 'bookmark.fill' }),
         secondaryText: createIconText({ text: rating, icon: 'star.fill' })
       }))
