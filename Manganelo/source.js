@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.4'; }
+    get version() { return '1.0.5'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -276,7 +276,7 @@ class Manganelo extends Source_1.Source {
     }
     getHomePageSections(data, sections) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-        let $ = cheerio.load(data);
+        let $ = this.cheerio.load(data);
         let topManga = [];
         let updateManga = [];
         let newManga = [];
