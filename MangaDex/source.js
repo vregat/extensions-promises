@@ -285,10 +285,29 @@ class MangaDex extends Source_1.Source {
         return updates;
     }
     searchRequest(query, page) {
-        return null;
+        return createRequestObject({
+            url: CACHE_SEARCH,
+            method: "POST",
+            data: {
+                title: query.title
+            },
+            headers: {
+                "content-type": "application/json"
+            }
+        });
     }
     search(data) {
-        return null;
+        let mangas = this.getMangaDetails(data, {});
+        return mangas.map(manga => {
+            var _a;
+            return createMangaTile({
+                id: manga.id,
+                image: manga.image,
+                title: createIconText({
+                    text: (_a = manga.titles[0]) !== null && _a !== void 0 ? _a : "UNKNOWN"
+                })
+            });
+        });
     }
 }
 exports.MangaDex = MangaDex;
