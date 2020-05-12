@@ -17,7 +17,7 @@ export class NHentai extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.7' }
+  get version(): string { return '0.5.6' }
   get name(): string { return 'nHentai' }
   get description(): string { return 'Extension that pulls manga from nHentai' }
   get author(): string { return 'Conrad Weiser' }
@@ -329,7 +329,7 @@ export class NHentai extends Source {
 
       updatedHentai.push(createMangaTile({
         id: idHref[1],
-        title: createIconText({text: title}),
+        title: createIconText({ text: title }),
         image: image
       }))
     }
