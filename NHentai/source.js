@@ -292,11 +292,11 @@ class NHentai extends Source_1.Source {
             }
             let title = $('.caption', currNode).text();
             let idHref = (_d = $('a', currNode).attr('href')) === null || _d === void 0 ? void 0 : _d.match(/\/(\d*)\//);
-            mangaTiles.push({
+            mangaTiles.push(createMangaTile({
                 id: idHref[1],
                 title: createIconText({ text: title }),
                 image: image
-            });
+            }));
         }
         return mangaTiles;
     }
@@ -319,11 +319,11 @@ class NHentai extends Source_1.Source {
             }
             let title = $('.caption', currNode).text();
             let idHref = (_a = $('a', currNode).attr('href')) === null || _a === void 0 ? void 0 : _a.match(/\/(\d*)\//);
-            updatedHentai.push({
+            updatedHentai.push(createMangaTile({
                 id: idHref[1],
                 title: createIconText({ text: title }),
                 image: image
-            });
+            }));
         }
         section[0].items = updatedHentai;
         return section;
