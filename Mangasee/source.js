@@ -278,17 +278,16 @@ class Mangasee extends Source_1.Source {
             'genreNo': excluded
         };
         let metadata = data;
-        data = Object.keys(data).map(function (key) {
-            if (data[key] != '')
-                return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
-        }).join('&').replace(/&&/g, '&');
+        // data = Object.keys(data).map(function (key: any) {
+        //   if (data[key] != '')
+        //     return encodeURIComponent(key) + '=' + encodeURIComponent(data[key])
+        // }).join('&').replace(/&&/g, '&')
         return createRequestObject({
             url: `${MS_DOMAIN}/search/request.php`,
             metadata: metadata,
             headers: {
                 "content-type": "application/x-www-form-urlencoded"
             },
-            timeout: 4000,
             method: "POST",
             data: data
         });
@@ -302,7 +301,7 @@ class Mangasee extends Source_1.Source {
             let id = (_c = (_b = $('.resultLink', item).attr('href')) === null || _b === void 0 ? void 0 : _b.split('/').pop()) !== null && _c !== void 0 ? _c : '';
             let title = $('.resultLink', item).text();
             let author = $('p', item).first().find('a').text();
-            mangaTiles.push({
+            mangaTiles.push(createMangaTile({
                 id: id,
                 title: createIconText({
                     text: title
@@ -311,7 +310,7 @@ class Mangasee extends Source_1.Source {
                 subtitleText: createIconText({
                     text: author
                 })
-            });
+            }));
         }
         return mangaTiles;
     }
