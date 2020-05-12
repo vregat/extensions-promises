@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.6'; }
+    get version() { return '0.5.7'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -275,11 +275,11 @@ class NHentai extends Source_1.Source {
             let contextNode = $('#bigcontainer');
             let href = $('a', contextNode).attr('href');
             let mangaId = parseInt((href === null || href === void 0 ? void 0 : href.match(/g\/(\d*)\/\d/))[1]);
-            mangaTiles.push({
+            mangaTiles.push(createMangaTile({
                 id: mangaId.toString(),
                 title: createIconText({ text: (_b = $('[itemprop=name]').attr('content')) !== null && _b !== void 0 ? _b : '' }),
                 image: (_c = $('[itemprop=image]').attr('content')) !== null && _c !== void 0 ? _c : ''
-            });
+            }));
             return mangaTiles;
         }
         let containerNode = $('.index-container');

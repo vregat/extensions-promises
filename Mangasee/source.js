@@ -50,8 +50,8 @@ var LanguageCode;
 Object.defineProperty(exports, "__esModule", { value: true });
 var MangaStatus;
 (function (MangaStatus) {
-    MangaStatus[MangaStatus["ONGOING"] = 0] = "ONGOING";
-    MangaStatus[MangaStatus["COMPLETED"] = 1] = "COMPLETED";
+    MangaStatus[MangaStatus["ONGOING"] = 1] = "ONGOING";
+    MangaStatus[MangaStatus["COMPLETED"] = 0] = "COMPLETED";
 })(MangaStatus = exports.MangaStatus || (exports.MangaStatus = {}));
 
 },{}],3:[function(require,module,exports){
