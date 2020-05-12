@@ -334,10 +334,26 @@ export class MangaDex extends Source {
   }
 
   searchRequest(query: SearchRequest, page: number): Request | null {
-    return null
+    return createRequestObject({
+      url: CACHE_SEARCH,
+      method: "POST",
+      data: {
+        title: query.title
+      },
+      headers: {
+        "content-type": "application/json"
+      }
+    })
   }
 
   search(data: any): MangaTile[] | null {
-    return null
+    let mangas = this.getMangaDetails(data, {})
+    return mangas.map(manga => createMangaTile({
+      id: manga.id,
+      image: manga.image,
+      title: createIconText({
+        text: manga.titles[0] ?? "UNKNOWN"
+      })
+    }))
   }
 }
