@@ -16,7 +16,7 @@ export class MangaLife extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.5.1' }
+  get version(): string { return '0.5.2' }
   get name(): string { return 'Manga4Life' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -333,7 +333,7 @@ export class MangaLife extends Source {
         id: id,
         image: image,
         title: createIconText({ text: title }),
-        secondaryText: createIconText({ text: time })
+        secondaryText: createIconText({ text: time, icon: 'clock.fill' })
       }))
     })
 
@@ -350,7 +350,7 @@ export class MangaLife extends Source {
         id: id,
         image: image,
         title: createIconText({ text: title }),
-        secondaryText: createIconText({ text: time })
+        secondaryText: createIconText({ text: time, icon: 'clock.fill' })
       }))
     })
 
@@ -367,7 +367,7 @@ export class MangaLife extends Source {
         id: id,
         image: image,
         title: createIconText({ text: title }),
-        secondaryText: createIconText({ text: time })
+        secondaryText: createIconText({ text: time, icon: 'clock.fill' })
       }))
     })
 
@@ -384,7 +384,7 @@ export class MangaLife extends Source {
         id: id,
         image: image,
         title: createIconText({ text: title }),
-        secondaryText: createIconText({ text: time })
+        secondaryText: createIconText({ text: time, icon: 'clock.fill' })
       }))
     })
 
@@ -419,7 +419,7 @@ export class MangaLife extends Source {
           id: id,
           image: image,
           title: createIconText({ text: title }),
-          secondaryText: createIconText({ text: time })
+          secondaryText: createIconText({ text: time, icon: 'clock.fill' })
         }))
       })
     }
@@ -437,7 +437,7 @@ export class MangaLife extends Source {
           id: id,
           image: image,
           title: createIconText({ text: title }),
-          secondaryText: createIconText({ text: time })
+          secondaryText: createIconText({ text: time, icon: 'clock.fill' })
         }))
       })
     }
@@ -455,7 +455,7 @@ export class MangaLife extends Source {
           id: id,
           image: image,
           title: createIconText({ text: title }),
-          secondaryText: createIconText({ text: time })
+          secondaryText: createIconText({ text: time, icon: 'clock.fill' })
         }))
       })
     }
