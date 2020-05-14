@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.6'; }
+    get version() { return '1.0.7'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -145,7 +145,7 @@ class Manganelo extends Source_1.Source {
         rating = Number($('[property=v\\:average]', table).text());
         follows = Number($('[property=v\\:votes]', table).text());
         let summary = $('.panel-story-info-description', panel).text();
-        manga.push({
+        manga.push(createManga({
             id: metadata.id,
             titles: titles,
             image: image,
@@ -159,7 +159,7 @@ class Manganelo extends Source_1.Source {
             lastUpdate: lastUpdate,
             desc: summary,
             hentai: hentai
-        });
+        }));
         return manga;
     }
     getChaptersRequest(mangaId) {
