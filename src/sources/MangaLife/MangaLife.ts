@@ -16,7 +16,7 @@ export class MangaLife extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.5.3' }
+  get version(): string { return '0.5.4' }
   get name(): string { return 'Manga4Life' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
