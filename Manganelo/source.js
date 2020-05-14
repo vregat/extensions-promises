@@ -345,7 +345,7 @@ class Manganelo extends Source_1.Source {
             param: `${search}`
         });
     }
-    search(data) {
+    search(data, metadata) {
         var _a, _b, _c;
         let $ = this.cheerio.load(data);
         let panel = $('.panel-content-genres');

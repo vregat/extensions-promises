@@ -264,7 +264,7 @@ class NHentai extends Source_1.Source {
             method: "GET"
         });
     }
-    search(data) {
+    search(data, metadata) {
         var _a, _b, _c, _d;
         let $ = this.cheerio.load(data);
         let mangaTiles = [];

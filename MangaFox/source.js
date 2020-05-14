@@ -227,7 +227,7 @@ class MangaFox extends Source_1.Source {
             cookies: [createCookie({ name: 'isAdult', value: '1', domain: MF_DOMAIN })]
         });
     }
-    search(data) {
+    search(data, metadata) {
         let $ = this.cheerio.load(data);
         let mangas = [];
         let idRegExp = new RegExp('\\/manga\\/(.*)\\/');

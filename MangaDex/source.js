@@ -296,7 +296,7 @@ class MangaDex extends Source_1.Source {
             }
         });
     }
-    search(data) {
+    search(data, metadata) {
         let mangas = this.getMangaDetails(data, {});
         return mangas.map(manga => {
             var _a;

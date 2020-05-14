@@ -461,7 +461,7 @@ class MangaPark extends Source_1.Source {
             cookies: [createCookie({ name: 'set', value: `h=${query.hStatus ? 1 : 0}`, domain: this.MP_DOMAIN })]
         });
     }
-    search(data) {
+    search(data, metadata) {
         var _a, _b, _c, _d;
         let $ = this.cheerio.load(data);
         let mangaList = $('.manga-list');
