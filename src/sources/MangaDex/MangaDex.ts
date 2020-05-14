@@ -118,7 +118,7 @@ export class MangaDex extends Source {
         mangaId: metadata.mangaId,
         group: chapter.group_name,
         name: chapter.title,
-        time: new Date(chapter.timestamp)
+        time: new Date(Number(chapter.timestamp) * 1000)
       })
     })
   }
