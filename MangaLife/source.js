@@ -65,7 +65,7 @@ class MangaLife extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.2'; }
+    get version() { return '0.5.3'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -173,8 +173,8 @@ class MangaLife extends Source_1.Source {
                 mangaId: metadata.id,
                 name: name,
                 chapNum: chNum,
-                time: time,
                 langCode: Languages_1.LanguageCode.ENGLISH,
+                time: time
             }));
         });
         return chapters;
@@ -385,14 +385,10 @@ class MangaLife extends Source_1.Source {
             let id = elem.IndexName;
             let title = elem.SeriesName;
             let image = `https://static.mangaboss.net/cover/${id}.jpg`;
-            let time = (new Date(elem.Date)).toDateString();
-            time = time.slice(0, time.length - 5);
-            time = time.slice(4, time.length);
             newManga.push(createMangaTile({
                 id: id,
                 image: image,
-                title: createIconText({ text: title }),
-                secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+                title: createIconText({ text: title })
             }));
         });
         let recManga = [];
@@ -471,8 +467,7 @@ class MangaLife extends Source_1.Source {
                 manga.push(createMangaTile({
                     id: id,
                     image: image,
-                    title: createIconText({ text: title }),
-                    secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+                    title: createIconText({ text: title })
                 }));
             });
         }
