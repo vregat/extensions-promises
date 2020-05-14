@@ -25,6 +25,16 @@ import { MangaFox } from './sources/MangaFox/MangaFox';
 const axios = require('axios')
 
 export class APIWrapper {
+
+    // WIP
+    /* 
+     * Implement a common method that takes in a Request and performs it automatically
+     *
+    private async performRequest(request: Request): Promise<string> {
+
+    }
+    */
+
     /**
      * Retrieves all relevant metadata from a source about particular manga
      *
