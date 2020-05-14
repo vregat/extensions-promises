@@ -183,7 +183,8 @@ export class Mangasee extends Source {
   filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
     let metadata = { 'ids': ids, 'referenceTime': time }
     let data: any = { 'page': page }
-    data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
+    // only for testing with axios
+    // data = Object.keys(data).map(function (key: any) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) }).join('&')
     return createRequestObject({
       url: `${MS_DOMAIN}/home/latest.request.php`,
       metadata: metadata,
@@ -258,7 +259,7 @@ export class Mangasee extends Source {
     })
   }
 
-  search(data: any): MangaTile[] | null {
+  search(data: any, metadata: any): MangaTile[] | null {
 
     let $ = this.cheerio.load(data)
 
