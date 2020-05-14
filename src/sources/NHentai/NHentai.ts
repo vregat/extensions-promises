@@ -17,7 +17,7 @@ export class NHentai extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.6.0' }
+  get version(): string { return '0.6.1' }
   get name(): string { return 'nHentai' }
   get description(): string { return 'Extension that pulls manga from nHentai' }
   get author(): string { return 'Conrad Weiser' }
@@ -202,15 +202,10 @@ export class NHentai extends Source {
     let chapterDetails = createChapterDetails({
       id: metadata.chapterId,
       mangaId: metadata.mangaId,
-      pages, longStrip: false
+      pages: pages,
+      longStrip: false
     })
 
-    // Unused, idk if you'll need this later so keeping it
-    let returnObject = {
-      'details': chapterDetails,
-      'nextPage': metadata.nextPage,
-      'param': null
-    }
 
     return chapterDetails
   }
@@ -250,7 +245,7 @@ export class NHentai extends Source {
 
     return createRequestObject({
       url: `${NHENTAI_DOMAIN}/search/?q=${param}`,
-      metadata: query,
+      metadata: { sixDigit: false },
       timeout: 4000,
       method: "GET"
     })
@@ -261,9 +256,8 @@ export class NHentai extends Source {
     let $ = this.cheerio.load(data)
     let mangaTiles: MangaTile[] = []
 
-    // Was this a six digit request? We can check by seeing if we're on a manga page rather than a standard search page -- Metadata for hentai only exists on specific results, not searches, use that
-    let title = $('[itemprop=name]').attr('content') ?? ''
-    if (title) {
+    // Was this a six digit request? 
+    if (metadata.sixDigit) {
       // Retrieve the ID from the body
       let contextNode = $('#bigcontainer')
       let href = $('a', contextNode).attr('href')
