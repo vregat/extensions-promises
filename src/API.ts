@@ -20,6 +20,7 @@ import { Mangasee } from './sources/Mangasee/Mangasee'
 import { MangaPark } from './sources/MangaPark/MangaPark'
 import { Manganelo } from './sources/Manganelo/Manganelo'
 import { MangaFox } from './sources/MangaFox/MangaFox';
+import { MangaLife } from './sources/MangaLife/MangaLife'
 
 // import axios from 'axios'  <- use this when you've fixed the typings
 const axios = require('axios')
@@ -193,7 +194,7 @@ export class APIWrapper {
         let post: boolean = request.method.toLowerCase() == 'post' ? true : false
         try {
             if (!post) {
-                request.url = baseUrl + currentPage
+                request.url = currentPage == 1 ? baseUrl : baseUrl + currentPage
             } else {
                 // axios has a hard time with properly encoding the payload
                 // this took me too long to find
@@ -270,7 +271,7 @@ export class APIWrapper {
                 timeout: request.timeout || 0
             })
 
-            return source.search(data.data) ?? []
+            return source.search(data.data, request.metadata) ?? []
         } catch (e) {
             return []
         }
@@ -399,3 +400,18 @@ let application = new APIWrapper()
 //application.getHomePageSections(new MangaFox(cheerio)).then((data) => console.log(data))
 //application.getTags(new MangaFox(cheerio)).then((data) => console.log(data))
 //application.getViewMoreItems(new MangaFox(cheerio), 'recently_updated', 1).then(data => console.log(data))
+
+// MangaLife
+// application.getMangaDetails(new MangaLife(cheerio), ['Domestic-Na-Kanojo', 'One-Piece']).then((data) => { console.log(data) })
+// application.getChapters(new MangaLife(cheerio), 'Tales-Of-Demons-And-Gods').then((data) => { console.log(data) })
+// application.getChapterDetails(new MangaLife(cheerio), 'Boku-No-Hero-Academia', 'Boku-No-Hero-Academia-chapter-269.html').then((data) => { console.log(data) })
+// application.filterUpdatedManga(new MangaLife(cheerio), ['The-Mythical-Realm'], new Date("2020-04-11 02:33:30 UTC")).then((data) => { console.log(data) })
+// let test = createSearchRequest({
+//     title: 'boku no hero',
+//     includeDemographic: ['Shounen'],
+//     excludeGenre: ['Fantasy']
+// })
+// application.search(new MangaLife(cheerio), test, 1).then((data) => { console.log(data) })
+// application.getTags(new MangaLife(cheerio)).then((data) => { console.log(data) })
+// application.getHomePageSections(new MangaLife(cheerio)).then(data => console.log(data))
+// application.getViewMoreItems(new MangaLife(cheerio), 'latest', 1).then(data => console.log(data))

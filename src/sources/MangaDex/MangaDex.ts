@@ -346,7 +346,7 @@ export class MangaDex extends Source {
     })
   }
 
-  search(data: any): MangaTile[] | null {
+  search(data: any, metadata: any): MangaTile[] | null {
     let mangas = this.getMangaDetails(data, {})
     return mangas.map(manga => createMangaTile({
       id: manga.id,

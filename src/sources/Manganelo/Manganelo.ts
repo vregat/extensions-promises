@@ -317,7 +317,7 @@ export class Manganelo extends Source {
     })
   }
 
-  search(data: any): MangaTile[] | null {
+  search(data: any, metadata: any): MangaTile[] | null {
     let $ = this.cheerio.load(data)
     let panel = $('.panel-content-genres')
     let manga: MangaTile[] = []

@@ -255,7 +255,7 @@ export class NHentai extends Source {
     })
   }
 
-  search(data: any): MangaTile[] {
+  search(data: any, metadata: any): MangaTile[] {
 
     let $ = this.cheerio.load(data)
     let mangaTiles: MangaTile[] = []
