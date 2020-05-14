@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.0'; }
+    get version() { return '0.6.1'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -219,14 +219,9 @@ class NHentai extends Source_1.Source {
         let chapterDetails = createChapterDetails({
             id: metadata.chapterId,
             mangaId: metadata.mangaId,
-            pages, longStrip: false
+            pages: pages,
+            longStrip: false
         });
-        // Unused, idk if you'll need this later so keeping it
-        let returnObject = {
-            'details': chapterDetails,
-            'nextPage': metadata.nextPage,
-            'param': null
-        };
         return chapterDetails;
     }
     searchRequest(query, page) {
@@ -260,26 +255,25 @@ class NHentai extends Source_1.Source {
         }
         return createRequestObject({
             url: `${NHENTAI_DOMAIN}/search/?q=${param}`,
-            metadata: query,
+            metadata: { sixDigit: false },
             timeout: 4000,
             method: "GET"
         });
     }
     search(data, metadata) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         let $ = this.cheerio.load(data);
         let mangaTiles = [];
-        // Was this a six digit request? We can check by seeing if we're on a manga page rather than a standard search page -- Metadata for hentai only exists on specific results, not searches, use that
-        let title = (_a = $('[itemprop=name]').attr('content')) !== null && _a !== void 0 ? _a : '';
-        if (title) {
+        // Was this a six digit request? 
+        if (metadata.sixDigit) {
             // Retrieve the ID from the body
             let contextNode = $('#bigcontainer');
             let href = $('a', contextNode).attr('href');
             let mangaId = parseInt((href === null || href === void 0 ? void 0 : href.match(/g\/(\d*)\/\d/))[1]);
             mangaTiles.push(createMangaTile({
                 id: mangaId.toString(),
-                title: createIconText({ text: (_b = $('[itemprop=name]').attr('content')) !== null && _b !== void 0 ? _b : '' }),
-                image: (_c = $('[itemprop=image]').attr('content')) !== null && _c !== void 0 ? _c : ''
+                title: createIconText({ text: (_a = $('[itemprop=name]').attr('content')) !== null && _a !== void 0 ? _a : '' }),
+                image: (_b = $('[itemprop=image]').attr('content')) !== null && _b !== void 0 ? _b : ''
             }));
             return mangaTiles;
         }
@@ -292,7 +286,7 @@ class NHentai extends Source_1.Source {
                 image = 'http:' + $('img', currNode).attr('src');
             }
             let title = $('.caption', currNode).text();
-            let idHref = (_d = $('a', currNode).attr('href')) === null || _d === void 0 ? void 0 : _d.match(/\/(\d*)\//);
+            let idHref = (_c = $('a', currNode).attr('href')) === null || _c === void 0 ? void 0 : _c.match(/\/(\d*)\//);
             mangaTiles.push(createMangaTile({
                 id: idHref[1],
                 title: createIconText({ text: title }),
