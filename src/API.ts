@@ -397,13 +397,13 @@ let application = new APIWrapper()
 //   excludeGenre: ['Mature']
 // })
 // application.search(new MangaFox(cheerio), test, 1).then((data) => { console.log(data) })
-//application.getHomePageSections(new MangaFox(cheerio)).then((data) => console.log(data))
-//application.getTags(new MangaFox(cheerio)).then((data) => console.log(data))
-//application.getViewMoreItems(new MangaFox(cheerio), 'recently_updated', 1).then(data => console.log(data))
+// application.getHomePageSections(new MangaFox(cheerio)).then((data) => console.log(data))
+// application.getTags(new MangaFox(cheerio)).then((data) => console.log(data))
+// application.getViewMoreItems(new MangaFox(cheerio), 'recently_updated', 1).then(data => console.log(data))
 
 // MangaLife
 // application.getMangaDetails(new MangaLife(cheerio), ['Domestic-Na-Kanojo', 'One-Piece']).then((data) => { console.log(data) })
-// application.getChapters(new MangaLife(cheerio), 'Tales-Of-Demons-And-Gods').then((data) => { console.log(data) })
+// application.getChapters(new MangaLife(cheerio), 'Boku-No-Hero-Academia').then((data) => { console.log(data) })
 // application.getChapterDetails(new MangaLife(cheerio), 'Boku-No-Hero-Academia', 'Boku-No-Hero-Academia-chapter-269.html').then((data) => { console.log(data) })
 // application.filterUpdatedManga(new MangaLife(cheerio), ['The-Mythical-Realm'], new Date("2020-04-11 02:33:30 UTC")).then((data) => { console.log(data) })
 // let test = createSearchRequest({

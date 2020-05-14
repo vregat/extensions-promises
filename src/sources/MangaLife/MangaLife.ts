@@ -16,7 +16,7 @@ export class MangaLife extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.5.2' }
+  get version(): string { return '0.5.3' }
   get name(): string { return 'Manga4Life' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -131,8 +131,8 @@ export class MangaLife extends Source {
         mangaId: metadata.id,
         name: name,
         chapNum: chNum,
-        time: time,
         langCode: LanguageCode.ENGLISH,
+        time: time
       }))
     })
 
@@ -359,15 +359,11 @@ export class MangaLife extends Source {
       let id = elem.IndexName
       let title = elem.SeriesName
       let image = `https://static.mangaboss.net/cover/${id}.jpg`
-      let time = (new Date(elem.Date)).toDateString()
-      time = time.slice(0, time.length - 5)
-      time = time.slice(4, time.length)
 
       newManga.push(createMangaTile({
         id: id,
         image: image,
-        title: createIconText({ text: title }),
-        secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+        title: createIconText({ text: title })
       }))
     })
 
@@ -454,8 +450,7 @@ export class MangaLife extends Source {
         manga.push(createMangaTile({
           id: id,
           image: image,
-          title: createIconText({ text: title }),
-          secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+          title: createIconText({ text: title })
         }))
       })
     }
