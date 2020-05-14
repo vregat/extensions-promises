@@ -17,7 +17,7 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.6' }
+  get version(): string { return '1.0.7' }
   get name(): string { return 'Manganelo' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -103,7 +103,7 @@ export class Manganelo extends Source {
     follows = Number($('[property=v\\:votes]', table).text())
     let summary = $('.panel-story-info-description', panel).text()
 
-    manga.push({
+    manga.push(createManga({
       id: metadata.id,
       titles: titles,
       image: image,
@@ -117,7 +117,7 @@ export class Manganelo extends Source {
       lastUpdate: lastUpdate,
       desc: summary,
       hentai: hentai
-    })
+    }))
 
     return manga
   }
