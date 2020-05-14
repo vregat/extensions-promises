@@ -116,8 +116,8 @@ export class MangaLife extends Source {
     // following the url encoding that the website uses, same variables too
     chapterJS.forEach((elem: any) => {
       let chapterCode: string = elem.Chapter
-      let t = Number(chapterCode.substring(0, 1))
-      let index = t != 1 ? '-index-' + t : ''
+      let vol = Number(chapterCode.substring(0, 1))
+      let index = vol != 1 ? '-index-' + vol : ''
       let n = parseInt(chapterCode.slice(1, -1))
       let a = Number(chapterCode[chapterCode.length - 1])
       let m = a != 0 ? '.' + a : ''
@@ -131,6 +131,7 @@ export class MangaLife extends Source {
         mangaId: metadata.id,
         name: name,
         chapNum: chNum,
+        volume: vol,
         langCode: LanguageCode.ENGLISH,
         time: time
       }))
@@ -373,14 +374,11 @@ export class MangaLife extends Source {
       let title = elem.SeriesName
       let image = `https://static.mangaboss.net/cover/${id}.jpg`
       let time = (new Date(elem.Date)).toDateString()
-      time = time.slice(0, time.length - 5)
-      time = time.slice(4, time.length)
 
       recManga.push(createMangaTile({
         id: id,
         image: image,
-        title: createIconText({ text: title }),
-        secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+        title: createIconText({ text: title })
       }))
     })
 
