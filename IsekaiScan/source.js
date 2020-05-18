@@ -63,7 +63,7 @@ class IsekaiScan extends Madara_1.Madara {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.0.1'; }
+    get version() { return '0.0.2'; }
     get name() { return 'IsekaiScan (Aggregator)'; }
     get author() { return 'Abdullah Mohamed'; }
     get description() { return 'Madara source which pulls manga from the IsekaiScan website'; }
@@ -74,6 +74,7 @@ class IsekaiScan extends Madara_1.Madara {
     get langCode() { return Languages_1.LanguageCode.ENGLISH; }
     get MadaraDomain() { return 'https://isekaiscan.com'; }
     get pageImageAttr() { return 'data-src'; }
+    get searchCoverAttr() { return 'data-src'; }
 }
 exports.IsekaiScan = IsekaiScan;
 
