@@ -66,7 +66,7 @@ class MangaFox extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.0'; }
+    get version() { return '1.0.1'; }
     get name() { return 'MangaFox'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Sirus'; }
@@ -154,7 +154,7 @@ class MangaFox extends Source_1.Source {
         let chapters = [];
         let rawChapters = $('div#chapterlist ul li').children('a').toArray().reverse();
         let chapterNumber = 1;
-        let chapterIdRegex = new RegExp('\\/manga\\/.*\\/(.*)\\/');
+        let chapterIdRegex = new RegExp('\\/manga\\/[a-zA-Z_]*\\/(.*)\\/');
         let volumeRegex = new RegExp('Vol.(\\d+)');
         for (let element of rawChapters) {
             let title = (_a = $('p.title3', element).html()) !== null && _a !== void 0 ? _a : '';
@@ -198,6 +198,82 @@ class MangaFox extends Source_1.Source {
             longStrip: false
         });
         return chapterDetails;
+    }
+    getHomePageSectionRequest() {
+        let request = createRequestObject({ url: `${MF_DOMAIN}`, method: 'GET' });
+        let section1 = createHomeSection({ id: 'hot_manga', title: 'Hot Manga Releases' });
+        let section2 = createHomeSection({ id: 'being_read', title: 'Being Read Right Now' });
+        let section3 = createHomeSection({ id: 'new_manga', title: 'New Manga Release' });
+        let section4 = createHomeSection({ id: 'latest_updates', title: 'Latest Updates' });
+        return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3, section4] })];
+    }
+    getHomePageSections(data, sections) {
+        var _a, _b, _c, _d;
+        let $ = this.cheerio.load(data);
+        let hotManga = [];
+        let beingReadManga = [];
+        let newManga = [];
+        let latestManga = [];
+        let idRegExp = new RegExp('\\/manga\\/(.*)\\/');
+        let firstSection = $('div.main-large').first();
+        let hotMangas = $('.manga-list-1', firstSection).first();
+        let beingReadMangas = hotMangas.next();
+        let newMangas = $('div.line-list');
+        let latestMangas = $('ul.manga-list-4-list');
+        for (let manga of $('li', hotMangas).toArray()) {
+            let id = ((_a = $('a', manga).first().attr('href')) === null || _a === void 0 ? void 0 : _a.match(idRegExp))[1];
+            let cover = $('img', manga).first().attr('src');
+            let title = $('.manga-list-1-item-title', manga).text();
+            let subtitle = $('.manga-list-1-item-subtitle', manga).text();
+            hotManga.push(createMangaTile({
+                id: id,
+                image: cover,
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
+            }));
+        }
+        for (let manga of $('li', beingReadMangas).toArray()) {
+            let id = ((_b = $('a', manga).first().attr('href')) === null || _b === void 0 ? void 0 : _b.match(idRegExp))[1];
+            let cover = $('img', manga).first().attr('src');
+            let title = $('.manga-list-1-item-title', manga).text();
+            let subtitle = $('.manga-list-1-item-subtitle', manga).text();
+            beingReadManga.push(createMangaTile({
+                id: id,
+                image: cover,
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
+            }));
+        }
+        for (let manga of $('li', newMangas).toArray()) {
+            let id = ((_c = $('a', manga).first().attr('href')) === null || _c === void 0 ? void 0 : _c.match(idRegExp))[1];
+            let cover = $('img', manga).first().attr('src');
+            let title = $('.manga-list-1-item-title', manga).text();
+            let subtitle = $('.manga-list-1-item-subtitle', manga).text();
+            newManga.push(createMangaTile({
+                id: id,
+                image: cover,
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
+            }));
+        }
+        for (let manga of $('li', latestMangas).toArray()) {
+            let id = ((_d = $('a', manga).first().attr('href')) === null || _d === void 0 ? void 0 : _d.match(idRegExp))[1];
+            let cover = $('img', manga).first().attr('src');
+            let title = $('.manga-list-4-item-title', manga).text();
+            let subtitle = $('.manga-list-4-item-subtitle', manga).text();
+            latestManga.push(createMangaTile({
+                id: id,
+                image: cover,
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
+            }));
+        }
+        // console.log(updateManga)
+        sections[0].items = hotManga;
+        sections[1].items = beingReadManga;
+        sections[2].items = newManga;
+        sections[3].items = latestManga;
+        return sections;
     }
     searchRequest(query, page) {
         var _a, _b, _c, _d;
