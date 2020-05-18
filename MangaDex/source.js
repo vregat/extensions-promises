@@ -6,7 +6,7 @@ class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.8'; }
+    get version() { return '1.0.9'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -93,11 +93,12 @@ class MangaDex extends Source_1.Source {
         console.log(data);
         return Object.keys(chapters).map(id => {
             const chapter = chapters[id];
+            const volume = Number(chapter.volume);
             return createChapter({
                 id: id,
-                chapNum: parseFloat(chapter.chapter),
+                chapNum: Number(chapter.chapter),
                 langCode: chapter.lang_code,
-                volume: parseFloat(chapter.volume),
+                volume: Number.isNaN(volume) ? 0 : volume,
                 mangaId: metadata.mangaId,
                 group: chapter.group_name,
                 name: chapter.title,
