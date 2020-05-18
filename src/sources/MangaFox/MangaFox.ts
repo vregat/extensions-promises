@@ -1,12 +1,12 @@
-import {Source} from '../Source'
-import {Manga, MangaStatus} from '../../models/Manga/Manga'
-import {Chapter} from '../../models/Chapter/Chapter'
-import {MangaTile} from '../../models/MangaTile/MangaTile'
-import {SearchRequest} from '../../models/SearchRequest/SearchRequest'
-import {Request} from '../../models/RequestObject/RequestObject'
-import {ChapterDetails} from '../../models/ChapterDetails/ChapterDetails'
-import {LanguageCode} from '../../models/Languages/Languages'
-import {TagSection} from "../../models/TagSection/TagSection";
+import { Source } from '../Source'
+import { Manga, MangaStatus } from '../../models/Manga/Manga'
+import { Chapter } from '../../models/Chapter/Chapter'
+import { MangaTile } from '../../models/MangaTile/MangaTile'
+import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
+import { Request } from '../../models/RequestObject/RequestObject'
+import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
+import { LanguageCode } from '../../models/Languages/Languages'
+import { TagSection } from "../../models/TagSection/TagSection";
 import {HomeSection, HomeSectionRequest} from "../../models/HomeSection/HomeSection";
 
 const MF_DOMAIN = 'https://fanfox.net'
@@ -18,7 +18,7 @@ export class MangaFox extends Source {
         super(cheerio)
     }
 
-    get version(): string { return '1.0.1' }
+    get version(): string { return '1.0.2' }
 
     get name(): string { return 'MangaFox' }
 
@@ -206,8 +206,8 @@ export class MangaFox extends Source {
         for (let manga of $('li', hotMangas).toArray()) {
             let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
-            let title: string = $('.manga-list-1-item-title', manga).text();
-            let subtitle: string = $('.manga-list-1-item-subtitle', manga).text();
+            let title: string = $('.manga-list-1-item-title', manga).text().trim();
+            let subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim();
 
             hotManga.push(createMangaTile({
                 id: id,
@@ -220,8 +220,8 @@ export class MangaFox extends Source {
         for (let manga of $('li', beingReadMangas).toArray()) {
             let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
-            let title: string = $('.manga-list-1-item-title', manga).text();
-            let subtitle: string = $('.manga-list-1-item-subtitle', manga).text();
+            let title: string = $('.manga-list-1-item-title', manga).text().trim();
+            let subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim();
 
             beingReadManga.push(createMangaTile({
                 id: id,
@@ -234,8 +234,8 @@ export class MangaFox extends Source {
         for (let manga of $('li', newMangas).toArray()) {
             let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
-            let title: string = $('.manga-list-1-item-title', manga).text();
-            let subtitle: string = $('.manga-list-1-item-subtitle', manga).text();
+            let title: string = $('.manga-list-1-item-title', manga).text().trim();
+            let subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim();
 
             newManga.push(createMangaTile({
                 id: id,
@@ -245,11 +245,11 @@ export class MangaFox extends Source {
             }));
         }
 
-        for (let manga of $('li', latestMangas).toArray()) {
+        for (let manga of $('.manga-list-4-list > li', latestMangas).toArray()) {
             let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
-            let title: string = $('.manga-list-4-item-title', manga).text();
-            let subtitle: string = $('.manga-list-4-item-subtitle', manga).text();
+            let title: string = $('.manga-list-4-item-title', manga).text().trim();
+            let subtitle: string = $('.manga-list-4-item-subtitle', manga).text().trim();
 
             latestManga.push(createMangaTile({
                 id: id,
