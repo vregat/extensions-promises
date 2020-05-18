@@ -66,7 +66,7 @@ class MangaFox extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.1'; }
+    get version() { return '1.0.2'; }
     get name() { return 'MangaFox'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Sirus'; }
@@ -223,8 +223,8 @@ class MangaFox extends Source_1.Source {
         for (let manga of $('li', hotMangas).toArray()) {
             let id = ((_a = $('a', manga).first().attr('href')) === null || _a === void 0 ? void 0 : _a.match(idRegExp))[1];
             let cover = $('img', manga).first().attr('src');
-            let title = $('.manga-list-1-item-title', manga).text();
-            let subtitle = $('.manga-list-1-item-subtitle', manga).text();
+            let title = $('.manga-list-1-item-title', manga).text().trim();
+            let subtitle = $('.manga-list-1-item-subtitle', manga).text().trim();
             hotManga.push(createMangaTile({
                 id: id,
                 image: cover,
@@ -235,8 +235,8 @@ class MangaFox extends Source_1.Source {
         for (let manga of $('li', beingReadMangas).toArray()) {
             let id = ((_b = $('a', manga).first().attr('href')) === null || _b === void 0 ? void 0 : _b.match(idRegExp))[1];
             let cover = $('img', manga).first().attr('src');
-            let title = $('.manga-list-1-item-title', manga).text();
-            let subtitle = $('.manga-list-1-item-subtitle', manga).text();
+            let title = $('.manga-list-1-item-title', manga).text().trim();
+            let subtitle = $('.manga-list-1-item-subtitle', manga).text().trim();
             beingReadManga.push(createMangaTile({
                 id: id,
                 image: cover,
@@ -247,8 +247,8 @@ class MangaFox extends Source_1.Source {
         for (let manga of $('li', newMangas).toArray()) {
             let id = ((_c = $('a', manga).first().attr('href')) === null || _c === void 0 ? void 0 : _c.match(idRegExp))[1];
             let cover = $('img', manga).first().attr('src');
-            let title = $('.manga-list-1-item-title', manga).text();
-            let subtitle = $('.manga-list-1-item-subtitle', manga).text();
+            let title = $('.manga-list-1-item-title', manga).text().trim();
+            let subtitle = $('.manga-list-1-item-subtitle', manga).text().trim();
             newManga.push(createMangaTile({
                 id: id,
                 image: cover,
@@ -256,11 +256,11 @@ class MangaFox extends Source_1.Source {
                 subtitleText: createIconText({ text: subtitle }),
             }));
         }
-        for (let manga of $('li', latestMangas).toArray()) {
+        for (let manga of $('.manga-list-4-list > li', latestMangas).toArray()) {
             let id = ((_d = $('a', manga).first().attr('href')) === null || _d === void 0 ? void 0 : _d.match(idRegExp))[1];
             let cover = $('img', manga).first().attr('src');
-            let title = $('.manga-list-4-item-title', manga).text();
-            let subtitle = $('.manga-list-4-item-subtitle', manga).text();
+            let title = $('.manga-list-4-item-title', manga).text().trim();
+            let subtitle = $('.manga-list-4-item-subtitle', manga).text().trim();
             latestManga.push(createMangaTile({
                 id: id,
                 image: cover,
