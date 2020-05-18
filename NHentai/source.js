@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.1'; }
+    get version() { return '0.6.2'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -227,7 +227,7 @@ class NHentai extends Source_1.Source {
     searchRequest(query, page) {
         var _a;
         // If the search query is a six digit direct link to a manga, create a request to just that URL and alert the handler via metadata
-        if ((_a = query.title) === null || _a === void 0 ? void 0 : _a.match(/\d{6}/)) {
+        if ((_a = query.title) === null || _a === void 0 ? void 0 : _a.match(/\d{5,6}/)) {
             return createRequestObject({
                 url: `${NHENTAI_DOMAIN}/g/${query.title}`,
                 metadata: { sixDigit: true },
