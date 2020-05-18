@@ -15,7 +15,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.8' }
+  get version(): string { return '1.0.9' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -109,12 +109,12 @@ export class MangaDex extends Source {
 
     return Object.keys(chapters).map(id => {
       const chapter = chapters[id]
-
+      const volume = Number(chapter.volume)
       return createChapter({
         id: id,
-        chapNum: parseFloat(chapter.chapter),
+        chapNum: Number(chapter.chapter),
         langCode: chapter.lang_code,
-        volume: parseFloat(chapter.volume),
+        volume: Number.isNaN(volume) ? 0 : volume,
         mangaId: metadata.mangaId,
         group: chapter.group_name,
         name: chapter.title,
