@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.2'; }
+    get version() { return '0.6.3'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -253,6 +253,7 @@ class NHentai extends Source_1.Source {
         if (query.artist) {
             param += ("Artist:" + query.artist + " ");
         }
+        param = param.trim();
         return createRequestObject({
             url: `${NHENTAI_DOMAIN}/search/?q=${param}`,
             metadata: { sixDigit: false },

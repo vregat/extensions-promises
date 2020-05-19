@@ -55,7 +55,7 @@ class NHentaiRedirected extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.2'; }
+    get version() { return '0.6.3'; }
     get name() { return 'nHentai (Country-Proof)'; }
     get description() { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source'; }
     get author() { return 'Conrad Weiser'; }
@@ -253,8 +253,9 @@ class NHentaiRedirected extends Source_1.Source {
         if (query.artist) {
             param += ("Artist:" + query.artist + " ");
         }
+        param = param.trim();
         return createRequestObject({
-            url: `${NHENTAI_DOMAIN}/search/?q=${param}/`,
+            url: `${NHENTAI_DOMAIN}/search/?q=${param}`,
             metadata: { sixDigit: false },
             timeout: 4000,
             method: "GET"
