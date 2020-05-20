@@ -6,7 +6,7 @@ class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.12'; }
+    get version() { return '1.0.13'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -310,6 +310,9 @@ class MangaDex extends Source_1.Source {
             });
         });
     }
+    getMangaShareUrl(mangaId) {
+        return `${MD_DOMAIN}/manga/${mangaId}`;
+    }
 }
 exports.MangaDex = MangaDex;
 
@@ -333,6 +336,7 @@ class Source {
      */
     get language() { return 'all'; }
     // <-----------        OPTIONAL METHODS        -----------> //
+    getMangaShareUrl(mangaId) { return null; }
     /**
      * (OPTIONAL METHOD) Different sources have different tags available for searching. This method
      * should target a URL which allows you to parse apart all of the available tags which a website has.
