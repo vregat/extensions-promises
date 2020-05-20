@@ -15,7 +15,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.11' }
+  get version(): string { return '1.0.12' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -269,7 +269,7 @@ export class MangaDex extends Source {
 
       let caption = title.find(".car-caption p:nth-child(2)")
       let obj: any = { name: caption.find("a").text(), group: "", time: Date.parse(caption.find("span").attr("title") ?? " "), langCode: "" }
-      let updateTime: string = (Date.parse(caption.find("span").attr("title") ?? " ")).toString()
+      let updateTime: string = caption.find("span").text()
       newManga.push(createMangaTile({
         id: id[0],
         image: img.attr("data-src") ?? " ",
