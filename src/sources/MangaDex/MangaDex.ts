@@ -15,7 +15,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.10' }
+  get version(): string { return '1.0.11' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -337,9 +337,9 @@ export class MangaDex extends Source {
     return createRequestObject({
       url: CACHE_SEARCH,
       method: "POST",
-      data: {
+      data: JSON.stringify({
         title: query.title
-      },
+      }),
       headers: {
         "content-type": "application/json"
       }
