@@ -6,7 +6,7 @@ class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.10'; }
+    get version() { return '1.0.12'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -221,7 +221,7 @@ class MangaDex extends Source_1.Source {
     parseNewMangaSectionTiles($) {
         let newManga = [];
         $("#new_titles_owl_carousel .large_logo").each(function (i, elem) {
-            var _a, _b, _c, _d;
+            var _a, _b, _c;
             let title = $(elem);
             let img = title.find("img").first();
             let links = title.find("a");
@@ -229,11 +229,11 @@ class MangaDex extends Source_1.Source {
             let id = idStr.match(/(\d+)(?=\/)/);
             let caption = title.find(".car-caption p:nth-child(2)");
             let obj = { name: caption.find("a").text(), group: "", time: Date.parse((_a = caption.find("span").attr("title")) !== null && _a !== void 0 ? _a : " "), langCode: "" };
-            let updateTime = (Date.parse((_b = caption.find("span").attr("title")) !== null && _b !== void 0 ? _b : " ")).toString();
+            let updateTime = caption.find("span").text();
             newManga.push(createMangaTile({
                 id: id[0],
-                image: (_c = img.attr("data-src")) !== null && _c !== void 0 ? _c : " ",
-                title: createIconText({ text: (_d = img.attr("title")) !== null && _d !== void 0 ? _d : " " }),
+                image: (_b = img.attr("data-src")) !== null && _b !== void 0 ? _b : " ",
+                title: createIconText({ text: (_c = img.attr("title")) !== null && _c !== void 0 ? _c : " " }),
                 subtitleText: createIconText({ text: caption.find("a").text() }),
                 secondaryText: createIconText({ text: updateTime, icon: 'clock.fill' })
             }));
@@ -289,9 +289,9 @@ class MangaDex extends Source_1.Source {
         return createRequestObject({
             url: CACHE_SEARCH,
             method: "POST",
-            data: {
+            data: JSON.stringify({
                 title: query.title
-            },
+            }),
             headers: {
                 "content-type": "application/json"
             }
