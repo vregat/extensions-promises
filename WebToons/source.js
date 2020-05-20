@@ -193,7 +193,7 @@ class WebToons extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.0'; }
+    get version() { return '0.1.1'; }
     get name() { return 'WebToons (BETA)'; }
     get description() { return 'Extension that pulls comics from WebToons'; }
     get author() { return 'Conrad Weiser'; }
@@ -224,7 +224,7 @@ class WebToons extends Source_1.Source {
     getMangaDetails(data, metadata) {
         let manga = [];
         let $ = this.cheerio.load(data);
-        let title = $('.subj', $('.info')).text();
+        let title = $('h1.subj', $('.info')).text();
         let completedStatus = $('.txt_ico_completed2').length > 0 ? Manga_1.MangaStatus.COMPLETED : Manga_1.MangaStatus.ONGOING;
         let rating = $('#_starScoreAverage').text();
         let image = $('.detail_body').attr('style');
@@ -344,34 +344,6 @@ class WebToons extends Source_1.Source {
             }));
         }
         return mangaTiles;
-    }
-    getHomePageSectionRequest() {
-        let request = createRequestObject({ url: `${WEBTOONS_DOMAIN}`, method: 'GET', });
-        let homeSection = createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI' });
-        return [createHomeSectionRequest({ request: request, sections: [homeSection] })];
-    }
-    getHomePageSections(data, section) {
-        var _a;
-        let updatedHentai = [];
-        let $ = this.cheerio.load(data);
-        let containerNode = $('.index-container');
-        for (let item of $('.gallery', containerNode).toArray()) {
-            let currNode = $(item);
-            let image = $('img', currNode).attr('data-src');
-            // If image is undefined, we've hit a lazyload part of the website. Adjust the scraping to target the other features
-            if (image == undefined) {
-                image = 'http:' + $('img', currNode).attr('src');
-            }
-            let title = $('.caption', currNode).text();
-            let idHref = (_a = $('a', currNode).attr('href')) === null || _a === void 0 ? void 0 : _a.match(/\/(\d*)\//);
-            updatedHentai.push(createMangaTile({
-                id: idHref[1],
-                title: createIconText({ text: title }),
-                image: image
-            }));
-        }
-        section[0].items = updatedHentai;
-        return section;
     }
 }
 exports.WebToons = WebToons;
