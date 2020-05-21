@@ -194,7 +194,7 @@ class WebToons extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.1'; }
+    get version() { return '0.1.2'; }
     get name() { return 'WebToons (BETA)'; }
     get description() { return 'Extension that pulls comics from WebToons'; }
     get author() { return 'Conrad Weiser'; }
@@ -205,35 +205,55 @@ class WebToons extends Source_1.Source {
         let requests = [];
         for (let id of ids) {
             // Is this a challange ID?
-            if (ids.includes('c_')) {
+            if (id.includes('c_')) {
                 let metadata = { 'id': id.replace('c_', '') };
                 requests.push(createRequestObject({
                     url: `${WEBTOONS_DOMAIN}/challenge/towertown/list?title_no=${metadata.id}`,
+                    headers: { "REFERER": `${WEBTOONS_SEARCH_DOMAIN}` },
                     metadata: metadata,
                     method: 'GET'
                 }));
             }
-            let metadata = { 'id': id };
-            requests.push(createRequestObject({
-                url: `${WEBTOONS_DOMAIN}/thriller/bastard/list?title_no=${id}`,
-                metadata: metadata,
-                method: 'GET'
-            }));
+            else {
+                let metadata = { 'id': id };
+                requests.push(createRequestObject({
+                    url: `${WEBTOONS_DOMAIN}/thriller/bastard/list?title_no=${id}`,
+                    headers: { "REFERER": `${WEBTOONS_SEARCH_DOMAIN}` },
+                    metadata: metadata,
+                    method: 'GET'
+                }));
+            }
         }
         return requests;
     }
     getMangaDetails(data, metadata) {
         let manga = [];
         let $ = this.cheerio.load(data);
-        let title = $('h1.subj', $('.info')).text();
-        let completedStatus = $('.txt_ico_completed2').length > 0 ? Manga_1.MangaStatus.COMPLETED : Manga_1.MangaStatus.ONGOING;
-        let rating = $('#_starScoreAverage').text();
-        let image = $('.detail_body').attr('style');
-        let regex = new RegExp(`url(\(.*\)) `);
-        let match = regex.exec(image);
-        image = match[1].replace('url(\"', '').replace(')', '');
-        image = image.substr(1, image.indexOf(" ") - 1);
-        let desc = $('.summary').text();
+        // Is this a challange type?
+        let image;
+        let title;
+        let completedStatus;
+        let rating;
+        let desc;
+        if ($('.challenge').length > 0) {
+            let context = $('.cont_box');
+            image = $('img', context).attr('src');
+            title = $('._challengeTitle', context).text();
+            completedStatus = Manga_1.MangaStatus.ONGOING; // Challange pages don't have this 
+            rating = $('#_starScoreAverage').text();
+            desc = $('.summary', context).text();
+        }
+        else {
+            image = $('.detail_body').attr('style');
+            title = $('h1.subj', $('.info')).text();
+            completedStatus = $('.txt_ico_completed2').length > 0 ? Manga_1.MangaStatus.COMPLETED : Manga_1.MangaStatus.ONGOING;
+            rating = $('#_starScoreAverage').text();
+            let regex = new RegExp(`url(\(.*\)) `);
+            let match = regex.exec(image);
+            image = match[1].replace('url(\"', '').replace(')', '');
+            image = image.substr(1, image.indexOf(" ") - 1);
+            desc = $('.summary').text();
+        }
         return [createManga({
                 id: metadata.id,
                 titles: [title],
@@ -256,6 +276,7 @@ class WebToons extends Source_1.Source {
         let metadata = { 'id': mangaId };
         return createRequestObject({
             url: `${WEBTOONS_DOMAIN}/thriller/bastard/list?title_no=${mangaId}`,
+            headers: { "REFERER": `${WEBTOONS_SEARCH_DOMAIN}` },
             metadata: metadata,
             method: 'GET'
         });
@@ -282,6 +303,7 @@ class WebToons extends Source_1.Source {
         let metadata = { 'mangaId': mangaId, 'chapterId': chapId };
         return createRequestObject({
             url: `${WEBTOONS_DOMAIN}/sf/rebirth/s2-episode-78/viewer?title_no=${mangaId}&episode_no=${chapId}`,
+            headers: { "REFERER": `${WEBTOONS_SEARCH_DOMAIN}` },
             metadata: metadata,
             method: 'GET',
         });
@@ -306,6 +328,7 @@ class WebToons extends Source_1.Source {
         //https://www.webtoons.com/search?keyword=Rebirth
         return createRequestObject({
             url: `${WEBTOONS_SEARCH_DOMAIN}search?keyword=${query.title}`,
+            headers: { "REFERER": `${WEBTOONS_SEARCH_DOMAIN}` },
             timeout: 4000,
             method: "GET"
         });
@@ -332,9 +355,8 @@ class WebToons extends Source_1.Source {
         // Push all canvas titles to WebToons
         context = $('.challenge_lst');
         for (let item of $('li', context).toArray()) {
-            let infoObj = $('.info', $(item));
             let id = (_b = $('a', $(item)).attr('href')) === null || _b === void 0 ? void 0 : _b.replace('/challenge/episodeList?titleNo=', '');
-            let title = $('.subj', infoObj).text();
+            let title = $('.subj', item).text();
             let image = $('img', $(item)).attr('src');
             let primaryText = $('.genre', $(item)).text();
             mangaTiles.push(createMangaTile({
