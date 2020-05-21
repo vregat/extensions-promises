@@ -66,7 +66,7 @@ class MangaFox extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.2'; }
+    get version() { return '1.0.3'; }
     get name() { return 'MangaFox'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Sirus'; }
@@ -326,6 +326,9 @@ class MangaFox extends Source_1.Source {
             }));
         });
         return mangas;
+    }
+    getMangaShareUrl(mangaId) {
+        return `${MF_DOMAIN}/manga/${mangaId}`;
     }
 }
 exports.MangaFox = MangaFox;
