@@ -66,7 +66,7 @@ class MangaFox extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.3'; }
+    get version() { return '1.0.4'; }
     get name() { return 'MangaFox'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Sirus'; }
@@ -154,7 +154,7 @@ class MangaFox extends Source_1.Source {
         let chapters = [];
         let rawChapters = $('div#chapterlist ul li').children('a').toArray().reverse();
         let chapterNumber = 1;
-        let chapterIdRegex = new RegExp('\\/manga\\/[a-zA-Z_]*\\/(.*)\\/');
+        let chapterIdRegex = new RegExp('\\/manga\\/[a-zA-Z0-9_]*\\/(.*)\\/');
         let volumeRegex = new RegExp('Vol.(\\d+)');
         for (let element of rawChapters) {
             let title = (_a = $('p.title3', element).html()) !== null && _a !== void 0 ? _a : '';
