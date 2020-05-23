@@ -16,7 +16,7 @@ export class MangaToons extends Source {
 		super(cheerio)
 	}
 
-	get version(): string { return '0.1.0' }	//BUG: There are novel types of stories which aren't images, which are not accounted for
+	get version(): string { return '0.1.1' }	//BUG: There are novel types of stories which aren't images, which are not accounted for
 	get name(): string { return 'MangaToons (BETA)' }
 	get icon(): string { return 'icon.jpg' }
 	get author(): string { return 'Conrad Weiser' }
@@ -149,7 +149,7 @@ export class MangaToons extends Source {
 
 
 	getChapterDetails(data: any, metadata: any): ChapterDetails {
-		let $ = cheerio.load(data)
+		let $ = this.cheerio.load(data)
 		
 		let pages: string[] = []
 		let pageContext = $('.pictures')
