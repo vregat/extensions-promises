@@ -65,7 +65,7 @@ class MangaToons extends Source_1.Source {
         super(cheerio);
         this.MT_DOMAIN = 'https://mangatoon.mobi';
     }
-    get version() { return '0.1.0'; } //BUG: There are novel types of stories which aren't images, which are not accounted for
+    get version() { return '0.1.1'; } //BUG: There are novel types of stories which aren't images, which are not accounted for
     get name() { return 'MangaToons (BETA)'; }
     get icon() { return 'icon.jpg'; }
     get author() { return 'Conrad Weiser'; }
@@ -181,7 +181,7 @@ class MangaToons extends Source_1.Source {
         });
     }
     getChapterDetails(data, metadata) {
-        let $ = cheerio.load(data);
+        let $ = this.cheerio.load(data);
         let pages = [];
         let pageContext = $('.pictures');
         for (let item of $('img', pageContext).toArray()) {
