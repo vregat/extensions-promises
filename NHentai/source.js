@@ -55,13 +55,14 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.5'; }
+    get version() { return '0.6.6'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
     get authorWebsite() { return 'http://github.com/conradweiser'; }
     get icon() { return "logo.png"; } // The website has SVG versions, I had to find one off of a different source
     get hentaiSource() { return true; }
+    getMangaShareUrl(mangaId) { return `https://nhentai.net/g/${mangaId}`; }
     convertLanguageToCode(language) {
         switch (language.toLowerCase()) {
             case "english": return Languages_1.LanguageCode.ENGLISH;

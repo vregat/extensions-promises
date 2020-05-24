@@ -55,13 +55,14 @@ class NHentaiRedirected extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.5'; }
+    get version() { return '0.6.6'; }
     get name() { return 'nHentai (Country-Proof)'; }
     get description() { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source'; }
     get author() { return 'Conrad Weiser'; }
     get authorWebsite() { return 'http:github.com/conradweiser'; }
     get icon() { return "logo.png"; }
     get hentaiSource() { return true; }
+    getMangaShareUrl(mangaId) { return `${NHENTAI_DOMAIN}/g/${mangaId}`; }
     convertLanguageToCode(language) {
         switch (language.toLowerCase()) {
             case "english": return Languages_1.LanguageCode.ENGLISH;

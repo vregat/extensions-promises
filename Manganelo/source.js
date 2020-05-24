@@ -65,13 +65,14 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.7'; }
+    get version() { return '1.0.8'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
     get authorWebsite() { return 'https://github.com/DanielKovalevich'; }
     get description() { return 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching'; }
     get hentaiSource() { return false; }
+    getMangaShareUrl(mangaId) { return `${MN_DOMAIN}/manga/${mangaId}`; }
     getMangaDetailsRequest(ids) {
         let requests = [];
         for (let id of ids) {

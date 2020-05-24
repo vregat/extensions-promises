@@ -65,13 +65,14 @@ class MangaLife extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.4'; }
+    get version() { return '0.5.5'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
     get authorWebsite() { return 'https://github.com/DanielKovalevich'; }
     get description() { return 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching'; }
     get hentaiSource() { return false; }
+    getMangaShareUrl(mangaId) { return `${ML_DOMAIN}/manga/${mangaId}`; }
     getMangaDetailsRequest(ids) {
         let requests = [];
         for (let id of ids) {
