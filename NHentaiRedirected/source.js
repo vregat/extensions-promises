@@ -55,7 +55,7 @@ class NHentaiRedirected extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.6'; }
+    get version() { return '0.6.7'; }
     get name() { return 'nHentai (Country-Proof)'; }
     get description() { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source'; }
     get author() { return 'Conrad Weiser'; }
@@ -230,7 +230,7 @@ class NHentaiRedirected extends Source_1.Source {
         // If the search query is a six digit direct link to a manga, create a request to just that URL and alert the handler via metadata
         if ((_a = query.title) === null || _a === void 0 ? void 0 : _a.match(/\d{5,6}/)) {
             return createRequestObject({
-                url: `${NHENTAI_DOMAIN}/g/${query.title}/`,
+                url: `${NHENTAI_DOMAIN}/g/${query.title}`,
                 metadata: { sixDigit: true },
                 timeout: 4000,
                 method: "GET"
@@ -239,20 +239,20 @@ class NHentaiRedirected extends Source_1.Source {
         // Concat all of the available options together into a search keyword which can be supplied as a GET request param
         let param = '';
         if (query.title) {
-            param += query.title + ' ';
+            param += query.title.replace(" ", "+") + '+';
         }
         if (query.includeContent) {
             for (let content in query.includeContent) {
-                param += ('tag:"' + query.includeContent[content] + '" ');
+                param += ('tag:"' + query.includeContent[content].replace(" ", "+") + '"+');
             }
         }
         if (query.excludeContent) {
             for (let content in query.excludeContent) {
-                param += ('-tag:"' + query.excludeContent[content] + '" ');
+                param += ('-tag:"' + query.excludeContent[content].replace(" ", "+") + '"+');
             }
         }
         if (query.artist) {
-            param += ("Artist:" + query.artist + " ");
+            param += ("Artist:" + query.artist.replace(" ", "+") + "+");
         }
         param = param.trim();
         param = encodeURI(param);

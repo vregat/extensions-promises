@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.6'; }
+    get version() { return '0.6.7'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -239,20 +239,20 @@ class NHentai extends Source_1.Source {
         // Concat all of the available options together into a search keyword which can be supplied as a GET request param
         let param = '';
         if (query.title) {
-            param += query.title + ' ';
+            param += query.title.replace(" ", "+") + '+';
         }
         if (query.includeContent) {
             for (let content in query.includeContent) {
-                param += ('tag:"' + query.includeContent[content] + '" ');
+                param += ('tag:"' + query.includeContent[content].replace(" ", "+") + '"+');
             }
         }
         if (query.excludeContent) {
             for (let content in query.excludeContent) {
-                param += ('-tag:"' + query.excludeContent[content] + '" ');
+                param += ('-tag:"' + query.excludeContent[content].replace(" ", "+") + '"+');
             }
         }
         if (query.artist) {
-            param += ("Artist:" + query.artist + " ");
+            param += ("Artist:" + query.artist.replace(" ", "+") + "+");
         }
         param = param.trim();
         param = encodeURI(param);
