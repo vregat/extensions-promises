@@ -93,12 +93,7 @@ class NHentai extends Source_1.Source {
         // Comma seperate all of the tags and store them in our tag section 
         let tagSections = [createTagSection({ id: '0', label: 'tag', tags: [] })];
         let tags = (_d = (_c = $('meta[name="twitter:description"]').attr('content')) === null || _c === void 0 ? void 0 : _c.split(",")) !== null && _d !== void 0 ? _d : [];
-        for (let i = 0; i < tags.length; i++) {
-            tagSections[0].tags.push(createTag({
-                id: i.toString().trim(),
-                label: tags[i]
-            }));
-        }
+        tagSections[0].tags = tags.map((elem) => createTag({ id: elem, label: elem }));
         // Grab the alternative titles
         let titles = [title];
         let altTitleBlock = $('#info');
