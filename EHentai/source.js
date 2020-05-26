@@ -67,7 +67,7 @@ class EHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.2'; }
+    get version() { return '0.1.3'; }
     get name() { return '(BETA) E-Hentai'; }
     get icon() { return 'logo.png'; }
     get author() { return 'Conrad Weiser'; }
@@ -117,20 +117,12 @@ class EHentai extends Source_1.Source {
         }));
         return manga;
     }
-    //TODO: Can we remove this entirely? Or substitute it out to a empty method?
     getChaptersRequest(mangaId) {
-        // Generate a proper json structure for this request
-        let data = {
-            method: "gdata",
-            gidlist: [[Number(mangaId.substr(0, mangaId.indexOf("/"))), mangaId.substr(mangaId.indexOf("/") + 1, mangaId.length)]],
-            namespace: 1
-        };
         let metadata = { 'id': mangaId };
         return createRequestObject({
-            url: `${E_API}`,
+            url: `https://blank.org`,
             metadata: metadata,
-            method: 'POST',
-            data: JSON.stringify(data)
+            method: 'GET'
         });
     }
     getChapters(data, metadata) {
@@ -138,8 +130,7 @@ class EHentai extends Source_1.Source {
                 mangaId: metadata.id,
                 id: "1",
                 chapNum: 1,
-                langCode: Languages_1.LanguageCode.UNKNOWN,
-                time: new Date(data.gmetadata[0].posted)
+                langCode: Languages_1.LanguageCode.UNKNOWN
             })];
     }
     getChapterDetailsRequest(mangaId, chapId) {
