@@ -67,7 +67,7 @@ class EHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.1'; }
+    get version() { return '0.1.2'; }
     get name() { return '(BETA) E-Hentai'; }
     get icon() { return 'logo.png'; }
     get author() { return 'Conrad Weiser'; }
@@ -170,7 +170,7 @@ class EHentai extends Source_1.Source {
         });
     }
     search(data, metadata) {
-        var _a;
+        var _a, _b, _c;
         let $ = this.cheerio.load(data);
         let mangaTiles = [];
         let table = $('.itg');
@@ -183,13 +183,13 @@ class EHentai extends Source_1.Source {
                 continue;
             }
             let title = $('.glink', $(item)).text();
-            let image = $('img', $('.glthumb', $(item))).attr('src');
+            let image = (_a = $('img', $('.glthumb', $(item))).attr('src')) !== null && _a !== void 0 ? _a : '';
             if (image === null || image === void 0 ? void 0 : image.includes("base64")) {
-                image = $('img', $('.glthumb', $(item))).attr('data-src');
+                image = (_b = $('img', $('.glthumb', $(item))).attr('data-src')) !== null && _b !== void 0 ? _b : '';
             }
             let idContext = $('.glname', $(item));
             let href = $('a', idContext).attr('href');
-            let id = (_a = /g\/(\d*\/[\d|\w]*)/.exec(href)[1]) !== null && _a !== void 0 ? _a : '';
+            let id = (_c = /g\/(\d*\/[\d|\w]*)/.exec(href)[1]) !== null && _c !== void 0 ? _c : '';
             mangaTiles.push(createMangaTile({
                 title: createIconText({ text: title }),
                 image: image,
