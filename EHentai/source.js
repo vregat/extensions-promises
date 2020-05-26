@@ -67,7 +67,7 @@ class EHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.0'; }
+    get version() { return '0.1.1'; }
     get name() { return '(BETA) E-Hentai'; }
     get icon() { return 'logo.png'; }
     get author() { return 'Conrad Weiser'; }
@@ -170,6 +170,7 @@ class EHentai extends Source_1.Source {
         });
     }
     search(data, metadata) {
+        var _a;
         let $ = this.cheerio.load(data);
         let mangaTiles = [];
         let table = $('.itg');
@@ -186,10 +187,13 @@ class EHentai extends Source_1.Source {
             if (image === null || image === void 0 ? void 0 : image.includes("base64")) {
                 image = $('img', $('.glthumb', $(item))).attr('data-src');
             }
+            let idContext = $('.glname', $(item));
+            let href = $('a', idContext).attr('href');
+            let id = (_a = /g\/(\d*\/[\d|\w]*)/.exec(href)[1]) !== null && _a !== void 0 ? _a : '';
             mangaTiles.push(createMangaTile({
                 title: createIconText({ text: title }),
                 image: image,
-                id: '1'
+                id: id
             }));
         }
         return mangaTiles;
