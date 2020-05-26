@@ -67,7 +67,7 @@ class EHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.3'; }
+    get version() { return '0.1.4'; }
     get name() { return '(BETA) E-Hentai'; }
     get icon() { return 'logo.png'; }
     get author() { return 'Conrad Weiser'; }
@@ -89,6 +89,10 @@ class EHentai extends Source_1.Source {
                 url: `${E_API}`,
                 metadata: metadata,
                 method: 'POST',
+                headers: {
+                    "content-type": "application/json",
+                    "Accept": "application/json"
+                },
                 data: JSON.stringify(data)
             }));
         }
