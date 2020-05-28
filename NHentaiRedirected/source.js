@@ -55,7 +55,7 @@ class NHentaiRedirected extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.7'; }
+    get version() { return '0.7.0'; }
     get name() { return 'nHentai (Country-Proof)'; }
     get description() { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source'; }
     get author() { return 'Conrad Weiser'; }
@@ -227,6 +227,10 @@ class NHentaiRedirected extends Source_1.Source {
     }
     searchRequest(query, page) {
         var _a;
+        // If h-sources are disabled for the search request, always return null
+        if (query.hStatus === false) {
+            return null;
+        }
         // If the search query is a six digit direct link to a manga, create a request to just that URL and alert the handler via metadata
         if ((_a = query.title) === null || _a === void 0 ? void 0 : _a.match(/\d{5,6}/)) {
             return createRequestObject({
@@ -257,7 +261,7 @@ class NHentaiRedirected extends Source_1.Source {
         param = param.trim();
         param = encodeURI(param);
         return createRequestObject({
-            url: `${NHENTAI_DOMAIN}/search/?q=${param}`,
+            url: `${NHENTAI_DOMAIN}/search/?q=${param}&page=${page}`,
             metadata: { sixDigit: false },
             timeout: 4000,
             method: "GET"
@@ -355,6 +359,17 @@ class NHentaiRedirected extends Source_1.Source {
         }
         section[0].items = updatedHentai;
         return section;
+    }
+    getViewMoreRequest(key, page) {
+        return createRequestObject({
+            url: `${NHENTAI_DOMAIN}/site/?page=${page}`,
+            method: 'GET'
+        });
+    }
+    getViewMoreItems(data, key) {
+        var _a;
+        let tiles = this.getHomePageSections(data, [createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI' })]);
+        return (_a = tiles[0].items) !== null && _a !== void 0 ? _a : null;
     }
 }
 exports.NHentaiRedirected = NHentaiRedirected;
