@@ -16,7 +16,7 @@ export class NHentaiRedirected extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.6.7' }
+  get version(): string { return '0.7.0' }
   get name(): string { return 'nHentai (Country-Proof)' }
   get description(): string { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source' }
   get author(): string { return 'Conrad Weiser' }
@@ -212,6 +212,11 @@ export class NHentaiRedirected extends Source {
 
   searchRequest(query: SearchRequest, page: number): Request | null {
 
+    // If h-sources are disabled for the search request, always return null
+    if(query.hStatus === false) {
+      return null
+    }
+
     // If the search query is a six digit direct link to a manga, create a request to just that URL and alert the handler via metadata
     if (query.title?.match(/\d{5,6}/)) {
       return createRequestObject({
@@ -246,7 +251,7 @@ export class NHentaiRedirected extends Source {
     param = encodeURI(param)
 
     return createRequestObject({
-      url: `${NHENTAI_DOMAIN}/search/?q=${param}`,
+      url: `${NHENTAI_DOMAIN}/search/?q=${param}&page=${page}`,
       metadata: { sixDigit: false },
       timeout: 4000,
       method: "GET"
@@ -369,6 +374,18 @@ export class NHentaiRedirected extends Source {
 
     section[0].items = updatedHentai
     return section
+  }
+
+  getViewMoreRequest(key: string, page: number): Request | null {
+    return createRequestObject({
+      url: `${NHENTAI_DOMAIN}/site/?page=${page}`,
+      method: 'GET'
+    })
+  }
+
+  getViewMoreItems(data: any, key: string): MangaTile[] | null {
+    let tiles = this.getHomePageSections(data, [createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI' })])
+    return tiles![0].items ?? null;
   }
 
 
