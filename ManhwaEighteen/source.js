@@ -65,7 +65,7 @@ class ManhwaEighteen extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.2'; }
+    get version() { return '0.5.3'; }
     get name() { return 'Manhwa18'; }
     get description() { return 'Extension that pulls manga from Manhwa18'; }
     get author() { return 'Conrad Weiser'; }
@@ -210,7 +210,7 @@ class ManhwaEighteen extends Source_1.Source {
         let $ = this.cheerio.load(data);
         let pages = [];
         for (let obj of $('img', $('.chapter-content')).toArray()) {
-            pages.push($(obj).attr('src'));
+            pages.push($(obj).attr('src').trim());
         }
         return createChapterDetails({
             id: metadata.chapterId,
