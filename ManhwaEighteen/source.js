@@ -65,7 +65,7 @@ class ManhwaEighteen extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.3'; }
+    get version() { return '0.5.4'; }
     get name() { return 'Manhwa18'; }
     get description() { return 'Extension that pulls manga from Manhwa18'; }
     get author() { return 'Conrad Weiser'; }
@@ -198,7 +198,6 @@ class ManhwaEighteen extends Source_1.Source {
         return chapters;
     }
     getChapterDetailsRequest(mangaId, chapId) {
-        chapId = chapId.replace(".html", "");
         let metadata = { 'mangaId': mangaId, 'chapterId': chapId };
         return createRequestObject({
             url: `${ME_DOMAIN}/${chapId}.html`,
@@ -212,6 +211,9 @@ class ManhwaEighteen extends Source_1.Source {
         for (let obj of $('img', $('.chapter-content')).toArray()) {
             pages.push($(obj).attr('src').trim());
         }
+        metadata.chapterId = metadata.chapterId.replace(".html", "");
+        metadata.chapterId = metadata.chapterId.replace(/-chapter-\d/g, "");
+        metadata.chapterId = metadata.chapterId.replace("read", "manga");
         return createChapterDetails({
             id: metadata.chapterId,
             mangaId: metadata.mangaId,
