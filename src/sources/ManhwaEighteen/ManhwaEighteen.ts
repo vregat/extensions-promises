@@ -17,7 +17,7 @@ export class ManhwaEighteen extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.5.2' }
+  get version(): string { return '0.5.3' }
   get name(): string { return 'Manhwa18' }
   get description(): string { return 'Extension that pulls manga from Manhwa18' }
   get author(): string { return 'Conrad Weiser' }
@@ -186,7 +186,7 @@ export class ManhwaEighteen extends Source {
     let pages: string[] = []
 
     for(let obj of $('img', $('.chapter-content')).toArray()) {
-        pages.push($(obj).attr('src')!)
+        pages.push($(obj).attr('src')!.trim())
     } 
 
     return createChapterDetails({
