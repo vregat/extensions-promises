@@ -67,7 +67,7 @@ class EHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.4'; }
+    get version() { return '0.1.5'; }
     get name() { return '(BETA) E-Hentai'; }
     get icon() { return 'logo.png'; }
     get author() { return 'Conrad Weiser'; }
@@ -138,7 +138,7 @@ class EHentai extends Source_1.Source {
             })];
     }
     getChapterDetailsRequest(mangaId, chapId) {
-        let metadata = { 'mangaId': mangaId };
+        let metadata = { 'mangaId': mangaId, 'chapId': chapId };
         return createRequestObject({
             url: `${E_HEROKU}/chapteroverview/${mangaId}`,
             metadata: metadata,
@@ -151,8 +151,8 @@ class EHentai extends Source_1.Source {
             pages = pages.concat(obj);
         }
         return createChapterDetails({
-            id: "1",
-            mangaId: "1",
+            id: metadata.chapId,
+            mangaId: metadata.mangaId,
             pages: pages,
             longStrip: false
         });

@@ -55,7 +55,7 @@ class NHentaiRedirected extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.7.0'; }
+    get version() { return '0.7.1'; }
     get name() { return 'nHentai (Country-Proof)'; }
     get description() { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source'; }
     get author() { return 'Conrad Weiser'; }
@@ -334,7 +334,7 @@ class NHentaiRedirected extends Source_1.Source {
     }
     getHomePageSectionRequest() {
         let request = createRequestObject({ url: `${NHENTAI_DOMAIN}/site/`, method: 'GET', });
-        let homeSection = createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI' });
+        let homeSection = createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI', view_more: true });
         return [createHomeSectionRequest({ request: request, sections: [homeSection] })];
     }
     getHomePageSections(data, section) {

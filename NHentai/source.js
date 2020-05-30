@@ -55,7 +55,7 @@ class NHentai extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.7.0'; }
+    get version() { return '0.7.1'; }
     get name() { return 'nHentai'; }
     get description() { return 'Extension that pulls manga from nHentai'; }
     get author() { return 'Conrad Weiser'; }
@@ -329,7 +329,7 @@ class NHentai extends Source_1.Source {
     }
     getHomePageSectionRequest() {
         let request = createRequestObject({ url: `${NHENTAI_DOMAIN}`, method: 'GET', });
-        let homeSection = createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI' });
+        let homeSection = createHomeSection({ id: 'latest_hentai', title: 'LATEST HENTAI', view_more: true });
         return [createHomeSectionRequest({ request: request, sections: [homeSection] })];
     }
     getHomePageSections(data, section) {
