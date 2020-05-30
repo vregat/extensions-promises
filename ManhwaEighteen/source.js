@@ -65,8 +65,8 @@ class ManhwaEighteen extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.4'; }
-    get name() { return 'Manhwa18'; }
+    get version() { return '0.6.0'; }
+    get name() { return 'Manhwa18 (18+)'; }
     get description() { return 'Extension that pulls manga from Manhwa18'; }
     get author() { return 'Conrad Weiser'; }
     get authorWebsite() { return 'http://github.com/conradweiser'; }
@@ -114,7 +114,7 @@ class ManhwaEighteen extends Source_1.Source {
                     for (let obj of $('a', $(objContext[i]).toArray()).toArray()) {
                         let text = $(obj).text();
                         tags[0].tags.push(createTag({ label: text, id: text }));
-                        if (text.includes("RAW")) {
+                        if (text.toLowerCase().includes("raw")) {
                             lang = Languages_1.LanguageCode.KOREAN;
                         }
                         else {
@@ -170,7 +170,7 @@ class ManhwaEighteen extends Source_1.Source {
                 case 3: {
                     for (let obj of $('a', $(objContext[i]).toArray()).toArray()) {
                         let text = $(obj).text();
-                        if (text.includes("RAW")) {
+                        if (text.toLowerCase().includes("raw")) {
                             lang = Languages_1.LanguageCode.KOREAN;
                         }
                         else {
@@ -186,12 +186,31 @@ class ManhwaEighteen extends Source_1.Source {
             let id = $('.chapter', $(obj)).attr('href');
             let name = $('b', $(obj)).text().trim();
             //TODO Add the date calculation into here
+            let timeStr = /(\d+) ([hours|weeks|months]+) ago/.exec($('time', $(obj)).text().trim());
+            let date = new Date();
+            if (timeStr) {
+                switch (timeStr[2]) {
+                    case 'hours': {
+                        // Do nothing, we'll just call it today
+                        break;
+                    }
+                    case 'weeks': {
+                        date.setDate(date.getDate() - (Number(timeStr[1])) * 7);
+                        break;
+                    }
+                    case 'months': {
+                        date.setDate(date.getDate() - (Number(timeStr[1])) * 31); // We're just going to assume 31 days each month I guess. Can't be too specific 
+                        break;
+                    }
+                }
+            }
             chapters.push(createChapter({
                 id: id,
                 mangaId: metadata.id,
                 chapNum: i,
                 langCode: lang !== null && lang !== void 0 ? lang : Languages_1.LanguageCode.UNKNOWN,
-                name: name
+                name: name,
+                time: date
             }));
             i++;
         }
