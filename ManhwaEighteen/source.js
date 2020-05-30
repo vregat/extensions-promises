@@ -65,7 +65,7 @@ class ManhwaEighteen extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.0'; }
+    get version() { return '0.5.1'; }
     get name() { return 'Manhwa18'; }
     get description() { return 'Extension that pulls manga from Manhwa18'; }
     get author() { return 'Conrad Weiser'; }
@@ -255,11 +255,12 @@ class ManhwaEighteen extends Source_1.Source {
         return [createHomeSectionRequest({ request: request, sections: [section1] })];
     }
     getHomePageSections(data, sections) {
+        var _a;
         let $ = this.cheerio.load(data);
         let latestManga = [];
         let context = $('#contentstory').toArray()[0];
         for (let item of $('.itemupdate', $(context)).toArray()) {
-            let id = $('a', $(item)).attr('href');
+            let id = (_a = $('a', $(item)).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(".html", "");
             let title = createIconText({ text: $('.title-h3', $(item)).text() });
             let image = `${ME_DOMAIN}${$('.lazy', $(item)).attr('src')}`;
             let views = $('.view', $(item)).text();
