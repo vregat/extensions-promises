@@ -65,7 +65,7 @@ class ManhwaEighteen extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.1'; }
+    get version() { return '0.5.2'; }
     get name() { return 'Manhwa18'; }
     get description() { return 'Extension that pulls manga from Manhwa18'; }
     get author() { return 'Conrad Weiser'; }
@@ -153,6 +153,7 @@ class ManhwaEighteen extends Source_1.Source {
     }
     getChaptersRequest(mangaId) {
         let metadata = { 'id': mangaId };
+        mangaId = mangaId.replace(".html", "");
         return createRequestObject({
             url: `${ME_DOMAIN}/${mangaId}.html`,
             metadata: metadata,
@@ -197,9 +198,10 @@ class ManhwaEighteen extends Source_1.Source {
         return chapters;
     }
     getChapterDetailsRequest(mangaId, chapId) {
+        chapId = chapId.replace(".html", "");
         let metadata = { 'mangaId': mangaId, 'chapterId': chapId };
         return createRequestObject({
-            url: `${ME_DOMAIN}/${chapId}`,
+            url: `${ME_DOMAIN}/${chapId}.html`,
             metadata: metadata,
             method: 'GET',
         });
@@ -240,6 +242,7 @@ class ManhwaEighteen extends Source_1.Source {
             let img = (_c = `${ME_DOMAIN}${$('img', $(obj)).attr('src')}`) !== null && _c !== void 0 ? _c : '';
             let textContext = $('.media-body', $(obj));
             let primaryText = createIconText({ text: $('span', textContext).text() });
+            id = id.replace(".html", "");
             mangaTiles.push(createMangaTile({
                 title: createIconText({ text: title }),
                 id: id,
