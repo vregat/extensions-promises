@@ -66,7 +66,7 @@ class MangaFox extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.0'; }
+    get version() { return '1.1.1'; }
     get name() { return 'MangaFox'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Sirus'; }
@@ -153,13 +153,14 @@ class MangaFox extends Source_1.Source {
         let $ = this.cheerio.load(data);
         let chapters = [];
         let rawChapters = $('div#chapterlist ul li').children('a').toArray().reverse();
-        let chapterNumber = 1;
         let chapterIdRegex = new RegExp('\\/manga\\/[a-zA-Z0-9_]*\\/(.*)\\/');
+        let chapterNumberRegex = new RegExp('[0-9.]+');
         let volumeRegex = new RegExp('Vol.(\\d+)');
         for (let element of rawChapters) {
             let title = (_a = $('p.title3', element).html()) !== null && _a !== void 0 ? _a : '';
             let date = new Date(Date.parse((_b = $('p.title2', element).html()) !== null && _b !== void 0 ? _b : ''));
             let chapterId = element.attribs['href'].match(chapterIdRegex)[1];
+            let chapterNumber = Number("0" + chapterId.match(chapterNumberRegex)[0]);
             let volMatch = title.match(volumeRegex);
             let volume = volMatch != null && volMatch.length > 0 ? Number(volMatch[1]) : undefined;
             chapters.push(createChapter({
@@ -171,7 +172,6 @@ class MangaFox extends Source_1.Source {
                 chapNum: chapterNumber,
                 volume: volume
             }));
-            chapterNumber++;
         }
         return chapters;
     }
