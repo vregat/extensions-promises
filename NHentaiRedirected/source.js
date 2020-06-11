@@ -55,7 +55,7 @@ class NHentaiRedirected extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.7.1'; }
+    get version() { return '0.7.3'; }
     get name() { return 'nHentai (Country-Proof)'; }
     get description() { return 'nHentai source which is guaranteed to work in countries the website is normally blocked. May be a tad slower than the other source'; }
     get author() { return 'Conrad Weiser'; }
@@ -105,10 +105,10 @@ class NHentaiRedirected extends Source_1.Source {
         let altNameTop = (_e = $('h1', altTitleBlock).text()) !== null && _e !== void 0 ? _e : '';
         let altNameBottom = (_f = $('h2', altTitleBlock).text()) !== null && _f !== void 0 ? _f : '';
         if (altNameTop) {
-            titles.push(altNameTop);
+            titles.push(altNameTop.trim());
         }
         if (altNameBottom) {
-            titles.push(altNameBottom);
+            titles.push(altNameBottom.trim());
         }
         // Get the artist and language information
         let context = $("#info-block");
@@ -132,7 +132,6 @@ class NHentaiRedirected extends Source_1.Source {
             }
         }
         let status = 1;
-        let summary = '';
         let hentai = true; // I'm assuming that's why you're here!
         manga.push(createManga({
             id: metadata.id,
@@ -142,7 +141,6 @@ class NHentaiRedirected extends Source_1.Source {
             status: status,
             artist: artist,
             tags: tagSections,
-            desc: summary,
             hentai: hentai
         }));
         return manga;
