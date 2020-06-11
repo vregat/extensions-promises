@@ -117,7 +117,7 @@ class NHentaiRedirected extends Source_1.Source {
         for (let item of $('.tag-container', context).toArray()) {
             if ($(item).text().indexOf("Artists") > -1) {
                 let temp = $("a", item).text();
-                artist = temp.substring(0, temp.indexOf(" ("));
+                artist = temp.substring(0, temp.search(/\d/));
             }
             else if ($(item).text().indexOf("Languages") > -1) {
                 let temp = $("a", item);
