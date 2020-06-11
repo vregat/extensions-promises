@@ -65,7 +65,7 @@ class ComicExtra extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.0'; }
+    get version() { return '0.6.0'; }
     get name() { return 'ComicExtra'; }
     get description() { return 'Extension that pulls western comics from ComicExtra'; }
     get author() { return 'Conrad Weiser'; }
@@ -259,6 +259,7 @@ class ComicExtra extends Source_1.Source {
                 image: image
             }));
         }
+        section[0].items = popularComics;
         return section;
     }
 }
