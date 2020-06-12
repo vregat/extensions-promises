@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.0'; }
+    get version() { return '1.1.1'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -454,6 +454,7 @@ class Manganelo extends Source_1.Source {
             url: request.url,
             method: request.method,
             headers: headers,
+            metadata: request.metadata,
             data: request.data,
             timeout: request.timeout,
             param: request.param,
