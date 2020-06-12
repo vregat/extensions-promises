@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.8'; }
+    get version() { return '1.1.0'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -442,6 +442,24 @@ class Manganelo extends Source_1.Source {
         else
             return null;
         return manga;
+    }
+    /**
+     * Manganelo image requests for older chapters and pages are required to have a referer to it's host
+     * @param request
+     */
+    requestModifier(request) {
+        let headers = request.headers == undefined ? {} : request.headers;
+        headers['Referer'] = `${MN_DOMAIN}`;
+        return createRequestObject({
+            url: request.url,
+            method: request.method,
+            headers: headers,
+            data: request.data,
+            timeout: request.timeout,
+            param: request.param,
+            cookies: request.cookies,
+            incognito: request.incognito
+        });
     }
 }
 exports.Manganelo = Manganelo;
