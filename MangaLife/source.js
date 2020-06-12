@@ -65,7 +65,7 @@ class MangaLife extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.5'; }
+    get version() { return '0.5.6'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -168,7 +168,7 @@ class MangaLife extends Source_1.Source {
             let id = metadata.id + '-chapter-' + n + m + index + '.html';
             let chNum = n + a * .1;
             let name = elem.ChapterName ? elem.ChapterName : ''; // can be null
-            let time = new Date(elem.Date);
+            let time = Date.parse(elem.Date.replace(" ", "T"));
             chapters.push(createChapter({
                 id: id,
                 mangaId: metadata.id,
@@ -176,7 +176,7 @@ class MangaLife extends Source_1.Source {
                 chapNum: chNum,
                 volume: vol,
                 langCode: Languages_1.LanguageCode.ENGLISH,
-                time: time
+                time: isNaN(time) ? new Date(time) : new Date()
             }));
         });
         return chapters;
@@ -497,6 +497,7 @@ class Source {
      */
     get language() { return 'all'; }
     // <-----------        OPTIONAL METHODS        -----------> //
+    requestModifier(request) { return request; }
     getMangaShareUrl(mangaId) { return null; }
     /**
      * (OPTIONAL METHOD) Different sources have different tags available for searching. This method

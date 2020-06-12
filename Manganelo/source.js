@@ -466,6 +466,7 @@ class Source {
      */
     get language() { return 'all'; }
     // <-----------        OPTIONAL METHODS        -----------> //
+    requestModifier(request) { return request; }
     getMangaShareUrl(mangaId) { return null; }
     /**
      * (OPTIONAL METHOD) Different sources have different tags available for searching. This method
