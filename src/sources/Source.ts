@@ -152,6 +152,8 @@ export abstract class Source {
 
   // <-----------        OPTIONAL METHODS        -----------> //
 
+  requestModifier(request: Request): Request { return request }
+
   getMangaShareUrl(mangaId: string): string | null { return null }
 
   /**
