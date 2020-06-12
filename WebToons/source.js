@@ -195,7 +195,7 @@ class WebToons extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.1.2'; }
+    get version() { return '0.2.1'; }
     get name() { return 'WebToons (BETA)'; }
     get description() { return 'Extension that pulls comics from WebToons'; }
     get author() { return 'Conrad Weiser'; }
@@ -368,6 +368,10 @@ class WebToons extends Source_1.Source {
             }));
         }
         return mangaTiles;
+    }
+    requestModifier(request) {
+        request.headers == undefined ? {} : request.headers["Referer"] = `${WEBTOONS_SEARCH_DOMAIN}`;
+        return request;
     }
 }
 exports.WebToons = WebToons;
