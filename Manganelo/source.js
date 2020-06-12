@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.3'; }
+    get version() { return '1.1.4'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -448,11 +448,19 @@ class Manganelo extends Source_1.Source {
      * @param request
      */
     requestModifier(request) {
-        if (request.headers == undefined) {
-            request.headers = {};
-        }
-        request.headers["Referer"] = `${MN_DOMAIN}`;
-        return request;
+        let headers = request.headers == undefined ? {} : request.headers;
+        headers['Referer'] = `${MN_DOMAIN}`;
+        return createRequestObject({
+            url: request.url,
+            method: request.method,
+            headers: headers,
+            data: request.data,
+            metadata: request.metadata,
+            timeout: request.timeout,
+            param: request.param,
+            cookies: request.cookies,
+            incognito: request.incognito
+        });
     }
 }
 exports.Manganelo = Manganelo;
