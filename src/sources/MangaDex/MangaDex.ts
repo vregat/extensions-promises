@@ -15,7 +15,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.15' }
+  get version(): string { return '1.0.16' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -23,7 +23,9 @@ export class MangaDex extends Source {
   get description(): string { return 'Extension that pulls manga from MangaDex, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
 
-  requestModifier(request: Request): Request {
+  get rateLimit() { return 1 }
+
+  requestModifier(request: Request) {
     return request
   }
 
