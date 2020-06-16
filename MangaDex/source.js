@@ -6,13 +6,14 @@ class MangaDex extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.15'; }
+    get version() { return '1.0.16'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
     get authorWebsite() { return 'https://github.com/FaizanDurrani'; }
     get description() { return 'Extension that pulls manga from MangaDex, includes Advanced Search and Updated manga fetching'; }
     get hentaiSource() { return false; }
+    get rateLimit() { return 1; }
     requestModifier(request) {
         return request;
     }
@@ -339,6 +340,12 @@ class Source {
      */
     get language() { return 'all'; }
     // <-----------        OPTIONAL METHODS        -----------> //
+    /**
+     * Returns the number of calls that can be done per second from the application
+     * This is to avoid IP bans from many of the sources
+     * Can be adjusted per source since different sites have different limits
+     */
+    get rateLimit() { return 2; }
     requestModifier(request) { return request; }
     getMangaShareUrl(mangaId) { return null; }
     /**
@@ -415,12 +422,6 @@ class Source {
      * @param key
      */
     getViewMoreItems(data, key) { return null; }
-    /**
-     * Returns the number of calls that can be done per second from the application
-     * This is to avoid IP bans from many of the sources
-     * Can be adjusted per source since different sites have different limits
-     */
-    getRateLimit() { return 2; }
     // <-----------        PROTECTED METHODS        -----------> //
     // Many sites use '[x] time ago' - Figured it would be good to handle these cases in general
     convertTime(timeAgo) {

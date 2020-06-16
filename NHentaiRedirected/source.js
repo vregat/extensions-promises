@@ -392,6 +392,12 @@ class Source {
      */
     get language() { return 'all'; }
     // <-----------        OPTIONAL METHODS        -----------> //
+    /**
+     * Returns the number of calls that can be done per second from the application
+     * This is to avoid IP bans from many of the sources
+     * Can be adjusted per source since different sites have different limits
+     */
+    get rateLimit() { return 2; }
     requestModifier(request) { return request; }
     getMangaShareUrl(mangaId) { return null; }
     /**
@@ -468,12 +474,6 @@ class Source {
      * @param key
      */
     getViewMoreItems(data, key) { return null; }
-    /**
-     * Returns the number of calls that can be done per second from the application
-     * This is to avoid IP bans from many of the sources
-     * Can be adjusted per source since different sites have different limits
-     */
-    getRateLimit() { return 2; }
     // <-----------        PROTECTED METHODS        -----------> //
     // Many sites use '[x] time ago' - Figured it would be good to handle these cases in general
     convertTime(timeAgo) {
