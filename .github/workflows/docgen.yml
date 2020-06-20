@@ -1,0 +1,30 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+      types: [closed]
+      branches:
+          - master
+
+name: Generate Documentation
+jobs:
+  build:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [14.x]
+        
+    steps:
+      - run: npm install
+      - run: npx typedoc
+      
+      - name: Deploy
+        uses: s0/git-publish-subdir-action@master
+        env:
+          REPO: self
+          BRANCH: gh-pages
+          FOLDER: docs
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
