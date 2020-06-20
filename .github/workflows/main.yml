@@ -36,11 +36,3 @@ jobs:
           BRANCH: gh-pages
           FOLDER: bundles
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Deploy Documentation
-        uses: s0/git-publish-subdir-action@master
-        env:
-          REPO: self
-          BRANCH: gh-pages
-          FOLDER: docs
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
