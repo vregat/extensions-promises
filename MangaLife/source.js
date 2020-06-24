@@ -65,7 +65,7 @@ class MangaLife extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.5.6'; }
+    get version() { return '0.6.6'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -176,7 +176,7 @@ class MangaLife extends Source_1.Source {
                 chapNum: chNum,
                 volume: vol,
                 langCode: Languages_1.LanguageCode.ENGLISH,
-                time: isNaN(time) ? new Date(time) : new Date()
+                time: isNaN(time) ? new Date() : new Date(time)
             }));
         });
         return chapters;
