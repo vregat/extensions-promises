@@ -134,7 +134,7 @@ export class MangaLife extends Source {
         chapNum: chNum,
         volume: vol,
         langCode: LanguageCode.ENGLISH,
-        time: isNaN(time) ? new Date(time) : new Date()
+        time: isNaN(time) ? new Date() : new Date(time)
       }))
     })
 
