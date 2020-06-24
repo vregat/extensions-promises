@@ -27,8 +27,9 @@ jobs:
 
       - run: npm install
       - run: gulp bundle
+      - run: npx typedoc -out bundles/docs
 
-      - name: Deploy
+      - name: Deploy Sources
         uses: s0/git-publish-subdir-action@master
         env:
           REPO: self
