@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TagSection | mangadex-work</title>
+	<title>SourceTag | mangadex-work</title>
 	<meta name="description" content="Documentation for mangadex-work">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,13 +56,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_models_tagsection_tagsection_.html">&quot;models/TagSection/TagSection&quot;</a>
+					<a href="../modules/_models_sourcetag_sourcetag_.html">&quot;models/SourceTag/SourceTag&quot;</a>
 				</li>
 				<li>
-					<a href="_models_tagsection_tagsection_.tagsection.html">TagSection</a>
+					<a href="_models_sourcetag_sourcetag_.sourcetag.html">SourceTag</a>
 				</li>
 			</ul>
-			<h1>Interface TagSection</h1>
+			<h1>Interface SourceTag</h1>
 		</div>
 	</div>
 </header>
@@ -72,7 +72,9 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>A category of tags</p>
+						<p>The {@link SourceTags} interface is an optional metadata interface which the Website uses to
+							render pretty HTML elements relating to your source.
+						The color of the tag is defined by the <a href="../enums/_models_sourcetag_sourcetag_.tagtype.html">TagType</a> enumeration</p>
 					</div>
 				</div>
 			</section>
@@ -80,7 +82,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">TagSection</span>
+						<span class="target">SourceTag</span>
 					</li>
 				</ul>
 			</section>
@@ -91,9 +93,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_models_tagsection_tagsection_.tagsection.html#id" class="tsd-kind-icon">id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_models_tagsection_tagsection_.tagsection.html#label" class="tsd-kind-icon">label</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_models_tagsection_tagsection_.tagsection.html#tags" class="tsd-kind-icon">tags</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_models_sourcetag_sourcetag_.sourcetag.html#text" class="tsd-kind-icon">text</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_models_sourcetag_sourcetag_.sourcetag.html#type" class="tsd-kind-icon">type</a></li>
 							</ul>
 						</section>
 					</div>
@@ -102,49 +103,24 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="id" class="tsd-anchor"></a>
-					<h3>id</h3>
-					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="text" class="tsd-anchor"></a>
+					<h3>text</h3>
+					<div class="tsd-signature tsd-kind-icon">text<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Paperback-iOS/extensions/blob/4f23f2f/src/models/TagSection/TagSection.ts#L21">models/TagSection/TagSection.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/Paperback-iOS/extensions/blob/4f23f2f/src/models/SourceTag/SourceTag.ts#L7">models/SourceTag/SourceTag.ts:7</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The internal identifier of this tag category</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="label" class="tsd-anchor"></a>
-					<h3>label</h3>
-					<div class="tsd-signature tsd-kind-icon">label<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="type" class="tsd-anchor"></a>
+					<h3>type</h3>
+					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/_models_sourcetag_sourcetag_.tagtype.html" class="tsd-signature-type">TagType</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Paperback-iOS/extensions/blob/4f23f2f/src/models/TagSection/TagSection.ts#L26">models/TagSection/TagSection.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/Paperback-iOS/extensions/blob/4f23f2f/src/models/SourceTag/SourceTag.ts#L8">models/SourceTag/SourceTag.ts:8</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>How the tag category should be rendered to the user</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="tags" class="tsd-anchor"></a>
-					<h3>tags</h3>
-					<div class="tsd-signature tsd-kind-icon">tags<span class="tsd-signature-symbol">:</span> <a href="_models_tagsection_tagsection_.tag.html" class="tsd-signature-type">Tag</a><span class="tsd-signature-symbol">[]</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Paperback-iOS/extensions/blob/4f23f2f/src/models/TagSection/TagSection.ts#L31">models/TagSection/TagSection.ts:31</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A list of <a href="_models_tagsection_tagsection_.tag.html">Tag</a> objects which should be rendered under this category</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -155,33 +131,25 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class="current tsd-kind-module">
-						<a href="../modules/_models_tagsection_tagsection_.html">&quot;models/<wbr>Tag<wbr>Section/<wbr>Tag<wbr>Section&quot;</a>
-						<ul>
-							<li class=" tsd-kind-namespace tsd-parent-kind-module tsd-is-not-exported">
-								<a href="../modules/_models_tagsection_tagsection_.__global.html">__global</a>
-							</li>
-						</ul>
+						<a href="../modules/_models_sourcetag_sourcetag_.html">&quot;models/<wbr>Source<wbr>Tag/<wbr>Source<wbr>Tag&quot;</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_models_tagsection_tagsection_.tag.html" class="tsd-kind-icon">Tag</a>
+					<li class=" tsd-kind-enum tsd-parent-kind-module">
+						<a href="../enums/_models_sourcetag_sourcetag_.tagtype.html" class="tsd-kind-icon">Tag<wbr>Type</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_models_tagsection_tagsection_.tagsection.html" class="tsd-kind-icon">Tag<wbr>Section</a>
+						<a href="_models_sourcetag_sourcetag_.sourcetag.html" class="tsd-kind-icon">Source<wbr>Tag</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_models_tagsection_tagsection_.tagsection.html#id" class="tsd-kind-icon">id</a>
+								<a href="_models_sourcetag_sourcetag_.sourcetag.html#text" class="tsd-kind-icon">text</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_models_tagsection_tagsection_.tagsection.html#label" class="tsd-kind-icon">label</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_models_tagsection_tagsection_.tagsection.html#tags" class="tsd-kind-icon">tags</a>
+								<a href="_models_sourcetag_sourcetag_.sourcetag.html#type" class="tsd-kind-icon">type</a>
 							</li>
 						</ul>
 					</li>

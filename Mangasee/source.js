@@ -57,9 +57,25 @@ var MangaStatus;
 },{}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * An enumerator which {@link SourceTags} uses to define the color of the tag rendered on the website.
+ * Info is blue, success is green, warning is yellow and danger is red.
+ */
+var TagType;
+(function (TagType) {
+    TagType["WARNING"] = "warning";
+    TagType["INFO"] = "info";
+    TagType["SUCCESS"] = "success";
+    TagType["DANGER"] = "danger";
+})(TagType = exports.TagType || (exports.TagType = {}));
+
+},{}],4:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Source_1 = require("../Source");
 const Manga_1 = require("../../models/Manga/Manga");
 const Languages_1 = require("../../models/Languages/Languages");
+const SourceTag_1 = require("../../models/SourceTag/SourceTag");
 const MS_DOMAIN = 'https://mangaseeonline.us';
 class Mangasee extends Source_1.Source {
     constructor(cheerio) {
@@ -73,6 +89,13 @@ class Mangasee extends Source_1.Source {
     get description() { return 'Extension that pulls manga from Mangasee, includes Advanced Search and Updated manga fetching'; }
     get hentaiSource() { return false; }
     getMangaShareUrl(mangaId) { return `${MS_DOMAIN}/manga/${mangaId}`; }
+    get sourceTags() {
+        let tag = {
+            text: 'Broken',
+            type: SourceTag_1.TagType.DANGER
+        };
+        return [tag];
+    }
     getMangaDetailsRequest(ids) {
         let requests = [];
         for (let id of ids) {
@@ -346,7 +369,7 @@ class Mangasee extends Source_1.Source {
 }
 exports.Mangasee = Mangasee;
 
-},{"../../models/Languages/Languages":1,"../../models/Manga/Manga":2,"../Source":4}],4:[function(require,module,exports){
+},{"../../models/Languages/Languages":1,"../../models/Manga/Manga":2,"../../models/SourceTag/SourceTag":3,"../Source":5}],5:[function(require,module,exports){
 "use strict";
 /**
  * Request objects hold information for a particular source (see sources for example)
@@ -365,6 +388,11 @@ class Source {
      * An optional field that defines the language of the extension's source
      */
     get language() { return 'all'; }
+    /**
+     * An optional field of source tags: Little bits of metadata which is rendered on the website
+     * under your repositories section
+     */
+    get sourceTags() { return []; }
     // <-----------        OPTIONAL METHODS        -----------> //
     /**
      * Returns the number of calls that can be done per second from the application
@@ -475,5 +503,5 @@ class Source {
 }
 exports.Source = Source;
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });

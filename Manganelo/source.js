@@ -484,6 +484,11 @@ class Source {
      * An optional field that defines the language of the extension's source
      */
     get language() { return 'all'; }
+    /**
+     * An optional field of source tags: Little bits of metadata which is rendered on the website
+     * under your repositories section
+     */
+    get sourceTags() { return []; }
     // <-----------        OPTIONAL METHODS        -----------> //
     /**
      * Returns the number of calls that can be done per second from the application
