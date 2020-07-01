@@ -11,6 +11,7 @@ import { ChapterDetails } from "../models/ChapterDetails/ChapterDetails"
 import { MangaTile } from "../models/MangaTile/MangaTile"
 import { HomeSectionRequest, HomeSection } from "../models/HomeSection/HomeSection"
 import { TagSection } from "../models/TagSection/TagSection"
+import { SourceTag } from "../models/SourceTag/SourceTag"
 
 export abstract class Source {
   protected cheerio: CheerioAPI
@@ -74,6 +75,12 @@ export abstract class Source {
    * An optional field that defines the language of the extension's source
    */
   get language(): string { return 'all' }
+
+  /**
+   * An optional field of source tags: Little bits of metadata which is rendered on the website
+   * under your repositories section
+   */
+  get sourceTags(): SourceTag[] {return []}
 
   /**
    * A function returning a request for manga information on a list of multiple mangas.

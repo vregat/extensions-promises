@@ -8,6 +8,7 @@ import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
 import { Tag, TagSection } from '../../models/TagSection/TagSection'
 import { HomeSection, HomeSectionRequest } from '../../models/HomeSection/HomeSection'
 import { LanguageCode } from '../../models/Languages/Languages'
+import { SourceTag, TagType } from '../../models/SourceTag/SourceTag'
 
 const MS_DOMAIN = 'https://mangaseeonline.us'
 
@@ -24,6 +25,15 @@ export class Mangasee extends Source {
   get description(): string { return 'Extension that pulls manga from Mangasee, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${MS_DOMAIN}/manga/${mangaId}`}
+
+  get sourceTags(): SourceTag[] {
+    let tag: SourceTag = {
+      text: 'Broken',
+      type: TagType.DANGER
+    }
+
+    return [tag]
+  }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []

@@ -111,7 +111,8 @@ const generateVersioningFile = async function () {
                         desc: classInstance.description,
                         website: classInstance.authorWebsite,
                         version: classInstance.version,
-                        icon: classInstance.icon
+                        icon: classInstance.icon,
+                        tags: classInstance.sourceTags
                     })
 
                     res()
