@@ -58,7 +58,7 @@ export class MangaFox extends Source {
         let author = $('p.detail-info-right-say a', details).text().trim();
         let isAdult = false;
         let tags = $('a', '.detail-info-right-tag-list').each((i, tag) => {
-            let id = $(tag).attr('href')?.match(tagRegexp)![1];
+            let id = $(tag).attr('href')!.match(tagRegexp)![1];
             let label = $(tag).text().trim();
             if (label?.includes('Adult') || label?.includes('Mature'))
                 isAdult = true;
@@ -195,7 +195,7 @@ export class MangaFox extends Source {
         let latestMangas = $('ul.manga-list-4-list');
 
         for (let manga of $('li', hotMangas).toArray()) {
-            let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
+            let id = $('a', manga).first().attr('href')!.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
             let title: string = $('.manga-list-1-item-title', manga).text().trim();
             let subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim();
@@ -209,7 +209,7 @@ export class MangaFox extends Source {
         }
 
         for (let manga of $('li', beingReadMangas).toArray()) {
-            let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
+            let id = $('a', manga).first().attr('href')!.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
             let title: string = $('.manga-list-1-item-title', manga).text().trim();
             let subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim();
@@ -223,7 +223,7 @@ export class MangaFox extends Source {
         }
 
         for (let manga of $('li', newMangas).toArray()) {
-            let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
+            let id = $('a', manga).first().attr('href')!.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
             let title: string = $('.manga-list-1-item-title', manga).text().trim();
             let subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim();
@@ -237,7 +237,7 @@ export class MangaFox extends Source {
         }
 
         for (let manga of $('.manga-list-4-list > li', latestMangas).toArray()) {
-            let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
+            let id = $('a', manga).first().attr('href')!.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
             let title: string = $('.manga-list-4-item-title', manga).text().trim();
             let subtitle: string = $('.manga-list-4-item-subtitle', manga).text().trim();
@@ -294,7 +294,7 @@ export class MangaFox extends Source {
 
         let idRegExp = new RegExp('\\/manga\\/(.*)\\/');
         $('ul.manga-list-4-list').children('li').each((index, manga) => {
-            let id = $('a', manga).first().attr('href')?.match(idRegExp)![1];
+            let id = $('a', manga).first().attr('href')!.match(idRegExp)![1];
             let cover = $('img', manga).first().attr('src');
             let title = $('p.manga-list-4-item-title a', manga).first().text().trim();
             let tips = $('p.manga-list-4-item-tip', manga).toArray();
