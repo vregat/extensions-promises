@@ -4,7 +4,6 @@ dist
 bundles
 
 #compiled sources
-
 reference
 
 .prettierrc
@@ -13,3 +12,6 @@ coverage
 docs
 
 .idea
+
+# mac stuff
+.DS_Store
