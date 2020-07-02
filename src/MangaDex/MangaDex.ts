@@ -1,13 +1,4 @@
-import { Source } from '../Source'
-import { Manga } from '../../models/Manga/Manga'
-import { Chapter } from '../../models/Chapter/Chapter'
-import { MangaTile } from '../../models/MangaTile/MangaTile'
-import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
-import { Request } from '../../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
-
-import { HomeSectionRequest, HomeSection } from '../../models/HomeSection/HomeSection'
-import { LanguageCode } from '../../models/Languages/Languages'
+import { Source, Manga, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, Request } from "paperback-extensions-common"
 
 export class MangaDex extends Source {
 

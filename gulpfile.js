@@ -13,7 +13,7 @@ const fs = require('fs')
 
 const bundleSources = async function () {
     //joining path of directory
-    const directoryPath = path.join(__dirname, 'src/sources')
+    const directoryPath = path.join(__dirname, 'src')
     const destDir = './bundles'
 
     // If the bundles directory does not exist, create it here

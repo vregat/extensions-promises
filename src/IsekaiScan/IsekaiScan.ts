@@ -1,5 +1,7 @@
-import { Madara } from '../Madara'
-import { LanguageCode } from '../../models/Languages/Languages'
+// import { Madara } from '../Madara'
+// import { LanguageCode } from '../../models/Languages/Languages'
+
+import { Madara, LanguageCode } from "paperback-extensions-common"
 
 
 export class IsekaiScan extends Madara {

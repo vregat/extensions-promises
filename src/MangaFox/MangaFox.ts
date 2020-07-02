@@ -1,13 +1,4 @@
-import { Source } from '../Source'
-import { Manga, MangaStatus } from '../../models/Manga/Manga'
-import { Chapter } from '../../models/Chapter/Chapter'
-import { MangaTile } from '../../models/MangaTile/MangaTile'
-import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
-import { Request } from '../../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
-import { LanguageCode } from '../../models/Languages/Languages'
-import { TagSection } from "../../models/TagSection/TagSection";
-import {HomeSection, HomeSectionRequest} from "../../models/HomeSection/HomeSection";
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request } from "paperback-extensions-common"
 
 const MF_DOMAIN = 'https://fanfox.net'
 const MF_DOMAIN_MOBILE = 'https://m.fanfox.net'

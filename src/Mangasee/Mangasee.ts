@@ -1,14 +1,4 @@
-import { Source } from '../Source'
-import { Manga, MangaStatus } from '../../models/Manga/Manga'
-import { Chapter } from '../../models/Chapter/Chapter'
-import { MangaTile } from '../../models/MangaTile/MangaTile'
-import { SearchRequest } from '../../models/SearchRequest/SearchRequest'
-import { Request } from '../../models/RequestObject/RequestObject'
-import { ChapterDetails } from '../../models/ChapterDetails/ChapterDetails'
-import { Tag, TagSection } from '../../models/TagSection/TagSection'
-import { HomeSection, HomeSectionRequest } from '../../models/HomeSection/HomeSection'
-import { LanguageCode } from '../../models/Languages/Languages'
-import { SourceTag, TagType } from '../../models/SourceTag/SourceTag'
+import { Source, SourceTag, TagType, Manga, MangaStatus, Chapter, ChapterDetails, SearchRequest, MangaTile, TagSection, LanguageCode, Request } from "paperback-extensions-common"
 
 const MS_DOMAIN = 'https://mangaseeonline.us'
 
