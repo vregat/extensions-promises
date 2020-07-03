@@ -65,7 +65,7 @@ class Manganelo extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.4'; }
+    get version() { return '1.1.5'; }
     get name() { return 'Manganelo'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -327,9 +327,9 @@ class Manganelo extends Source_1.Source {
                 break;
             default: status = '';
         }
-        let keyword = ((_e = query.title) !== null && _e !== void 0 ? _e : '').replace(' ', '_');
+        let keyword = ((_e = query.title) !== null && _e !== void 0 ? _e : '').replace(/ /g, '_');
         if (query.author)
-            keyword += ((_f = query.author) !== null && _f !== void 0 ? _f : '').replace(' ', '_');
+            keyword += ((_f = query.author) !== null && _f !== void 0 ? _f : '').replace(/ /g, '_');
         let search = `s=all&keyw=${keyword}`;
         search += `&g_i=${genres}&g_e=${excluded}&page=${page}`;
         if (status) {
