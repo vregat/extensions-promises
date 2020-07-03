@@ -54,8 +54,7 @@ describe('Manganelo Tests', function () {
 
     it("Searching for Manga With Valid Tags", async () => {
         let testSearch = createSearchRequest({
-            title: 'Radiation House',
-            includeDemographic: ['Seinen']
+            title: 'Who made me a princess',
         });
 
         let search = await wrapper.search(source, testSearch, 1);
