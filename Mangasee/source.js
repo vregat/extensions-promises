@@ -65,7 +65,7 @@ class Mangasee extends Source_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.0'; }
+    get version() { return '1.1.1'; }
     get name() { return 'Mangasee'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -174,7 +174,6 @@ class Mangasee extends Source_1.Source {
                 mangaId: metadata.id,
                 name: name,
                 chapNum: chNum,
-                volume: vol,
                 langCode: Languages_1.LanguageCode.ENGLISH,
                 time: isNaN(time) ? new Date() : new Date(time)
             }));
