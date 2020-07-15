@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
 
 const MF_DOMAIN = 'https://fanfox.net'
 const MF_DOMAIN_MOBILE = 'https://m.fanfox.net'
@@ -28,11 +28,11 @@ export class MangaFox extends Source {
     getMangaDetailsRequest(ids: string[]): Request[] {
         let requests: Request[] = []
         for (let id of ids) {
-            let metadata = {'id': id};
+            let metadata = { 'id': id };
             requests.push(createRequestObject({
                 url: `${MF_DOMAIN}/manga/${id}`,
                 method: 'GET',
-                cookies: [createCookie({name: 'isAdult', value: '1', domain: MF_DOMAIN})],
+                cookies: [createCookie({ name: 'isAdult', value: '1', domain: MF_DOMAIN })],
                 metadata: metadata
             }));
         }
@@ -47,8 +47,8 @@ export class MangaFox extends Source {
 
         let $ = this.cheerio.load(data);
 
-        let tagSections: TagSection[] = [createTagSection({id: '0', label: 'genres', tags: []}),
-            createTagSection({id: '1', label: 'format', tags: []})]
+        let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
+        createTagSection({ id: '1', label: 'format', tags: [] })]
 
         let details = $('.detail-info-right');
         let cover = $('img.detail-bg-img').first().attr('src');
@@ -62,7 +62,7 @@ export class MangaFox extends Source {
             let label = $(tag).text().trim();
             if (label?.includes('Adult') || label?.includes('Mature'))
                 isAdult = true;
-            tagSections[0].tags.push(createTag({id: id, label: label!}));
+            tagSections[0].tags.push(createTag({ id: id, label: label! }));
         })
 
         for (let tag in tags) {
@@ -103,12 +103,12 @@ export class MangaFox extends Source {
     }
 
     getChaptersRequest(mangaId: string): Request {
-        let metadata = {mangaId}
+        let metadata = { mangaId }
         return createRequestObject({
             url: `${MF_DOMAIN}/manga/${mangaId}`,
             method: "GET",
             metadata: metadata,
-            cookies: [createCookie({name: 'isAdult', value: '1', domain: MF_DOMAIN})]
+            cookies: [createCookie({ name: 'isAdult', value: '1', domain: MF_DOMAIN })]
         })
     }
 
@@ -124,7 +124,7 @@ export class MangaFox extends Source {
             let title = $('p.title3', element).html() ?? '';
             let date = new Date(Date.parse($('p.title2', element).html() ?? ''));
             let chapterId = element.attribs['href'].match(chapterIdRegex)![1];
-            let chapterNumber = Number("0"+chapterId.match(chapterNumberRegex)![1]);
+            let chapterNumber = Number("0" + chapterId.match(chapterNumberRegex)![1]);
             let volMatch = title.match(volumeRegex)
             let volume = volMatch != null && volMatch.length > 0 ? Number(volMatch[1]) : undefined;
 
@@ -142,12 +142,12 @@ export class MangaFox extends Source {
     }
 
     getChapterDetailsRequest(mangaId: string, chapId: string): Request {
-        let metadata = {'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1}
+        let metadata = { 'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1 }
         return createRequestObject({
             url: `${MF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapId}`,
             method: "GET",
             metadata: metadata,
-            cookies: [createCookie({name: 'isAdult', value: '1', domain: MF_DOMAIN})]
+            cookies: [createCookie({ name: 'isAdult', value: '1', domain: MF_DOMAIN })]
         });
     }
 
@@ -170,13 +170,13 @@ export class MangaFox extends Source {
     }
 
     getHomePageSectionRequest(): HomeSectionRequest[] {
-        let request = createRequestObject({url: `${MF_DOMAIN}`, method: 'GET'})
-        let section1 = createHomeSection({id: 'hot_manga', title: 'Hot Manga Releases'})
-        let section2 = createHomeSection({id: 'being_read', title: 'Being Read Right Now'})
-        let section3 = createHomeSection({id: 'new_manga', title: 'New Manga Release'})
-        let section4 = createHomeSection({id: 'latest_updates', title: 'Latest Updates'})
+        let request = createRequestObject({ url: `${MF_DOMAIN}`, method: 'GET' })
+        let section1 = createHomeSection({ id: 'hot_manga', title: 'Hot Manga Releases' })
+        let section2 = createHomeSection({ id: 'being_read', title: 'Being Read Right Now' })
+        let section3 = createHomeSection({ id: 'new_manga', title: 'New Manga Release' })
+        let section4 = createHomeSection({ id: 'latest_updates', title: 'Latest Updates' })
 
-        return [createHomeSectionRequest({request: request, sections: [section1, section2, section3, section4]})]
+        return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3, section4] })]
     }
 
     getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] {
@@ -189,7 +189,7 @@ export class MangaFox extends Source {
         let idRegExp = new RegExp('\\/manga\\/(.*)\\/');
 
         let firstSection = $('div.main-large').first();
-        let hotMangas = $('.manga-list-1',firstSection).first();
+        let hotMangas = $('.manga-list-1', firstSection).first();
         let beingReadMangas = hotMangas.next();
         let newMangas = $('div.line-list');
         let latestMangas = $('ul.manga-list-4-list');
@@ -203,8 +203,8 @@ export class MangaFox extends Source {
             hotManga.push(createMangaTile({
                 id: id,
                 image: cover!,
-                title: createIconText({text: title}),
-                subtitleText: createIconText({text: subtitle}),
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
             }));
         }
 
@@ -217,8 +217,8 @@ export class MangaFox extends Source {
             beingReadManga.push(createMangaTile({
                 id: id,
                 image: cover!,
-                title: createIconText({text: title}),
-                subtitleText: createIconText({text: subtitle}),
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
             }));
         }
 
@@ -231,8 +231,8 @@ export class MangaFox extends Source {
             newManga.push(createMangaTile({
                 id: id,
                 image: cover!,
-                title: createIconText({text: title}),
-                subtitleText: createIconText({text: subtitle}),
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
             }));
         }
 
@@ -245,8 +245,8 @@ export class MangaFox extends Source {
             latestManga.push(createMangaTile({
                 id: id,
                 image: cover!,
-                title: createIconText({text: title}),
-                subtitleText: createIconText({text: subtitle}),
+                title: createIconText({ text: title }),
+                subtitleText: createIconText({ text: subtitle }),
             }));
         }
 
@@ -278,12 +278,12 @@ export class MangaFox extends Source {
         search += `artist=${encodeURI(query.artist || '')}&`;
         search += `type=${type}&genres=${genres}&nogenres=${excluded}&st=${status}`;
 
-        let metadata = {'search': search};
+        let metadata = { 'search': search };
         return createRequestObject({
             url: `${MF_DOMAIN}/search?${search}`,
             method: 'GET',
             metadata: metadata,
-            cookies: [createCookie({name: 'isAdult', value: '1', domain: MF_DOMAIN})]
+            cookies: [createCookie({ name: 'isAdult', value: '1', domain: MF_DOMAIN })]
         });
     }
 
@@ -305,10 +305,10 @@ export class MangaFox extends Source {
             mangas.push(createMangaTile({
                 id: id,
                 image: cover!,
-                title: createIconText({text: title ?? ''}),
-                subtitleText: createIconText({text: author ?? ''}),
-                primaryText: createIconText({text: shortDesc ?? ''}),
-                secondaryText: createIconText({text: lastUpdate ?? ''}),
+                title: createIconText({ text: title ?? '' }),
+                subtitleText: createIconText({ text: author ?? '' }),
+                primaryText: createIconText({ text: shortDesc ?? '' }),
+                secondaryText: createIconText({ text: lastUpdate ?? '' }),
             }));
 
         });
@@ -321,61 +321,61 @@ export class MangaFox extends Source {
     }
 
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request | null {
-      let metadata = {ids: ids, targetDate: time}
-      return createRequestObject({
-          url: `${MF_DOMAIN}/releases/${page}.html`,
-          method: 'GET',
-          metadata: metadata,
-          cookies: [createCookie({name: 'isAdult', value: '1', domain: MF_DOMAIN})]
-      })
-   }
-
-
-  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } | null {
-    let $ = this.cheerio.load(data)
-    let nextPage = true
-    let updatedManga: string[] = []
-
-    for(let obj of $('li', $('.manga-list-4-list')).toArray()) {
-        // If the time for this object is later than our target date, do not navigate to the next page
-        let dateContext = $('.manga-list-4-item-subtitle', $(obj))
-        let date = $('span', dateContext).text()
-        let dateObj: Date
-        if(date.includes("Today")) {
-            dateObj = new Date()        // Create a comparison date for the current day
-        }
-        else if(date.includes("Yesterday")) {
-            dateObj = new Date()        // Create a comparison date for yesterday
-            dateObj.setDate(dateObj.getDate() - 1)
-        }
-        else {
-            dateObj = new Date(date)
-        }
-
-        // Was this a good date parse? If the date is not valid, continue to the next object.
-        if(dateObj.toString().includes("Invalid")) {
-            continue
-        }
-
-        if(metadata.targetDate < dateObj) {
-            // We've gone past our target date, we're safe to stop here
-            nextPage = false
-            break
-        }
-
-        else {
-            // This is a valid date, check if this is a title which we are looking for
-            let mangaIdContext = $('.manga-list-4-item-title', $(obj))
-            let mangaId = $('a', mangaIdContext).attr('href')!.replace('/manga/', '').replace('/', '')
-
-            if(metadata.ids.includes(mangaId)) {    // If we have a matching ID, add it to our return list!
-                updatedManga.push(mangaId)
-            }
-        }
+    filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request | null {
+        let metadata = { ids: ids, targetDate: time }
+        return createRequestObject({
+            url: `${MF_DOMAIN}/releases/${page}.html`,
+            method: 'GET',
+            metadata: metadata,
+            cookies: [createCookie({ name: 'isAdult', value: '1', domain: MF_DOMAIN })]
+        })
     }
 
-    return {updatedMangaIds: updatedManga, nextPage: nextPage}
 
-   }
+    filterUpdatedManga(data: any, metadata: any): MangaUpdates | null {
+        let $ = this.cheerio.load(data)
+        let nextPage = true
+        let updatedManga: string[] = []
+
+        for (let obj of $('li', $('.manga-list-4-list')).toArray()) {
+            // If the time for this object is later than our target date, do not navigate to the next page
+            let dateContext = $('.manga-list-4-item-subtitle', $(obj))
+            let date = $('span', dateContext).text()
+            let dateObj: Date
+            if (date.includes("Today")) {
+                dateObj = new Date()        // Create a comparison date for the current day
+            }
+            else if (date.includes("Yesterday")) {
+                dateObj = new Date()        // Create a comparison date for yesterday
+                dateObj.setDate(dateObj.getDate() - 1)
+            }
+            else {
+                dateObj = new Date(date)
+            }
+
+            // Was this a good date parse? If the date is not valid, continue to the next object.
+            if (dateObj.toString().includes("Invalid")) {
+                continue
+            }
+
+            if (metadata.targetDate < dateObj) {
+                // We've gone past our target date, we're safe to stop here
+                nextPage = false
+                break
+            }
+
+            else {
+                // This is a valid date, check if this is a title which we are looking for
+                let mangaIdContext = $('.manga-list-4-item-title', $(obj))
+                let mangaId = $('a', mangaIdContext).attr('href')!.replace('/manga/', '').replace('/', '')
+
+                if (metadata.ids.includes(mangaId)) {    // If we have a matching ID, add it to our return list!
+                    updatedManga.push(mangaId)
+                }
+            }
+        }
+
+        return createMangaUpdates({ ids: updatedManga, moreResults: nextPage })
+
+    }
 }

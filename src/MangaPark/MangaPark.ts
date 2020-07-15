@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
 
 export class MangaPark extends Source {
 	readonly MP_DOMAIN = 'https://mangapark.net'
@@ -14,7 +14,7 @@ export class MangaPark extends Source {
 	get authorWebsite(): string { return 'https://github.com/DanielKovalevich' }
 	get description(): string { return 'Extension that pulls manga from MangaPark, includes Advanced Search and Updated manga fetching' }
 	get hentaiSource(): boolean { return false }
-	getMangaShareUrl(mangaId: string): string | null { return `${this.MP_DOMAIN}/manga/${mangaId}`}
+	getMangaShareUrl(mangaId: string): string | null { return `${this.MP_DOMAIN}/manga/${mangaId}` }
 
 	getMangaDetailsRequest(ids: string[]): Request[] {
 		let requests: Request[] = []
@@ -220,12 +220,12 @@ export class MangaPark extends Source {
 		})
 	}
 
-	filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
+	filterUpdatedManga(data: any, metadata: any): MangaUpdates {
 		let $ = this.cheerio.load(data)
 
-		let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
-			'updatedMangaIds': [],
-			'nextPage': true
+		let returnObject: MangaUpdates = {
+			'ids': [],
+			'moreResults': true
 		}
 
 		for (let item of $('.item', '.ls1').toArray()) {
@@ -233,11 +233,11 @@ export class MangaPark extends Source {
 			let time = $('.time').first().text()
 			if (this.convertTime(time) > metadata.referenceTime) {
 				if (metadata.ids.includes(id)) {
-					returnObject.updatedMangaIds.push(id)
+					returnObject.ids.push(id)
 				}
 			}
 			else {
-				returnObject.nextPage = false
+				returnObject.moreResults = false
 				return returnObject
 			}
 		}

@@ -12,16 +12,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "paperback-extensions-common": "^1.0.6",
     "browserify": "^16.5.1",
-    "tsify": "^4.0.2",
     "cheerio": "^1.0.0-rc.3",
     "gulp": "^4.0.2",
     "gulp-rename": "^2.0.0",
     "gulp-streamify": "^1.0.2",
     "gulp-uglify": "^3.0.2",
-    "vinyl-source-stream": "^2.0.0",
-    "typescript": "^3.9.6"
+    "paperback-extensions-common": "^1.0.10",
+    "tsify": "^4.0.2",
+    "typescript": "^3.9.6",
+    "vinyl-source-stream": "^2.0.0"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.21",

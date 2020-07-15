@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
 
 const MS_DOMAIN = 'https://mangasee123.com'
 
@@ -181,15 +181,15 @@ export class Mangasee extends Source {
     })
   }
 
-  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
+  filterUpdatedManga(data: any, metadata: any): MangaUpdates {
     let $ = this.cheerio.load(data)
-    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
-      'updatedMangaIds': [],
-      'nextPage': false
+    let returnObject: MangaUpdates = {
+      'ids': [],
+      'moreResults': false
     }
     let updateManga = JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
     updateManga.forEach((elem: any) => {
-      if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date)) returnObject.updatedMangaIds.push(elem.IndexName)
+      if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date)) returnObject.ids.push(elem.IndexName)
     })
 
     return returnObject

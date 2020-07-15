@@ -1,4 +1,4 @@
-import { Source, Manga, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, Request } from "paperback-extensions-common"
+import { Source, Manga, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, Request, MangaUpdates } from "paperback-extensions-common"
 
 export class MangaDex extends Source {
 
@@ -6,7 +6,7 @@ export class MangaDex extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.17' }
+  get version(): string { return '1.0.18' }
   get name(): string { return 'MangaDex' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Faizan Durrani' }
@@ -15,10 +15,6 @@ export class MangaDex extends Source {
   get hentaiSource(): boolean { return false }
 
   get rateLimit() { return 1 }
-
-  requestModifier(request: Request) {
-    return request
-  }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     return [createRequestObject({
@@ -140,40 +136,53 @@ export class MangaDex extends Source {
   }
 
   filterUpdatedMangaRequest(ids: string[], time: Date, page: number): Request | null {
-    return null
+    let metadata = { 'ids': ids, 'referenceTime': time }
 
-    // let metadata = { 'ids': ids, 'referenceTime': time }
-    // let cookies = [
-    //   createCookie({
-    //     name: 'mangadex_title_mode',
-    //     value: '2'
-    //   })
-    // ]
-    // return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString(), undefined, undefined, undefined, undefined, true)
+    console.log(`time ${time}, idCount: ${ids.length}, page: ${page}`)
+
+    return createRequestObject({
+      metadata: metadata,
+      url: 'https://mangadex.org/titles/0/' + page.toString(),
+      method: "GET",
+      incognito: true,
+      cookies: [
+        createCookie({
+          name: "mangadex_title_mode",
+          value: "2",
+          domain: MD_DOMAIN
+        })
+      ]
+    })
   }
 
-  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } {
+  filterUpdatedManga(data: any, metadata: any): MangaUpdates {
     let $ = this.cheerio.load(data)
 
-    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
-      'updatedMangaIds': [],
-      'nextPage': true
+    console.log(`REFERENCE TIME: ${metadata.referenceTime}`)
+
+    let returnObject: MangaUpdates = {
+      'ids': [],
+      'moreResults': true
     }
 
     for (let elem of $('.manga-entry').toArray()) {
       let id = elem.attribs['data-id']
-      if (new Date($(elem).find('time').attr('datetime')?.toString() ?? "") > metadata.referenceTime) {
+      let mangaDate = new Date(($(elem).find('time').attr('datetime') ?? "").replace(/-/g, "/"))
+      console.log(`${id} updated at ${mangaDate}}`)
+      if (mangaDate >= metadata.referenceTime) {
         if (metadata.ids.includes(id)) {
-          returnObject.updatedMangaIds.push(id)
+          console.log(`${id} marked as an update`)
+          returnObject.ids.push(id)
         }
       }
       else {
-        returnObject.nextPage = false
+        returnObject.moreResults = false
         return returnObject
       }
     }
 
-    return returnObject
+    console.log(`Found ${returnObject.ids.length} updates`)
+    return createMangaUpdates(returnObject)
   }
 
   getHomePageSectionRequest(): HomeSectionRequest[] {

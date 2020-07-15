@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
 
 const MN_DOMAIN = 'https://manganelo.com'
 
@@ -15,8 +15,8 @@ export class Manganelo extends Source {
   get authorWebsite(): string { return 'https://github.com/DanielKovalevich' }
   get description(): string { return 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
-  getMangaShareUrl(mangaId: string): string | null { return `${MN_DOMAIN}/manga/${mangaId}`}
-  
+  getMangaShareUrl(mangaId: string): string | null { return `${MN_DOMAIN}/manga/${mangaId}` }
+
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -190,13 +190,13 @@ export class Manganelo extends Source {
     })
   }
 
-  filterUpdatedManga(data: any, metadata: any): { 'updatedMangaIds': string[], 'nextPage': boolean } | null {
+  filterUpdatedManga(data: any, metadata: any): MangaUpdates | null {
     let $ = this.cheerio.load(data)
 
-    let returnObject: { 'updatedMangaIds': string[], 'nextPage': boolean } = {
-      'updatedMangaIds': [],
-      'nextPage': true
-    }
+    let returnObject: MangaUpdates = createMangaUpdates({
+      'ids': [],
+      'moreResults': true
+    })
 
     let panel = $('.panel-content-genres')
     for (let item of $('.content-genres-item', panel).toArray()) {
@@ -210,11 +210,11 @@ export class Manganelo extends Source {
 
       if (time > metadata.referenceTime) {
         if (metadata.ids.includes(id)) {
-          returnObject.updatedMangaIds.push(id)
+          returnObject.ids.push(id)
         }
       }
       else {
-        returnObject.nextPage = false
+        returnObject.moreResults = false
         return returnObject
       }
     }
@@ -415,8 +415,8 @@ export class Manganelo extends Source {
    * Manganelo image requests for older chapters and pages are required to have a referer to it's host
    * @param request
    */
-  requestModifier(request: Request): Request { 
-    
+  requestModifier(request: Request): Request {
+
     let headers: any = request.headers == undefined ? {} : request.headers
     headers['Referer'] = `${MN_DOMAIN}`
 
