@@ -7,7 +7,7 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.1.4' }
+  get version(): string { return '1.1.5' }
 
   get name(): string { return 'Manganelo' }
   get icon(): string { return 'icon.png' }
@@ -289,9 +289,9 @@ export class Manganelo extends Source {
       default: status = ''
     }
 
-    let keyword = (query.title ?? '').replace(' ', '_')
+    let keyword = (query.title ?? '').replace(/ /g, '_')
     if (query.author)
-      keyword += (query.author ?? '').replace(' ', '_')
+      keyword += (query.author ?? '').replace(/ /g, '_')
     let search: string = `s=all&keyw=${keyword}`
     search += `&g_i=${genres}&g_e=${excluded}&page=${page}`
     if (status) {
