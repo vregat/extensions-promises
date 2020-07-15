@@ -2775,10 +2775,10 @@ class Manganelo extends paperback_extensions_common_1.Source {
     filterUpdatedManga(data, metadata) {
         var _a, _b;
         let $ = this.cheerio.load(data);
-        let returnObject = {
-            'updatedMangaIds': [],
-            'nextPage': true
-        };
+        let returnObject = createMangaUpdates({
+            'ids': [],
+            'moreResults': true
+        });
         let panel = $('.panel-content-genres');
         for (let item of $('.content-genres-item', panel).toArray()) {
             let id = (_b = ((_a = $('a', item).first().attr('href')) !== null && _a !== void 0 ? _a : '').split('/').pop()) !== null && _b !== void 0 ? _b : '';
@@ -2790,11 +2790,11 @@ class Manganelo extends paperback_extensions_common_1.Source {
             }
             if (time > metadata.referenceTime) {
                 if (metadata.ids.includes(id)) {
-                    returnObject.updatedMangaIds.push(id);
+                    returnObject.ids.push(id);
                 }
             }
             else {
-                returnObject.nextPage = false;
+                returnObject.moreResults = false;
                 return returnObject;
             }
         }

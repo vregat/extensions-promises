@@ -2603,7 +2603,7 @@ class MangaDex extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.0.17'; }
+    get version() { return '1.0.18'; }
     get name() { return 'MangaDex'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Faizan Durrani'; }
@@ -2611,9 +2611,6 @@ class MangaDex extends paperback_extensions_common_1.Source {
     get description() { return 'Extension that pulls manga from MangaDex, includes Advanced Search and Updated manga fetching'; }
     get hentaiSource() { return false; }
     get rateLimit() { return 1; }
-    requestModifier(request) {
-        return request;
-    }
     getMangaDetailsRequest(ids) {
         return [createRequestObject({
                 metadata: { ids },
@@ -2724,36 +2721,47 @@ class MangaDex extends paperback_extensions_common_1.Source {
         });
     }
     filterUpdatedMangaRequest(ids, time, page) {
-        return null;
-        // let metadata = { 'ids': ids, 'referenceTime': time }
-        // let cookies = [
-        //   createCookie({
-        //     name: 'mangadex_title_mode',
-        //     value: '2'
-        //   })
-        // ]
-        // return createRequestObject(metadata, 'https://mangadex.org/titles/0/', cookies, page.toString(), undefined, undefined, undefined, undefined, true)
+        let metadata = { 'ids': ids, 'referenceTime': time };
+        console.log(`time ${time}, idCount: ${ids.length}, page: ${page}`);
+        return createRequestObject({
+            metadata: metadata,
+            url: 'https://mangadex.org/titles/0/' + page.toString(),
+            method: "GET",
+            incognito: true,
+            cookies: [
+                createCookie({
+                    name: "mangadex_title_mode",
+                    value: "2",
+                    domain: MD_DOMAIN
+                })
+            ]
+        });
     }
     filterUpdatedManga(data, metadata) {
-        var _a, _b;
+        var _a;
         let $ = this.cheerio.load(data);
+        console.log(`REFERENCE TIME: ${metadata.referenceTime}`);
         let returnObject = {
-            'updatedMangaIds': [],
-            'nextPage': true
+            'ids': [],
+            'moreResults': true
         };
         for (let elem of $('.manga-entry').toArray()) {
             let id = elem.attribs['data-id'];
-            if (new Date((_b = (_a = $(elem).find('time').attr('datetime')) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "") > metadata.referenceTime) {
+            let mangaDate = new Date(((_a = $(elem).find('time').attr('datetime')) !== null && _a !== void 0 ? _a : "").replace(/-/g, "/"));
+            console.log(`${id} updated at ${mangaDate}}`);
+            if (mangaDate >= metadata.referenceTime) {
                 if (metadata.ids.includes(id)) {
-                    returnObject.updatedMangaIds.push(id);
+                    console.log(`${id} marked as an update`);
+                    returnObject.ids.push(id);
                 }
             }
             else {
-                returnObject.nextPage = false;
+                returnObject.moreResults = false;
                 return returnObject;
             }
         }
-        return returnObject;
+        console.log(`Found ${returnObject.ids.length} updates`);
+        return createMangaUpdates(returnObject);
     }
     getHomePageSectionRequest() {
         console.log(JSON.stringify(this));

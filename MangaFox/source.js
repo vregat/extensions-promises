@@ -2912,7 +2912,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
                 }
             }
         }
-        return { updatedMangaIds: updatedManga, nextPage: nextPage };
+        return createMangaUpdates({ ids: updatedManga, moreResults: nextPage });
     }
 }
 exports.MangaFox = MangaFox;

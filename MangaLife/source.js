@@ -2767,14 +2767,14 @@ class MangaLife extends paperback_extensions_common_1.Source {
     filterUpdatedManga(data, metadata) {
         var _a;
         let $ = this.cheerio.load(data);
-        let returnObject = {
-            'updatedMangaIds': [],
-            'nextPage': false
-        };
+        let returnObject = createMangaUpdates({
+            'ids': [],
+            'moreResults': false
+        });
         let updateManga = JSON.parse(((_a = data.match(/vm.LatestJSON = (.*);/)) !== null && _a !== void 0 ? _a : [])[1]);
         updateManga.forEach((elem) => {
             if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date))
-                returnObject.updatedMangaIds.push(elem.IndexName);
+                returnObject.ids.push(elem.IndexName);
         });
         return returnObject;
     }

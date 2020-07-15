@@ -2809,19 +2809,19 @@ class MangaPark extends paperback_extensions_common_1.Source {
         var _a, _b;
         let $ = this.cheerio.load(data);
         let returnObject = {
-            'updatedMangaIds': [],
-            'nextPage': true
+            'ids': [],
+            'moreResults': true
         };
         for (let item of $('.item', '.ls1').toArray()) {
             let id = (_b = ((_a = $('a', item).first().attr('href')) !== null && _a !== void 0 ? _a : '').split('/').pop()) !== null && _b !== void 0 ? _b : '';
             let time = $('.time').first().text();
             if (this.convertTime(time) > metadata.referenceTime) {
                 if (metadata.ids.includes(id)) {
-                    returnObject.updatedMangaIds.push(id);
+                    returnObject.ids.push(id);
                 }
             }
             else {
-                returnObject.nextPage = false;
+                returnObject.moreResults = false;
                 return returnObject;
             }
         }
