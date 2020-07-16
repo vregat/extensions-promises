@@ -1,13 +1,14 @@
 import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
 
 const ML_DOMAIN = 'https://manga4life.com'
+const ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover'
 
 export class MangaLife extends Source {
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
   }
 
-  get version(): string { return '0.6.6' }
+  get version(): string { return '0.6.7' }
   get name(): string { return 'Manga4Life' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -36,7 +37,7 @@ export class MangaLife extends Source {
     let json = JSON.parse($('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? '')
     let entity = json.mainEntity
     let info = $('.row')
-    let image = `https://static.mangaboss.net/cover/${metadata.id}.jpg`
+    let image = `${ML_IMAGE_DOMAIN}/${metadata.id}.jpg`
     let title = $('h1', info).first().text() ?? ''
     let titles = [title]
     let author = entity.author[0]
@@ -267,7 +268,7 @@ export class MangaLife extends Source {
         mangaTiles.push(createMangaTile({
           id: elem.i,
           title: createIconText({ text: elem.s }),
-          image: `https://static.mangaboss.net/cover/${elem.i}.jpg`,
+          image: `${ML_IMAGE_DOMAIN}/${elem.i}.jpg`,
           subtitleText: createIconText({ text: elem.ss })
         }))
       }
@@ -317,7 +318,7 @@ export class MangaLife extends Source {
     hot.forEach((elem: any) => {
       let id = elem.IndexName
       let title = elem.SeriesName
-      let image = `https://static.mangaboss.net/cover/${id}.jpg`
+      let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
       let time = (new Date(elem.Date)).toDateString()
       time = time.slice(0, time.length - 5)
       time = time.slice(4, time.length)
@@ -334,7 +335,7 @@ export class MangaLife extends Source {
     latest.forEach((elem: any) => {
       let id = elem.IndexName
       let title = elem.SeriesName
-      let image = `https://static.mangaboss.net/cover/${id}.jpg`
+      let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
       let time = (new Date(elem.Date)).toDateString()
       time = time.slice(0, time.length - 5)
       time = time.slice(4, time.length)
@@ -351,7 +352,7 @@ export class MangaLife extends Source {
     newTitles.forEach((elem: any) => {
       let id = elem.IndexName
       let title = elem.SeriesName
-      let image = `https://static.mangaboss.net/cover/${id}.jpg`
+      let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
 
       newManga.push(createMangaTile({
         id: id,
@@ -364,7 +365,7 @@ export class MangaLife extends Source {
     recommended.forEach((elem: any) => {
       let id = elem.IndexName
       let title = elem.SeriesName
-      let image = `https://static.mangaboss.net/cover/${id}.jpg`
+      let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
       let time = (new Date(elem.Date)).toDateString()
 
       recManga.push(createMangaTile({
@@ -396,7 +397,7 @@ export class MangaLife extends Source {
       hot.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
-        let image = `https://static.mangaboss.net/cover/${id}.jpg`
+        let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
         let time = (new Date(elem.Date)).toDateString()
         time = time.slice(0, time.length - 5)
         time = time.slice(4, time.length)
@@ -414,7 +415,7 @@ export class MangaLife extends Source {
       latest.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
-        let image = `https://static.mangaboss.net/cover/${id}.jpg`
+        let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
         let time = (new Date(elem.Date)).toDateString()
         time = time.slice(0, time.length - 5)
         time = time.slice(4, time.length)
@@ -432,7 +433,7 @@ export class MangaLife extends Source {
       newTitles.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
-        let image = `https://static.mangaboss.net/cover/${id}.jpg`
+        let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
         let time = (new Date(elem.Date)).toDateString()
         time = time.slice(0, time.length - 5)
         time = time.slice(4, time.length)
