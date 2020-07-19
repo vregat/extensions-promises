@@ -11,6 +11,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
               "--no-timeouts",
+              "--trace-warnings",
               "--colors",
               "${file}",
               "--require",
