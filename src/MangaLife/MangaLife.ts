@@ -8,7 +8,7 @@ export class MangaLife extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.6.8' }
+  get version(): string { return '0.6.9' }
   get name(): string { return 'Manga4Life' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -193,7 +193,7 @@ export class MangaLife extends Source {
     })
     let updateManga = JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
     updateManga.forEach((elem: any) => {
-      if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date.replace(/-/g, "/"))) returnObject.ids.push(elem.IndexName)
+      if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date)) returnObject.ids.push(elem.IndexName)
     })
 
     return returnObject
@@ -321,7 +321,7 @@ export class MangaLife extends Source {
       let id = elem.IndexName
       let title = elem.SeriesName
       let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
-      let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString()
+      let time = (new Date(elem.Date)).toDateString()
       time = time.slice(0, time.length - 5)
       time = time.slice(4, time.length)
 
@@ -338,7 +338,7 @@ export class MangaLife extends Source {
       let id = elem.IndexName
       let title = elem.SeriesName
       let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
-      let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString()
+      let time = (new Date(elem.Date)).toDateString()
       time = time.slice(0, time.length - 5)
       time = time.slice(4, time.length)
 
@@ -368,7 +368,7 @@ export class MangaLife extends Source {
       let id = elem.IndexName
       let title = elem.SeriesName
       let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
-      let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString()
+      let time = (new Date(elem.Date)).toDateString()
 
       recManga.push(createMangaTile({
         id: id,
@@ -400,7 +400,7 @@ export class MangaLife extends Source {
         let id = elem.IndexName
         let title = elem.SeriesName
         let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
-        let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString()
+        let time = (new Date(elem.Date)).toDateString()
         time = time.slice(0, time.length - 5)
         time = time.slice(4, time.length)
 
@@ -418,7 +418,7 @@ export class MangaLife extends Source {
         let id = elem.IndexName
         let title = elem.SeriesName
         let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
-        let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString()
+        let time = (new Date(elem.Date)).toDateString()
         time = time.slice(0, time.length - 5)
         time = time.slice(4, time.length)
 
@@ -436,7 +436,7 @@ export class MangaLife extends Source {
         let id = elem.IndexName
         let title = elem.SeriesName
         let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
-        let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString()
+        let time = (new Date(elem.Date)).toDateString()
         time = time.slice(0, time.length - 5)
         time = time.slice(4, time.length)
 
