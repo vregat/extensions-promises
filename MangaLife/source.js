@@ -2605,7 +2605,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.7'; }
+    get version() { return '0.6.8'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -2708,7 +2708,8 @@ class MangaLife extends paperback_extensions_common_1.Source {
             let id = metadata.id + '-chapter-' + n + m + index + '.html';
             let chNum = n + a * .1;
             let name = elem.ChapterName ? elem.ChapterName : ''; // can be null
-            let time = Date.parse(elem.Date.replace(" ", "T"));
+            let timeStr = elem.Date.replace(/-/g, "/");
+            let time = new Date(timeStr);
             chapters.push(createChapter({
                 id: id,
                 mangaId: metadata.id,
@@ -2716,7 +2717,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
                 chapNum: chNum,
                 volume: vol,
                 langCode: paperback_extensions_common_1.LanguageCode.ENGLISH,
-                time: isNaN(time) ? new Date() : new Date(time)
+                time: time
             }));
         });
         return chapters;
@@ -2774,7 +2775,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
         });
         let updateManga = JSON.parse(((_a = data.match(/vm.LatestJSON = (.*);/)) !== null && _a !== void 0 ? _a : [])[1]);
         updateManga.forEach((elem) => {
-            if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date))
+            if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date.replace(/-/g, "/")))
                 returnObject.ids.push(elem.IndexName);
         });
         return returnObject;
@@ -2897,7 +2898,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
             let id = elem.IndexName;
             let title = elem.SeriesName;
             let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`;
-            let time = (new Date(elem.Date)).toDateString();
+            let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString();
             time = time.slice(0, time.length - 5);
             time = time.slice(4, time.length);
             hotManga.push(createMangaTile({
@@ -2912,7 +2913,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
             let id = elem.IndexName;
             let title = elem.SeriesName;
             let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`;
-            let time = (new Date(elem.Date)).toDateString();
+            let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString();
             time = time.slice(0, time.length - 5);
             time = time.slice(4, time.length);
             latestManga.push(createMangaTile({
@@ -2938,7 +2939,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
             let id = elem.IndexName;
             let title = elem.SeriesName;
             let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`;
-            let time = (new Date(elem.Date)).toDateString();
+            let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString();
             recManga.push(createMangaTile({
                 id: id,
                 image: image,
@@ -2966,7 +2967,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
                 let id = elem.IndexName;
                 let title = elem.SeriesName;
                 let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`;
-                let time = (new Date(elem.Date)).toDateString();
+                let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString();
                 time = time.slice(0, time.length - 5);
                 time = time.slice(4, time.length);
                 manga.push(createMangaTile({
@@ -2983,7 +2984,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
                 let id = elem.IndexName;
                 let title = elem.SeriesName;
                 let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`;
-                let time = (new Date(elem.Date)).toDateString();
+                let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString();
                 time = time.slice(0, time.length - 5);
                 time = time.slice(4, time.length);
                 manga.push(createMangaTile({
@@ -3000,7 +3001,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
                 let id = elem.IndexName;
                 let title = elem.SeriesName;
                 let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`;
-                let time = (new Date(elem.Date)).toDateString();
+                let time = (new Date(elem.Date.replace(/-/g, "/"))).toDateString();
                 time = time.slice(0, time.length - 5);
                 time = time.slice(4, time.length);
                 manga.push(createMangaTile({
