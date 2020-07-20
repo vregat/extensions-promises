@@ -1,6 +1,6 @@
 import cheerio from 'cheerio'
 import { APIWrapper, Source } from 'paperback-extensions-common';
-import { ReadComicsOnline } from '../sources/ReadComicsOnline/ReadComicsOnline';
+import { ReadComicsOnline } from '../ReadComicsOnline/ReadComicsOnline';
 
 describe('ReadComicsOnline Tests', function () {
 
