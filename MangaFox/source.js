@@ -2605,7 +2605,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.2'; }
+    get version() { return '1.1.3'; }
     get name() { return 'MangaFox'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Sirus'; }
@@ -2696,7 +2696,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         let volumeRegex = new RegExp('Vol.(\\d+)');
         for (let element of rawChapters) {
             let title = (_a = $('p.title3', element).html()) !== null && _a !== void 0 ? _a : '';
-            let date = new Date(Date.parse((_b = $('p.title2', element).html()) !== null && _b !== void 0 ? _b : ''));
+            let date = this.parseDate((_b = $('p.title2', element).html()) !== null && _b !== void 0 ? _b : '');
             let chapterId = element.attribs['href'].match(chapterIdRegex)[1];
             let chapterNumber = Number("0" + chapterId.match(chapterNumberRegex)[1]);
             let volMatch = title.match(volumeRegex);
@@ -2883,17 +2883,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             // If the time for this object is later than our target date, do not navigate to the next page
             let dateContext = $('.manga-list-4-item-subtitle', $(obj));
             let date = $('span', dateContext).text();
-            let dateObj;
-            if (date.includes("Today")) {
-                dateObj = new Date(); // Create a comparison date for the current day
-            }
-            else if (date.includes("Yesterday")) {
-                dateObj = new Date(); // Create a comparison date for yesterday
-                dateObj.setDate(dateObj.getDate() - 1);
-            }
-            else {
-                dateObj = new Date(date);
-            }
+            let dateObj = this.parseDate(date);
             // Was this a good date parse? If the date is not valid, continue to the next object.
             if (dateObj.toString().includes("Invalid")) {
                 continue;
@@ -2913,6 +2903,44 @@ class MangaFox extends paperback_extensions_common_1.Source {
             }
         }
         return createMangaUpdates({ ids: updatedManga, moreResults: nextPage });
+    }
+    parseDate(date) {
+        let dateObj;
+        if (date.includes("Today")) {
+            dateObj = new Date(); // Create a comparison date for the current day
+        }
+        else if (date.includes("Yesterday")) {
+            dateObj = new Date(); // Create a comparison date for yesterday
+            dateObj.setDate(dateObj.getDate() - 1);
+        }
+        else if (date.includes("hour")) {
+            let hour = Number.parseInt(date.match("[0-9]*")[0]);
+            if (hour == null) {
+                hour = 0;
+            }
+            dateObj = new Date();
+            dateObj.setHours(dateObj.getHours() - hour);
+        }
+        else if (date.includes("minute")) {
+            let minute = Number.parseInt(date.match("[0-9]*")[0]);
+            if (minute == null) {
+                minute = 0;
+            }
+            dateObj = new Date();
+            dateObj.setMinutes(dateObj.getMinutes() - minute);
+        }
+        else if (date.includes("second")) {
+            let second = Number.parseInt(date.match("[0-9]*")[0]);
+            if (second == null) {
+                second = 0;
+            }
+            dateObj = new Date();
+            dateObj.setSeconds(dateObj.getSeconds() - second);
+        }
+        else {
+            dateObj = new Date(date);
+        }
+        return dateObj;
     }
 }
 exports.MangaFox = MangaFox;
