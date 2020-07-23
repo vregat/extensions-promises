@@ -2605,7 +2605,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.9'; }
+    get version() { return '0.6.10'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -2769,16 +2769,16 @@ class MangaLife extends paperback_extensions_common_1.Source {
     filterUpdatedManga(data, metadata) {
         var _a;
         let $ = this.cheerio.load(data);
-        let returnObject = createMangaUpdates({
+        let returnObject = {
             'ids': [],
             'moreResults': false
-        });
+        };
         let updateManga = JSON.parse(((_a = data.match(/vm.LatestJSON = (.*);/)) !== null && _a !== void 0 ? _a : [])[1]);
         updateManga.forEach((elem) => {
             if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date))
                 returnObject.ids.push(elem.IndexName);
         });
-        return returnObject;
+        return createMangaUpdates(returnObject);
     }
     searchRequest(query, page) {
         let status = "";
