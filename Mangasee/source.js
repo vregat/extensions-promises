@@ -2604,7 +2604,7 @@ class Mangasee extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.1'; }
+    get version() { return '1.1.2'; }
     get name() { return 'Mangasee'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -2775,7 +2775,7 @@ class Mangasee extends paperback_extensions_common_1.Source {
             if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date))
                 returnObject.ids.push(elem.IndexName);
         });
-        return returnObject;
+        return createMangaUpdates(returnObject);
     }
     searchRequest(query, page) {
         let status = "";
