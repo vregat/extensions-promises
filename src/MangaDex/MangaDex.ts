@@ -341,7 +341,7 @@ export class MangaDex extends Source {
 
   searchRequest(query: SearchRequest, page: number): Request | null {
     return createRequestObject({
-      url: CACHE_SEARCH,
+      url: CACHE_SEARCH + `?page=${page}&items=100`,
       method: "POST",
       data: JSON.stringify({
         title: query.title
