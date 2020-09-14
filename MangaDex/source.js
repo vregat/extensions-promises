@@ -2896,7 +2896,7 @@ class MangaDex extends paperback_extensions_common_1.Source {
     }
     searchRequest(query, page) {
         return createRequestObject({
-            url: CACHE_SEARCH,
+            url: CACHE_SEARCH + `?page=${page}&items=100`,
             method: "POST",
             data: JSON.stringify({
                 title: query.title
