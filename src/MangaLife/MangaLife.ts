@@ -200,6 +200,7 @@ export class MangaLife extends Source {
   }
 
   searchRequest(query: SearchRequest, page: number): Request | null {
+    if (page > 1) return null; // Manga4Life retrieves all manga with one request
     let status = ""
     switch (query.status) {
       case 0: status = 'Completed'; break
