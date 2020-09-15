@@ -2781,6 +2781,8 @@ class MangaLife extends paperback_extensions_common_1.Source {
         return createMangaUpdates(returnObject);
     }
     searchRequest(query, page) {
+        if (page > 1)
+            return null; // Manga4Life retrieves all manga with one request
         let status = "";
         switch (query.status) {
             case 0:
