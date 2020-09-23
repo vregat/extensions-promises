@@ -8,7 +8,7 @@ export class MangaLife extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.1.0' }
+  get version(): string { return '1.1.1' }
   get name(): string { return 'Manga4Life' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -34,8 +34,19 @@ export class MangaLife extends Source {
   getMangaDetails(data: any, metadata: any): Manga[] {
     let manga: Manga[] = []
     let $ = this.cheerio.load(data)
-    let json = JSON.parse($('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? '')
-    let entity = json.mainEntity
+    
+    let json = $('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? ''
+
+    // MangaLife doesn't escape quotes in their alternate title section, which breaks content which has such.
+    // How this works on their website is an absolute mystery to me.
+    let altTitleMatch = json.match(/"alternateName": \["(.*?)"\]/)
+    if(altTitleMatch != null && altTitleMatch[1] != null) {
+      let quoteRemovedVal = altTitleMatch[1].replace(/"/g, "")
+      json = json.replace(altTitleMatch[1], quoteRemovedVal)
+    }
+
+    let parsedJson = JSON.parse(json)
+    let entity = parsedJson.mainEntity
     let info = $('.row')
     let imgSource = ($('.ImgHolder').html()?.match(/src="(.*)\//) ?? [])[1];
     if (imgSource !== ML_IMAGE_DOMAIN)
