@@ -2605,7 +2605,7 @@ class MangaLife extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '1.1.0'; }
+    get version() { return '1.1.1'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -2630,8 +2630,16 @@ class MangaLife extends paperback_extensions_common_1.Source {
         var _a, _b, _c, _d, _e, _f, _g;
         let manga = [];
         let $ = this.cheerio.load(data);
-        let json = JSON.parse((_b = (_a = $('[type=application\\/ld\\+json]').html()) === null || _a === void 0 ? void 0 : _a.replace(/\t*\n*/g, '')) !== null && _b !== void 0 ? _b : '');
-        let entity = json.mainEntity;
+        let json = (_b = (_a = $('[type=application\\/ld\\+json]').html()) === null || _a === void 0 ? void 0 : _a.replace(/\t*\n*/g, '')) !== null && _b !== void 0 ? _b : '';
+        // MangaLife doesn't escape quotes in their alternate title section, which breaks content which has such.
+        // How this works on their website is an absolute mystery to me.
+        let altTitleMatch = json.match(/"alternateName": \["(.*?)"\]/);
+        if (altTitleMatch != null && altTitleMatch[1] != null) {
+            let quoteRemovedVal = altTitleMatch[1].replace(/"/g, "");
+            json = json.replace(altTitleMatch[1], quoteRemovedVal);
+        }
+        let parsedJson = JSON.parse(json);
+        let entity = parsedJson.mainEntity;
         let info = $('.row');
         let imgSource = ((_d = (_c = $('.ImgHolder').html()) === null || _c === void 0 ? void 0 : _c.match(/src="(.*)\//)) !== null && _d !== void 0 ? _d : [])[1];
         if (imgSource !== ML_IMAGE_DOMAIN)
