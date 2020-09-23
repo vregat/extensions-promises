@@ -2600,12 +2600,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaLife = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ML_DOMAIN = 'https://manga4life.com';
-const ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover';
+let ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover';
 class MangaLife extends paperback_extensions_common_1.Source {
     constructor(cheerio) {
         super(cheerio);
     }
-    get version() { return '0.6.10'; }
+    get version() { return '1.1.0'; }
     get name() { return 'Manga4Life'; }
     get icon() { return 'icon.png'; }
     get author() { return 'Daniel Kovalevich'; }
@@ -2627,18 +2627,21 @@ class MangaLife extends paperback_extensions_common_1.Source {
         return requests;
     }
     getMangaDetails(data, metadata) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f, _g;
         let manga = [];
         let $ = this.cheerio.load(data);
         let json = JSON.parse((_b = (_a = $('[type=application\\/ld\\+json]').html()) === null || _a === void 0 ? void 0 : _a.replace(/\t*\n*/g, '')) !== null && _b !== void 0 ? _b : '');
         let entity = json.mainEntity;
         let info = $('.row');
+        let imgSource = ((_d = (_c = $('.ImgHolder').html()) === null || _c === void 0 ? void 0 : _c.match(/src="(.*)\//)) !== null && _d !== void 0 ? _d : [])[1];
+        if (imgSource !== ML_IMAGE_DOMAIN)
+            ML_IMAGE_DOMAIN = imgSource;
         let image = `${ML_IMAGE_DOMAIN}/${metadata.id}.jpg`;
-        let title = (_c = $('h1', info).first().text()) !== null && _c !== void 0 ? _c : '';
+        let title = (_e = $('h1', info).first().text()) !== null && _e !== void 0 ? _e : '';
         let titles = [title];
         let author = entity.author[0];
         titles = titles.concat(entity.alternateName);
-        let follows = Number(((_e = (_d = $.root().html()) === null || _d === void 0 ? void 0 : _d.match(/vm.NumSubs = (.*);/)) !== null && _e !== void 0 ? _e : [])[1]);
+        let follows = Number(((_g = (_f = $.root().html()) === null || _f === void 0 ? void 0 : _f.match(/vm.NumSubs = (.*);/)) !== null && _g !== void 0 ? _g : [])[1]);
         let tagSections = [createTagSection({ id: '0', label: 'genres', tags: [] }),
             createTagSection({ id: '1', label: 'format', tags: [] })];
         tagSections[0].tags = entity.genre.map((elem) => createTag({ id: elem, label: elem }));
@@ -2890,11 +2893,15 @@ class MangaLife extends paperback_extensions_common_1.Source {
         return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3, section4] })];
     }
     getHomePageSections(data, sections) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
+        let $ = this.cheerio.load(data);
         let hot = (JSON.parse(((_a = data.match(/vm.HotUpdateJSON = (.*);/)) !== null && _a !== void 0 ? _a : [])[1])).slice(0, 15);
         let latest = (JSON.parse(((_b = data.match(/vm.LatestJSON = (.*);/)) !== null && _b !== void 0 ? _b : [])[1])).slice(0, 15);
         let newTitles = (JSON.parse(((_c = data.match(/vm.NewSeriesJSON = (.*);/)) !== null && _c !== void 0 ? _c : [])[1])).slice(0, 15);
         let recommended = JSON.parse(((_d = data.match(/vm.RecommendationJSON = (.*);/)) !== null && _d !== void 0 ? _d : [])[1]);
+        let imgSource = ((_f = (_e = $('.ImageHolder').html()) === null || _e === void 0 ? void 0 : _e.match(/ng-src="(.*)\//)) !== null && _f !== void 0 ? _f : [])[1];
+        if (imgSource !== ML_IMAGE_DOMAIN)
+            ML_IMAGE_DOMAIN = imgSource;
         let hotManga = [];
         hot.forEach((elem) => {
             let id = elem.IndexName;
