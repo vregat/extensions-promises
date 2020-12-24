@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults } from "paperback-extensions-common"
 
 const READCOMICSONLINE_DOMAIN = 'https://readcomicsonline.ru'
 
@@ -7,7 +7,7 @@ export class ReadComicsOnline extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '0.1.2' }
+  get version(): string { return '0.2.4' }
   get name(): string { return 'ReadComicsOnline' }
   get description(): string { return 'Extension that pulls western comics from ReadComicsOnline.ru' }
   get author(): string { return 'Conrad Weiser' }
@@ -15,6 +15,10 @@ export class ReadComicsOnline extends Source {
   get icon(): string { return "logo.png" } // The website has SVG versions, I had to find one off of a different source
   get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${READCOMICSONLINE_DOMAIN}/comic/${mangaId}`}
+  get websiteBaseURL(): string { return READCOMICSONLINE_DOMAIN }
+  get rateLimit(): Number {
+    return 2
+  }
 
 
   getMangaDetailsRequest(ids: string[]): Request[] {
@@ -178,10 +182,9 @@ export class ReadComicsOnline extends Source {
   }
 
 
-  searchRequest(query: SearchRequest, page: number): Request | null {
+  searchRequest(query: SearchRequest): Request | null {
 
-    query.title = query.title?.replace(" ", "+")
-    let metadata = {searchQuery: query.title}
+    let metadata = {searchQuery: query.title?.toLowerCase()}
 
     return createRequestObject({
       url: `${READCOMICSONLINE_DOMAIN}/search`,
@@ -191,7 +194,7 @@ export class ReadComicsOnline extends Source {
     })
   }
 
-  search(data: any, metadata: any): MangaTile[] {
+  search(data: any, metadata: any): PagedResults {
 
     let mangaTiles: MangaTile[] = []
 
@@ -200,7 +203,7 @@ export class ReadComicsOnline extends Source {
     // Parse the json context
     for(let entry of obj.suggestions) {
         // Is this relevent to the query?
-        if(entry.value.includes(metadata.searchQuery)) {
+        if(entry.value.toLowerCase().includes(metadata.searchQuery)) {
             let image = `${READCOMICSONLINE_DOMAIN}/uploads/manga/${entry.data}/cover/cover_250x350.jpg`
 
             mangaTiles.push(createMangaTile({
@@ -211,14 +214,17 @@ export class ReadComicsOnline extends Source {
         }
     }
 
-    return mangaTiles
+    // Because we're reading JSON, there will never be another page to search through
+    return createPagedResults({
+      results: mangaTiles
+    })
 
   }
 
   getHomePageSectionRequest(): HomeSectionRequest[] | null {
 
     let request = createRequestObject({ url: `${READCOMICSONLINE_DOMAIN}`, method: 'GET', })
-    let homeSection = createHomeSection({ id: 'latest_comics', title: 'LATEST COMICS', view_more: false })
+    let homeSection = createHomeSection({ id: 'latest_comics', title: 'LATEST COMICS' })
     return [createHomeSectionRequest({ request: request, sections: [homeSection] })]
 
   }

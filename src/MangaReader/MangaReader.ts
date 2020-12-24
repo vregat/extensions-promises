@@ -1,4 +1,4 @@
-import { Source, Manga, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, Request, MangaUpdates, MangaStatus, LanguageCode } from "paperback-extensions-common"
+import { Source, Manga, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, Request, MangaUpdates, MangaStatus, LanguageCode, PagedResults } from "paperback-extensions-common"
 
 export class MangaReader extends Source {
 
@@ -6,20 +6,30 @@ export class MangaReader extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.0.0' }
+  get version(): string { return '1.1.3' }
   get name(): string { return 'MangaReader' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Syn' }
   get authorWebsite(): string { return 'https://github.com/Synstress' }
   get description(): string { return 'Extension that pulls manga from MangReader, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
+  get websiteBaseURL(): string { return this.mainUrl }
 
   get rateLimit() { return 100 }
+
+  readonly mainUrl = "https://www.mangareader.net"
+
+  getCloudflareBypassRequest(){
+    return createRequestObject({
+      url: this.mainUrl,
+      method: "GET"
+    })
+  }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     return [createRequestObject({
       metadata: ids[0],
-      url: "https://mangareader.net/" + ids[0],
+      url: this.mainUrl + "/" + ids[0],
       method: 'GET'
     })]
   }
@@ -43,7 +53,7 @@ export class MangaReader extends Source {
   getChaptersRequest(mangaId: string): Request {
     return createRequestObject({
       metadata: mangaId,
-      url: "https://mangareader.net/" + mangaId,
+      url: this.mainUrl + "/" + mangaId,
       method: 'GET'
     })
   }
@@ -70,13 +80,13 @@ export class MangaReader extends Source {
     return chapterList
   }
 
-  searchRequest(query: SearchRequest, page: number): Request | null {
+  searchRequest(query: SearchRequest): Request | null {
     return createRequestObject({
-      url: "https://www.mangareader.net/search/?nsearch=&msearch=" + encodeURI(query.title ?? ""),
+      url: this.mainUrl + "/search/?nsearch=&msearch=" + encodeURI(query.title ?? ""),
       method: "GET"
     })
   }
-  search(data: any, metadata: any): MangaTile[] | null {
+  search(data: any, metadata: any): PagedResults | null {
     let $ = this.cheerio.load(data)
     let searchResults = $("#ares table tr").toArray()
 
@@ -89,17 +99,20 @@ export class MangaReader extends Source {
       }))
     }
 
-    return mangas
+    //TODO: This source did not include multi-page searching origionally, it still will need added for advanced search methods
+    return createPagedResults({
+      results: mangas
+    })
   }
 
   getChapterDetailsRequest(mangaId: string, chapId: string): Request {
     return createRequestObject({
-      url: "https://mangareader.net/" + mangaId + "/" + chapId,
+      url: this.mainUrl + "/" + mangaId + "/" + chapId,
       method: 'GET',
       cookies: [createCookie({
         name: "drs",
         value: "2",
-        domain: "https://www.mangareader.net"
+        domain: this.mainUrl + ""
       })],
       metadata: {
         chapId: chapId,

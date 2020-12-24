@@ -1,9 +1,10 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates, PagedResults, SourceTag, TagType } from "paperback-extensions-common"
 
 const ML_DOMAIN = 'https://manga4life.com'
 let ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover'
 
 export class MangaLife extends Source {
+
   constructor(cheerio: CheerioAPI) {
     super(cheerio)
   }
@@ -16,6 +17,17 @@ export class MangaLife extends Source {
   get description(): string { return 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${ML_DOMAIN}/manga/${mangaId}` }
+  get rateLimit(): Number { return 2 }
+  get websiteBaseURL(): string { return ML_DOMAIN }
+
+  get sourceTags(): SourceTag[] {
+    return [
+      {
+        text: "Notifications",
+        type: TagType.GREEN
+      }
+    ]
+  }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -34,19 +46,17 @@ export class MangaLife extends Source {
   getMangaDetails(data: any, metadata: any): Manga[] {
     let manga: Manga[] = []
     let $ = this.cheerio.load(data)
-    
-    let json = $('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? ''
 
-    // MangaLife doesn't escape quotes in their alternate title section, which breaks content which has such.
-    // How this works on their website is an absolute mystery to me.
-    let altTitleMatch = json.match(/"alternateName": \["(.*?)"\]/)
-    if(altTitleMatch != null && altTitleMatch[1] != null) {
-      let quoteRemovedVal = altTitleMatch[1].replace(/"/g, "")
-      json = json.replace(altTitleMatch[1], quoteRemovedVal)
-    }
-
-    let parsedJson = JSON.parse(json)
-    let entity = parsedJson.mainEntity
+    // this is only because they added some really jank alternate titles and didn't propely string escape
+    let jsonWithoutAlternateName = ($('[type=application\\/ld\\+json]')
+      .html()?.replace(/\t*\n*/g, '') ?? '')
+      .replace(/"alternateName".*?],/g, '');
+    let alternateNames = (/"alternateName": \[(.*?)\]/.exec($('[type=application\\/ld\\+json]')
+      .html()?.replace(/\t*\n*/g, '') ?? '') ?? [])[1]
+      .replace(/\"/g, '')
+      .split(',')
+    let json = JSON.parse(jsonWithoutAlternateName)
+    let entity = json.mainEntity
     let info = $('.row')
     let imgSource = ($('.ImgHolder').html()?.match(/src="(.*)\//) ?? [])[1];
     if (imgSource !== ML_IMAGE_DOMAIN)
@@ -55,7 +65,7 @@ export class MangaLife extends Source {
     let title = $('h1', info).first().text() ?? ''
     let titles = [title]
     let author = entity.author[0]
-    titles = titles.concat(entity.alternateName)
+    titles = titles.concat(alternateNames)
     let follows = Number(($.root().html()?.match(/vm.NumSubs = (.*);/) ?? [])[1])
 
     let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
@@ -187,7 +197,7 @@ export class MangaLife extends Source {
     return chapterDetails
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
+  filterUpdatedMangaRequest(ids: any, time: Date): Request {
     let metadata = { 'ids': ids, 'referenceTime': time }
     return createRequestObject({
       url: `${ML_DOMAIN}/`,
@@ -202,8 +212,7 @@ export class MangaLife extends Source {
   filterUpdatedManga(data: any, metadata: any): MangaUpdates {
     let $ = this.cheerio.load(data)
     let returnObject: MangaUpdates = {
-      'ids': [],
-      'moreResults': false
+      'ids': []
     }
     let updateManga = JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
     updateManga.forEach((elem: any) => {
@@ -213,8 +222,7 @@ export class MangaLife extends Source {
     return createMangaUpdates(returnObject)
   }
 
-  searchRequest(query: SearchRequest, page: number): Request | null {
-    if (page > 1) return null; // Manga4Life retrieves all manga with one request
+  searchRequest(query: SearchRequest): Request | null {
     let status = ""
     switch (query.status) {
       case 0: status = 'Completed'; break
@@ -248,10 +256,14 @@ export class MangaLife extends Source {
     })
   }
 
-  search(data: any, metadata: any): MangaTile[] | null {
+  search(data: any, metadata: any): PagedResults | null {
     let $ = this.cheerio.load(data)
     let mangaTiles: MangaTile[] = []
     let directory = JSON.parse((data.match(/vm.Directory = (.*);/) ?? [])[1])
+
+    let imgSource = ($('.img-fluid').first().attr('src')?.match(/(.*cover)/) ?? [])[1];
+    if (imgSource !== ML_IMAGE_DOMAIN)
+      ML_IMAGE_DOMAIN = imgSource;
 
     directory.forEach((elem: any) => {
       let mKeyword: boolean = typeof metadata.keyword !== 'undefined' ? false : true
@@ -291,7 +303,10 @@ export class MangaLife extends Source {
       }
     })
 
-    return mangaTiles
+    // This source parses JSON and never requires additional pages
+    return createPagedResults({
+      results: mangaTiles
+    })
   }
 
   getTagsRequest(): Request | null {
@@ -315,12 +330,22 @@ export class MangaLife extends Source {
     return tagSections
   }
 
+  constructGetViewMoreRequest(key: string) {
+    return createRequestObject({
+      url: `${ML_DOMAIN}`,
+      method: 'GET',
+      metadata: {
+        key
+      }
+    })
+  }
+
   getHomePageSectionRequest(): HomeSectionRequest[] | null {
     let request = createRequestObject({ url: `${ML_DOMAIN}`, method: 'GET' })
-    let section1 = createHomeSection({ id: 'hot_update', title: 'HOT UPDATES' })
-    let section2 = createHomeSection({ id: 'latest', title: 'LATEST UPDATES' })
-    let section3 = createHomeSection({ id: 'new_titles', title: 'NEW TITLES' })
-    let section4 = createHomeSection({ id: 'recommended', title: 'RECOMMENDATIONS' })
+    let section1 = createHomeSection({ id: 'hot_update', title: 'HOT UPDATES', view_more: this.constructGetViewMoreRequest('hot_update') })
+    let section2 = createHomeSection({ id: 'latest', title: 'LATEST UPDATES', view_more: this.constructGetViewMoreRequest('latest') })
+    let section3 = createHomeSection({ id: 'new_titles', title: 'NEW TITLES', view_more: this.constructGetViewMoreRequest('new_titles') })
+    let section4 = createHomeSection({ id: 'recommended', title: 'RECOMMENDATIONS', view_more: this.constructGetViewMoreRequest('recommended') })
 
     return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3, section4] })]
   }
@@ -405,14 +430,14 @@ export class MangaLife extends Source {
   }
 
 
-  getViewMoreRequest(key: string, page: number): Request | null {
+  getViewMoreRequest(key: string): Request | null {
     return createRequestObject({
       url: ML_DOMAIN,
       method: 'GET'
     })
   }
 
-  getViewMoreItems(data: any, key: string): MangaTile[] | null {
+  getViewMoreItems(data: any, key: string): PagedResults | null {
     let manga: MangaTile[] = []
     if (key == 'hot_update') {
       let hot = JSON.parse((data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])
@@ -450,6 +475,24 @@ export class MangaLife extends Source {
         }))
       })
     }
+    else if (key == 'recommended') {
+      let latest = JSON.parse((data.match(/vm.RecommendationJSON = (.*);/) ?? [])[1])
+      latest.forEach((elem: any) => {
+        let id = elem.IndexName
+        let title = elem.SeriesName
+        let image = `${ML_IMAGE_DOMAIN}/${id}.jpg`
+        let time = (new Date(elem.Date)).toDateString()
+        time = time.slice(0, time.length - 5)
+        time = time.slice(4, time.length)
+
+        manga.push(createMangaTile({
+          id: id,
+          image: image,
+          title: createIconText({ text: title }),
+          secondaryText: createIconText({ text: time, icon: 'clock.fill' })
+        }))
+      })
+    }
     else if (key == 'new_titles') {
       let newTitles = JSON.parse((data.match(/vm.NewSeriesJSON = (.*);/) ?? [])[1])
       newTitles.forEach((elem: any) => {
@@ -468,6 +511,10 @@ export class MangaLife extends Source {
       })
     }
     else return null
-    return manga
+
+    // This source parses JSON and never requires additional pages
+    return createPagedResults({
+      results: manga
+    })
   }
 }

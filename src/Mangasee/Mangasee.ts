@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates, PagedResults, SourceTag, TagType } from "paperback-extensions-common"
 
 const MS_DOMAIN = 'https://mangasee123.com'
 let MS_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover'
@@ -8,7 +8,7 @@ export class Mangasee extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.1.4' }
+  get version(): string { return '1.3.0' }
   get name(): string { return 'Mangasee' }
   get icon(): string { return 'icon.png' }
   get author(): string { return 'Daniel Kovalevich' }
@@ -16,6 +16,19 @@ export class Mangasee extends Source {
   get description(): string { return 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${MS_DOMAIN}/manga/${mangaId}` }
+  get websiteBaseURL(): string { return MS_DOMAIN }
+  get rateLimit(): Number {
+    return 2
+  }
+
+  get sourceTags(): SourceTag[] {
+    return [
+      {
+        text: "Notifications",
+        type: TagType.GREEN
+      }
+    ]
+  }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -34,18 +47,8 @@ export class Mangasee extends Source {
   getMangaDetails(data: any, metadata: any): Manga[] {
     let manga: Manga[] = []
     let $ = this.cheerio.load(data)
-    let json = $('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? ''
-
-    // MangaLife doesn't escape quotes in their alternate title section, which breaks content which has such.
-    // How this works on their website is an absolute mystery to me.
-    let altTitleMatch = json.match(/"alternateName": \["(.*?)"\]/)
-    if(altTitleMatch != null && altTitleMatch[1] != null) {
-      let quoteRemovedVal = altTitleMatch[1].replace(/"/g, "")
-      json = json.replace(altTitleMatch[1], quoteRemovedVal)
-    }
-
-    let parsedJson = JSON.parse(json)
-    let entity = parsedJson.mainEntity
+    let json = JSON.parse($('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? '')
+    let entity = json.mainEntity
     let info = $('.row')
     let imgSource = ($('.ImgHolder').html()?.match(/src="(.*)\//) ?? [])[1];
     if (imgSource !== MS_IMAGE_DOMAIN)
@@ -137,6 +140,7 @@ export class Mangasee extends Source {
         mangaId: metadata.id,
         name: name,
         chapNum: chNum,
+        volume: vol,
         langCode: LanguageCode.ENGLISH,
         time: isNaN(time) ? new Date() : new Date(time)
       }))
@@ -183,7 +187,7 @@ export class Mangasee extends Source {
     return chapterDetails
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
+  filterUpdatedMangaRequest(ids: any, time: Date): Request {
     let metadata = { 'ids': ids, 'referenceTime': time }
     return createRequestObject({
       url: `${MS_DOMAIN}/`,
@@ -197,9 +201,10 @@ export class Mangasee extends Source {
 
   filterUpdatedManga(data: any, metadata: any): MangaUpdates {
     let $ = this.cheerio.load(data)
+
+    // Because this source parses JSON, there is never any additional pages to parse
     let returnObject: MangaUpdates = {
-      'ids': [],
-      'moreResults': false
+      'ids': []
     }
     let updateManga = JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
     updateManga.forEach((elem: any) => {
@@ -209,7 +214,7 @@ export class Mangasee extends Source {
     return createMangaUpdates(returnObject)
   }
 
-  searchRequest(query: SearchRequest, page: number): Request | null {
+  searchRequest(query: SearchRequest): Request | null {
     let status = ""
     switch (query.status) {
       case 0: status = 'Completed'; break
@@ -243,10 +248,14 @@ export class Mangasee extends Source {
     })
   }
 
-  search(data: any, metadata: any): MangaTile[] | null {
+  search(data: any, metadata: any): PagedResults | null {
     let $ = this.cheerio.load(data)
     let mangaTiles: MangaTile[] = []
     let directory = JSON.parse((data.match(/vm.Directory = (.*);/) ?? [])[1])
+
+    let imgSource = ($('.img-fluid').first().attr('src')?.match(/(.*cover)/) ?? [])[1];
+    if (imgSource !== MS_IMAGE_DOMAIN)
+      MS_IMAGE_DOMAIN = imgSource;
 
     directory.forEach((elem: any) => {
       let mKeyword: boolean = typeof metadata.keyword !== 'undefined' ? false : true
@@ -286,7 +295,10 @@ export class Mangasee extends Source {
       }
     })
 
-    return mangaTiles
+    // Because this parses JSON, there is never any additional search requests to create
+    return createPagedResults({
+      results: mangaTiles
+    })
   }
 
   getTagsRequest(): Request | null {
@@ -400,14 +412,14 @@ export class Mangasee extends Source {
   }
 
 
-  getViewMoreRequest(key: string, page: number): Request | null {
+  getViewMoreRequest(key: string): Request | null {
     return createRequestObject({
       url: MS_DOMAIN,
       method: 'GET'
     })
   }
 
-  getViewMoreItems(data: any, key: string): MangaTile[] | null {
+  getViewMoreItems(data: any, key: string): PagedResults | null {
     let manga: MangaTile[] = []
     if (key == 'hot_update') {
       let hot = JSON.parse((data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])
@@ -463,6 +475,10 @@ export class Mangasee extends Source {
       })
     }
     else return null
-    return manga
+
+    // Because this parses JSON, there is never a need for additional requests
+    return createPagedResults({
+      results: manga
+    })
   }
 }

@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, SourceTag, TagType, MangaUpdates } from "paperback-extensions-common"
 
 const MN_DOMAIN = 'https://manganelo.com'
 
@@ -7,7 +7,7 @@ export class Manganelo extends Source {
     super(cheerio)
   }
 
-  get version(): string { return '1.1.6' }
+  get version(): string { return '1.3.6' }
 
   get name(): string { return 'Manganelo' }
   get icon(): string { return 'icon.png' }
@@ -16,7 +16,19 @@ export class Manganelo extends Source {
   get description(): string { return 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching' }
   get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${MN_DOMAIN}/manga/${mangaId}` }
+  get websiteBaseURL(): string { return MN_DOMAIN }
+  get rateLimit(): Number {
+    return 2
+  }
 
+  get sourceTags(): SourceTag[] {
+    return [
+      {
+        text: "Notifications",
+        type: TagType.GREEN
+      }
+    ]
+  }
 
   getMangaDetailsRequest(ids: string[]): Request[] {
     let requests: Request[] = []
@@ -132,7 +144,7 @@ export class Manganelo extends Source {
     for (let chapter of $('li', allChapters).toArray()) {
       let id: string = $('a', chapter).attr('href')?.split('/').pop() ?? ''
       let name: string = $('a', chapter).text() ?? ''
-      let chNum: number = Number((/Chapter (\d*)/g.exec(name) ?? [])[1] ?? '')
+      let chNum: number = Number((/Chapter ([0-9]\d*(\.\d+)?)/g.exec(name) ?? [])[1] ?? '')
       let time: Date = new Date($('.chapter-time', chapter).attr('title') ?? '')
       chapters.push(createChapter({
         id: id,
@@ -177,8 +189,8 @@ export class Manganelo extends Source {
     return chapterDetails
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date, page: number): Request {
-    let metadata = { 'ids': ids, 'referenceTime': time }
+  filterUpdatedMangaRequest(ids: any, time: Date): Request {
+    let metadata = { 'ids': ids, 'referenceTime': time, page: 1 }
     return createRequestObject({
       url: `${MN_DOMAIN}/genre-all/`,
       method: 'GET',
@@ -186,7 +198,7 @@ export class Manganelo extends Source {
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
-      param: `${page}`
+      param: `${metadata.page}`
     })
   }
 
@@ -194,10 +206,11 @@ export class Manganelo extends Source {
     let $ = this.cheerio.load(data)
 
     let returnObject: MangaUpdates = {
-      'ids': [],
-      'moreResults': true
+      ids: [],
+      nextPage: undefined
     }
 
+    let passedReferenceTime = false;
     let panel = $('.panel-content-genres')
     for (let item of $('.content-genres-item', panel).toArray()) {
       let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
@@ -208,25 +221,61 @@ export class Manganelo extends Source {
         time = new Date(Date.now() - 60000)
       }
 
-      if (time > metadata.referenceTime) {
+      passedReferenceTime = time <= metadata.referenceTime;
+      if (!passedReferenceTime) {
         if (metadata.ids.includes(id)) {
           returnObject.ids.push(id)
         }
       }
-      else {
-        returnObject.moreResults = false
-        return returnObject
-      }
+      else break;
+    }
+
+    if (!passedReferenceTime) {
+      metadata.page++;
+      returnObject.nextPage = createRequestObject({
+        url: `${MN_DOMAIN}/genre-all/`,
+        method: 'GET',
+        metadata: metadata,
+        headers: {
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        param: `${metadata.page}`
+      })
     }
 
     return createMangaUpdates(returnObject)
   }
 
+  private constructGetViewMoreRequest(key: string, page: number) {
+    let metadata = { page: page }
+    let param = ''
+    switch (key) {
+      case 'latest_updates': {
+        param = `/genre-all/${metadata.page}`
+        break
+      }
+      case 'new_manga': {
+        param = `/genre-all/${metadata.page}?type=newest`
+        break
+      }
+      default: return undefined
+    }
+
+    return createRequestObject({
+      url: `${MN_DOMAIN}`,
+      method: 'GET',
+      param: param,
+      metadata: {
+        key, page
+      }
+    })
+  }
+
   getHomePageSectionRequest(): HomeSectionRequest[] | null {
     let request = createRequestObject({ url: `${MN_DOMAIN}`, method: 'GET', })
     let section1 = createHomeSection({ id: 'top_week', title: 'TOP OF THE WEEK' })
-    let section2 = createHomeSection({ id: 'latest_updates', title: 'LATEST UPDATES' })
-    let section3 = createHomeSection({ id: 'new_manga', title: 'NEW MANGA' })
+    let section2 = createHomeSection({ id: 'latest_updates', title: 'LATEST UPDATES', view_more: this.constructGetViewMoreRequest('latest_updates', 1) })
+    let section3 = createHomeSection({ id: 'new_manga', title: 'NEW MANGA', view_more: this.constructGetViewMoreRequest('new_manga', 1) })
     return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3] })]
   }
 
@@ -279,7 +328,8 @@ export class Manganelo extends Source {
     return sections
   }
 
-  searchRequest(query: SearchRequest, page: number): Request {
+  searchRequest(query: SearchRequest): Request | null {
+    let metadata = { page: 1, search: '' }
     let genres = (query.includeGenre ?? []).concat(query.includeDemographic ?? []).join('_')
     let excluded = (query.excludeGenre ?? []).concat(query.excludeDemographic ?? []).join('_')
     let status = ""
@@ -293,12 +343,12 @@ export class Manganelo extends Source {
     if (query.author)
       keyword += (query.author ?? '').replace(/ /g, '_')
     let search: string = `s=all&keyw=${keyword}`
-    search += `&g_i=${genres}&g_e=${excluded}&page=${page}`
+    search += `&g_i=${genres}&g_e=${excluded}`
     if (status) {
       search += `&sts=${status}`
     }
 
-    let metadata = { 'search': search }
+    metadata.search = search
     return createRequestObject({
       url: `${MN_DOMAIN}/advanced_search?`,
       method: 'GET',
@@ -306,11 +356,11 @@ export class Manganelo extends Source {
       headers: {
         "content-type": "application/x-www-form-urlencoded",
       },
-      param: `${search}`
+      param: `${search}&page=${metadata.page}`
     })
   }
 
-  search(data: any, metadata: any): MangaTile[] | null {
+  search(data: any, metadata: any): PagedResults | null {
     let $ = this.cheerio.load(data)
     let panel = $('.panel-content-genres')
     let manga: MangaTile[] = []
@@ -332,7 +382,21 @@ export class Manganelo extends Source {
       }))
     }
 
-    return manga
+    metadata.page = metadata.page++;
+    let nextPage = this.isLastPage($) ? undefined : {
+      url: `${MN_DOMAIN}/advanced_search?`,
+      method: 'GET',
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      param: `${metadata.search}&page=${metadata.page}`
+    }
+
+    return createPagedResults({
+      results: manga,
+      nextPage: nextPage
+    });
   }
 
   getTagsRequest(): Request | null {
@@ -361,28 +425,30 @@ export class Manganelo extends Source {
     return [genres]
   }
 
-  getViewMoreRequest(key: string, page: number): Request | null {
+  getViewMoreRequest(key: string): Request | undefined {
+    let metadata = { page: 1 }
     let param = ''
     switch (key) {
       case 'latest_updates': {
-        param = `/genre-all/${page}`
+        param = `/genre-all/${metadata.page}`
         break
       }
       case 'new_manga': {
-        param = `/genre-all/${page}?type=newest`
+        param = `/genre-all/${metadata.page}?type=newest`
         break
       }
-      default: return null
+      default: return undefined
     }
 
     return createRequestObject({
       url: `${MN_DOMAIN}`,
       method: 'GET',
-      param: param
+      param: param,
+      metadata: metadata
     })
   }
 
-  getViewMoreItems(data: any, key: string): MangaTile[] | null {
+  getViewMoreItems(data: any, key: string, metadata: any): PagedResults | null {
     let $ = this.cheerio.load(data)
     let manga: MangaTile[] = []
     if (key == 'latest_updates' || key == 'new_manga') {
@@ -408,7 +474,38 @@ export class Manganelo extends Source {
       }
     }
     else return null
-    return manga
+
+    let nextPage: Request | undefined = undefined
+    console.log(!this.isLastPage($));
+    if (!this.isLastPage($)) {
+      metadata.page = metadata.page++;
+      let param = ''
+      switch (key) {
+        case 'latest_updates': {
+          param = `/genre-all/${metadata.page}`
+          break
+        }
+        case 'new_manga': {
+          param = `/genre-all/${metadata.page}?type=newest`
+          break
+        }
+        default: return null
+      }
+      nextPage = {
+        url: `${MN_DOMAIN}`,
+        method: 'GET',
+        param: param,
+        metadata: metadata
+      }
+      console.log(nextPage.url);
+      console.log(nextPage.method);
+      console.log(nextPage.param);
+    }
+
+    return createPagedResults({
+      results: manga,
+      nextPage: nextPage
+    });
   }
 
   /**
@@ -431,5 +528,17 @@ export class Manganelo extends Source {
       cookies: request.cookies,
       incognito: request.incognito
     })
+  }
+
+  private isLastPage($: CheerioStatic): boolean {
+    let current = $('.page-select').text();
+    let total = $('.page-last').text();
+
+    if (current) {
+      total = (/(\d+)/g.exec(total) ?? [''])[0]
+      return (+total) === (+current)
+    }
+
+    return true
   }
 }
