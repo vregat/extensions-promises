@@ -26,7 +26,7 @@ export class Guya extends Source {
   }
 
   get version(): string {
-    return "1.0.3";
+    return "1.1.0";
   }
   get name(): string {
     return "Guya";
@@ -55,23 +55,20 @@ export class Guya extends Source {
 
   get websiteBaseURL(): string { return GUYA_API_BASE }
 
-  getMangaDetailsRequest(ids: string[]): Request[] {
-    return [
-      createRequestObject({
-        metadata: { ids },
-        url: GUYA_ALL_SERIES_API,
-        method: "GET",
-      }),
-    ];
-  }
+  async getMangaDetails(mangaId: string): Promise<Manga> {
 
-  getMangaDetails(data: any, metadata: any): Manga[] {
-    let result = typeof data === "string" ? JSON.parse(data) : data;
+    let data = await createRequestObject({
+      metadata: { mangaId },
+      url: GUYA_ALL_SERIES_API,
+      method: "GET",
+    }).perform()
+
+    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
 
     let mangas = [];
     for (let series in result) {
       let seriesDetails = result[series];
-      if (metadata.ids.includes(seriesDetails["slug"])) {
+      if (mangaId.includes(seriesDetails["slug"])) {
         mangas.push(
           createManga({
             id: seriesDetails["slug"],
@@ -87,19 +84,19 @@ export class Guya extends Source {
       }
     }
 
-    return mangas;
+    return mangas[0];
   }
 
-  getChaptersRequest(mangaId: string): Request {
-    return createRequestObject({
+
+  async getChapters(mangaId: string): Promise<Chapter[]> {
+
+    let data = await createRequestObject({
       metadata: { mangaId },
       url: `${GUYA_SERIES_API_BASE}/${mangaId}/`,
       method: "GET",
-    });
-  }
+    }).perform()
 
-  getChapters(data: any, metadata: any): Chapter[] {
-    let result = typeof data === "string" ? JSON.parse(data) : data;
+    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
     let rawChapters = result["chapters"];
     let groupMap = result["groups"];
 
@@ -110,7 +107,7 @@ export class Guya extends Source {
         chapters.push(
           createChapter({
             id: `${chapter}${SPLIT_VAR}${group}`,
-            mangaId: metadata.mangaId,
+            mangaId: mangaId,
             chapNum: Number(chapter),
             langCode: LanguageCode.ENGLISH,
             name: chapterMetadata["title"],
@@ -126,43 +123,39 @@ export class Guya extends Source {
     return chapters;
   }
 
-  getChapterDetailsRequest(mangaId: string, chapId: string): Request {
-    return createRequestObject({
-      metadata: { mangaId, chapId },
+  async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+
+    let data = await createRequestObject({
       url: `${GUYA_SERIES_API_BASE}/${mangaId}/`,
       method: "GET",
-    });
-  }
+    }).perform()
 
-  getChapterDetails(data: any, metadata: any): ChapterDetails {
-    let result = typeof data === "string" ? JSON.parse(data) : data;
+    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
     let rawChapters = result["chapters"];
-    let [chapter, group] = metadata["chapId"].split(SPLIT_VAR);
+    let [chapter, group] = chapterId.split(SPLIT_VAR);
     return createChapterDetails({
-      id: metadata["chapId"],
+      id: chapterId,
       longStrip: false,
-      mangaId: metadata["mangaId"],
+      mangaId: mangaId,
       pages: rawChapters[chapter]["groups"][group].map(
         (page: string) =>
-          `${GUYA_API_BASE}/media/manga/${metadata["mangaId"]}/chapters/${rawChapters[chapter]["folder"]}/${group}/${page}`
+          `${GUYA_API_BASE}/media/manga/${mangaId}/chapters/${rawChapters[chapter]["folder"]}/${group}/${page}`
       ),
     });
   }
 
-  searchRequest(query: SearchRequest): Request | null {
-    return createRequestObject({
-      metadata: { query: query.title },
+  async searchRequest(searchQuery: SearchRequest, metadata: any): Promise<PagedResults> {
+
+    let data = await createRequestObject({
       url: GUYA_ALL_SERIES_API,
       method: "GET",
-    });
-  }
+    }).perform()
 
-  search(data: any, metadata: any): PagedResults | null {
-    let result = typeof data === "string" ? JSON.parse(data) : data;
-    let query = metadata["query"].toLowerCase();
+    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
+    let query = searchQuery.title ?? '';
 
     let filteredResults = Object.keys(result).filter((e) =>
-      e.toLowerCase().includes(query)
+      e.toLowerCase().includes(query.toLowerCase())
     );
 
     let tiles =  filteredResults.map((series) => {
@@ -179,71 +172,57 @@ export class Guya extends Source {
     })
   }
 
-  getHomePageSectionRequest(): HomeSectionRequest[] | null {
-    return [
-      createHomeSectionRequest({
-        request: createRequestObject({
-          url: GUYA_ALL_SERIES_API,
-          method: "GET",
-        }),
-        sections: [createHomeSection({ id: "all_guya", title: "ALL GUYA" })],
-      }),
-    ];
-  }
+  async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
 
-  getHomePageSections(
-    data: any,
-    sections: HomeSection[]
-  ): HomeSection[] | null {
-    let result = typeof data === "string" ? JSON.parse(data) : data;
+    // Send the empty homesection back so the app can preload the section
+    var homeSection = createHomeSection({id: "all_guya", title: "ALL GUYA"})
+    sectionCallback(homeSection)
 
-    return sections.map((section) => {
-      let mangas = [];
-      for (let series in result) {
-        let seriesDetails = result[series];
-        mangas.push(
-          createMangaTile({
-            id: seriesDetails["slug"],
-            image: `${GUYA_API_BASE}/${seriesDetails["cover"]}`,
-            title: createIconText({ text: series }),
-          })
-        );
-      }
-      section.items = mangas;
-      return section;
-    });
-  }
-
-  filterUpdatedMangaRequest(
-    ids: string[],
-    time: Date
-  ): Request | null {
-    let metadata = { ids: ids, referenceTime: time };
-
-    return createRequestObject({
-      metadata,
+    let data = await createRequestObject({
       url: GUYA_ALL_SERIES_API,
-      method: "GET",
-    });
-  }
+      method: "GET"
+    }).perform()
 
-  filterUpdatedManga(data: any, metadata: any): MangaUpdates {
     let result = typeof data === "string" ? JSON.parse(data) : data;
 
-    let ids = [];
-    let moreResults = false;
+    let mangas = [];
+    for (let series in result) {
+      let seriesDetails = result[series];
+      mangas.push(
+        createMangaTile({
+          id: seriesDetails["slug"],
+          image: `${GUYA_API_BASE}/${seriesDetails["cover"]}`,
+          title: createIconText({ text: series }),
+        })
+      );
+    }
+    homeSection.items = mangas;
+    
+    sectionCallback(homeSection)
+  }
+
+  async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
+
+    let data = await createRequestObject({
+      url: GUYA_ALL_SERIES_API,
+      method: "GET"
+    }).perform()
+
+    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
+
+    let foundIds: string[] = [];
 
     for (let series in result) {
       let seriesDetails = result[series];
       let seriesUpdated = new Date(seriesDetails["last_updated"] * 1000);
       if (
-        seriesUpdated >= metadata.referenceTime &&
-        metadata.ids.includes(series)
+        seriesUpdated >= time &&
+        ids.includes(series)
       ) {
-        ids.push(series);
+        foundIds.push(series);
       }
     }
-    return createMangaUpdates({ ids });
+    mangaUpdatesFoundCallback(createMangaUpdates({ids: foundIds}))
   }
 
   getMangaShareUrl(mangaId: string) {

@@ -18,12 +18,11 @@ describe('ReadComicsOnline Tests', function () {
     var mangaId = "batman-the-adventures-continue-2020";
 
     it("Retrieve Manga Details", async () => {
-        let details = await wrapper.getMangaDetails(source, [mangaId]);
-        expect(details, "No results found with test-defined ID [" + mangaId + "]").to.be.an('array');
-        expect(details).to.not.have.lengthOf(0, "Empty response from server");
+        let details = await wrapper.getMangaDetails(source, mangaId);
+        expect(details, "No results found with test-defined ID [" + mangaId + "]").to.exist;
 
         // Validate that the fields are filled
-        let data = details[0];
+        let data = details;
         expect(data.id, "Missing ID").to.be.not.empty;
         expect(data.image, "Missing Image").to.be.not.empty;
         expect(data.status, "Missing Status").to.exist;
@@ -79,9 +78,10 @@ describe('ReadComicsOnline Tests', function () {
     it("Testing Home-Page aquisition", async() => {
         let homePages = await wrapper.getHomePageSections(source)
         expect(homePages, "No response from server").to.exist
+        expect(homePages[0].items, "No items present").to.exist
 
         // Ensure that we can resolve each of the images for the home-page, since these images are generated and not scraped
-        for(let obj of homePages[0].items) {
+        for(let obj of homePages[0].items ?? []) {
             let axios = require('axios')
             let imageResult = await axios.get(obj.image)
             expect(imageResult.status).to.equal(200)    // Good resolve!

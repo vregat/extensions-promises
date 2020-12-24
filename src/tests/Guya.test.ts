@@ -13,15 +13,14 @@ describe("Guya Tests", function () {
   var mangaId = "Kaguya-Wants-To-Be-Confessed-To";
 
   it("Retrieve Manga Details", async () => {
-    let details = await wrapper.getMangaDetails(source, [mangaId]);
+    let details = await wrapper.getMangaDetails(source, mangaId);
     expect(
       details,
       "No results found with test-defined ID [" + mangaId + "]"
-    ).to.be.an("array");
-    expect(details).to.not.have.lengthOf(0, "Empty response from server");
+    ).to.exist;
 
     // Validate that the fields are filled
-    let data = details[0];
+    let data = details;
     expect(data.id, "Missing ID").to.be.not.empty;
     expect(data.image, "Missing Image").to.be.not.empty;
     expect(data.status, "Missing Status").to.exist;
@@ -61,8 +60,8 @@ describe("Guya Tests", function () {
       title: "Kaguya",
     });
 
-    let search = await wrapper.search(source, testSearch, 1);
-    let result = search[0];
+    let search = await wrapper.searchRequest(source, testSearch);
+    let result = search.results[0];
 
     expect(result, "No response from server").to.exist;
 
