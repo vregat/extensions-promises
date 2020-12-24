@@ -15,15 +15,14 @@ describe('Manga4Life Tests', function () {
      * Try to choose a manga which is updated frequently, so that the historical checking test can 
      * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
      */
-    var mangaId = "Kingdom-of-Z";
+    var mangaId = "One-Piece";
 
     it("Retrieve Manga Details", async () => {
-        let details = await wrapper.getMangaDetails(source, [mangaId]);
-        expect(details, "No results found with test-defined ID [" + mangaId + "]").to.be.an('array');
-        expect(details).to.not.have.lengthOf(0, "Empty response from server");
+        let details = await wrapper.getMangaDetails(source, mangaId);
+        expect(details, "No results found with test-defined ID [" + mangaId + "]").to.exist;
 
         // Validate that the fields are filled
-        let data = details[0];
+        let data = details;
         expect(data.id, "Missing ID").to.be.not.empty;
         expect(data.image, "Missing Image").to.be.not.empty;
         expect(data.status, "Missing Status").to.exist;
@@ -35,19 +34,17 @@ describe('Manga4Life Tests', function () {
 
     it("Get Chapters", async () => {
         let data = await wrapper.getChapters(source, mangaId);
-
         expect(data, "No chapters present for: [" + mangaId + "]").to.not.be.empty;
 
         let entry = data[0]
         expect(entry.id, "No ID present").to.not.be.empty;
         expect(entry.time, "No date present").to.exist
-        expect(entry.name, "No title available").to.not.be.empty
-        expect(entry.chapNum, "No chapter number present").to.not.be.empty
-        expect(entry.volume, "No volume data available").to.not.be.empty
+        // expect(entry.name, "No title available").to.not.be.empty
+        expect(entry.chapNum, "No chapter number present").to.exist
+        expect(entry.volume, "No volume data available").to.exist
     });
 
     it("Get Chapter Details", async () => {
-
         let chapters = await wrapper.getChapters(source, mangaId);
         let data = await wrapper.getChapterDetails(source, mangaId, chapters[0].id);
 
@@ -64,8 +61,8 @@ describe('Manga4Life Tests', function () {
             title: 'Boyfriend'
         });
 
-        let search = await wrapper.search(source, testSearch, 1);
-        let result = search[0];
+        let search = await wrapper.searchRequest(source, testSearch, 1);
+        let result = search.results[0];
 
         expect(result, "No response from server").to.exist;
 
