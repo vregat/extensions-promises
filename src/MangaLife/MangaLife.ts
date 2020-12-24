@@ -1,4 +1,4 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, MangaUpdates, PagedResults, SourceTag, TagType } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse, SourceTag, TagType, MangaUpdates, RequestObject } from "paperback-extensions-common"
 
 const ML_DOMAIN = 'https://manga4life.com'
 let ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover'
@@ -29,39 +29,28 @@ export class MangaLife extends Source {
     ]
   }
 
-  getMangaDetailsRequest(ids: string[]): Request[] {
-    let requests: Request[] = []
-    for (let id of ids) {
-      let metadata = { 'id': id }
-      requests.push(createRequestObject({
+  async getMangaDetails(mangaId: string): Promise<Manga> {
+    const data = await createRequestObject({
         url: `${ML_DOMAIN}/manga/`,
-        metadata: metadata,
         method: 'GET',
-        param: id
-      }))
-    }
-    return requests
-  }
+        param: mangaId
+      }).perform();
 
-  getMangaDetails(data: any, metadata: any): Manga[] {
-    let manga: Manga[] = []
-    let $ = this.cheerio.load(data)
+    let $ = this.cheerio.load(data.data)
+    let json = $('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? ''
 
     // this is only because they added some really jank alternate titles and didn't propely string escape
-    let jsonWithoutAlternateName = ($('[type=application\\/ld\\+json]')
-      .html()?.replace(/\t*\n*/g, '') ?? '')
-      .replace(/"alternateName".*?],/g, '');
-    let alternateNames = (/"alternateName": \[(.*?)\]/.exec($('[type=application\\/ld\\+json]')
-      .html()?.replace(/\t*\n*/g, '') ?? '') ?? [])[1]
+    let jsonWithoutAlternateName = json.replace(/"alternateName".*?],/g, '');
+    let alternateNames = (/"alternateName": \[(.*?)\]/.exec(json) ?? [])[1]
       .replace(/\"/g, '')
       .split(',')
-    let json = JSON.parse(jsonWithoutAlternateName)
-    let entity = json.mainEntity
+    let parsedJson = JSON.parse(jsonWithoutAlternateName)
+    let entity = parsedJson.mainEntity
     let info = $('.row')
     let imgSource = ($('.ImgHolder').html()?.match(/src="(.*)\//) ?? [])[1];
     if (imgSource !== ML_IMAGE_DOMAIN)
       ML_IMAGE_DOMAIN = imgSource;
-    let image = `${ML_IMAGE_DOMAIN}/${metadata.id}.jpg`
+    let image = `${ML_IMAGE_DOMAIN}/${mangaId}.jpg`
     let title = $('h1', info).first().text() ?? ''
     let titles = [title]
     let author = entity.author[0]
@@ -97,8 +86,8 @@ export class MangaLife extends Source {
       }
     }
 
-    manga.push(createManga({
-      id: metadata.id,
+    return createManga({
+      id: mangaId,
       titles: titles,
       image: image,
       rating: 0,
@@ -109,25 +98,20 @@ export class MangaLife extends Source {
       hentai: hentai,
       follows: follows,
       lastUpdate: update
-    }))
-    return manga
+    })
   }
 
-  getChaptersRequest(mangaId: string): Request {
-    let metadata = { 'id': mangaId }
-    return createRequestObject({
+  async getChapters(mangaId: string): Promise<Chapter[]> {
+    const data = await createRequestObject({
       url: `${ML_DOMAIN}/manga/`,
       method: "GET",
-      metadata: metadata,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
       param: mangaId
-    })
-  }
-
-  getChapters(data: any, metadata: any): Chapter[] {
-    let $ = this.cheerio.load(data)
+    }).perform()
+    
+    const $ = this.cheerio.load(data.data)
     let chapterJS: any[] = JSON.parse(($.root().html()?.match(/vm.Chapters = (.*);/) ?? [])[1]).reverse()
     let chapters: Chapter[] = []
     // following the url encoding that the website uses, same variables too
@@ -138,7 +122,7 @@ export class MangaLife extends Source {
       let n = parseInt(chapterCode.slice(1, -1))
       let a = Number(chapterCode[chapterCode.length - 1])
       let m = a != 0 ? '.' + a : ''
-      let id = metadata.id + '-chapter-' + n + m + index + '.html'
+      let id = mangaId + '-chapter-' + n + m + index + '.html'
       let chNum = n + a * .1
       let name = elem.ChapterName ? elem.ChapterName : '' // can be null
 
@@ -147,7 +131,7 @@ export class MangaLife extends Source {
 
       chapters.push(createChapter({
         id: id,
-        mangaId: metadata.id,
+        mangaId: mangaId,
         name: name,
         chapNum: chNum,
         volume: vol,
@@ -159,23 +143,19 @@ export class MangaLife extends Source {
     return chapters
   }
 
-  getChapterDetailsRequest(mangaId: string, chapId: string): Request {
-    let metadata = { 'mangaId': mangaId, 'chapterId': chapId, 'nextPage': false, 'page': 1 }
-    return createRequestObject({
+  async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+    const data = await createRequestObject({
       url: `${ML_DOMAIN}/read-online/`,
-      metadata: metadata,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
       method: 'GET',
-      param: chapId
-    })
-  }
+      param: chapterId
+    }).perform()
 
-  getChapterDetails(data: any, metadata: any): ChapterDetails {
     let pages: string[] = []
-    let pathName = JSON.parse((data.match(/vm.CurPathName = (.*);/) ?? [])[1])
-    let chapterInfo = JSON.parse((data.match(/vm.CurChapter = (.*);/) ?? [])[1])
+    let pathName = JSON.parse((data.data.match(/vm.CurPathName = (.*);/) ?? [])[1])
+    let chapterInfo = JSON.parse((data.data.match(/vm.CurChapter = (.*);/) ?? [])[1])
     let pageNum = Number(chapterInfo.Page)
 
     let chapter = chapterInfo.Chapter.slice(1, -1)
@@ -185,44 +165,39 @@ export class MangaLife extends Source {
     for (let i = 0; i < pageNum; i++) {
       let s = '000' + (i + 1)
       let page = s.substr(s.length - 3)
-      pages.push(`https://${pathName}/manga/${metadata.mangaId}/${chapterInfo.Directory == '' ? '' : chapterInfo.Directory + '/'}${chapterImage}-${page}.png`)
+      pages.push(`https://${pathName}/manga/${mangaId}/${chapterInfo.Directory == '' ? '' : chapterInfo.Directory + '/'}${chapterImage}-${page}.png`)
     }
 
     let chapterDetails = createChapterDetails({
-      id: metadata.chapterId,
-      mangaId: metadata.mangaId,
+      id: chapterId,
+      mangaId: mangaId,
       pages, longStrip: false
     })
 
     return chapterDetails
   }
 
-  filterUpdatedMangaRequest(ids: any, time: Date): Request {
-    let metadata = { 'ids': ids, 'referenceTime': time }
-    return createRequestObject({
+  async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
+    const data = await createRequestObject({
       url: `${ML_DOMAIN}/`,
-      metadata: metadata,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
       method: "GET"
-    })
-  }
+    }).perform()
 
-  filterUpdatedManga(data: any, metadata: any): MangaUpdates {
-    let $ = this.cheerio.load(data)
-    let returnObject: MangaUpdates = {
+    const returnObject: MangaUpdates = {
       'ids': []
     }
-    let updateManga = JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
+    const updateManga = JSON.parse((data.data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
     updateManga.forEach((elem: any) => {
-      if (metadata.ids.includes(elem.IndexName) && metadata.referenceTime < new Date(elem.Date)) returnObject.ids.push(elem.IndexName)
+      if (ids.includes(elem.IndexName) && time < new Date(elem.Date)) returnObject.ids.push(elem.IndexName)
     })
 
-    return createMangaUpdates(returnObject)
+    mangaUpdatesFoundCallback(createMangaUpdates(returnObject))
   }
 
-  searchRequest(query: SearchRequest): Request | null {
+  async searchRequest(query: SearchRequest, _metadata: any): Promise<PagedResults> {
     let status = ""
     switch (query.status) {
       case 0: status = 'Completed'; break
@@ -246,20 +221,17 @@ export class MangaLife extends Source {
       'genreNo': genreNo
     }
 
-    return createRequestObject({
-      url: `${ML_DOMAIN}/search/`,
-      metadata: metadata,
-      headers: {
-        "content-type": "application/x-www-form-urlencoded"
-      },
-      method: "GET"
-    })
-  }
-
-  search(data: any, metadata: any): PagedResults | null {
-    let $ = this.cheerio.load(data)
+    const data = await createRequestObject({
+        url: `${ML_DOMAIN}/search/`,
+        metadata: metadata,
+        headers: {
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        method: "GET"
+      }).perform()
+    const $ = this.cheerio.load(data.data)
     let mangaTiles: MangaTile[] = []
-    let directory = JSON.parse((data.match(/vm.Directory = (.*);/) ?? [])[1])
+    let directory = JSON.parse((data.data.match(/vm.Directory = (.*);/) ?? [])[1])
 
     let imgSource = ($('.img-fluid').first().attr('src')?.match(/(.*cover)/) ?? [])[1];
     if (imgSource !== ML_IMAGE_DOMAIN)
@@ -309,53 +281,44 @@ export class MangaLife extends Source {
     })
   }
 
-  getTagsRequest(): Request | null {
-    return createRequestObject({
+  async getTags(): Promise<TagSection[] | null> {
+    const data = await createRequestObject({
       url: `${ML_DOMAIN}/search/`,
       method: 'GET',
       headers: {
         "content-type": "application/x-www-form-urlencoded",
       }
-    })
-  }
-
-  getTags(data: any): TagSection[] | null {
+    }).perform()
     let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
     createTagSection({ id: '1', label: 'format', tags: [] })]
-    let genres = JSON.parse((data.match(/"Genre"\s*: (.*)/) ?? [])[1].replace(/'/g, "\""))
-    let typesHTML = (data.match(/"Type"\s*: (.*),/g) ?? [])[1]
+    let genres = JSON.parse((data.data.match(/"Genre"\s*: (.*)/) ?? [])[1].replace(/'/g, "\""))
+    let typesHTML = (data.data.match(/"Type"\s*: (.*),/g) ?? [])[1]
     let types = JSON.parse((typesHTML.match(/(\[.*\])/) ?? [])[1].replace(/'/g, "\""))
     tagSections[0].tags = genres.map((e: any) => createTag({ id: e, label: e }))
     tagSections[1].tags = types.map((e: any) => createTag({ id: e, label: e }))
     return tagSections
   }
 
-  constructGetViewMoreRequest(key: string) {
-    return createRequestObject({
-      url: `${ML_DOMAIN}`,
-      method: 'GET',
-      metadata: {
-        key
-      }
-    })
-  }
+  async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    const data = await createRequestObject({
+        url: `${ML_DOMAIN}`,
+        method: 'GET'
+      }).perform()
 
-  getHomePageSectionRequest(): HomeSectionRequest[] | null {
-    let request = createRequestObject({ url: `${ML_DOMAIN}`, method: 'GET' })
-    let section1 = createHomeSection({ id: 'hot_update', title: 'HOT UPDATES', view_more: this.constructGetViewMoreRequest('hot_update') })
-    let section2 = createHomeSection({ id: 'latest', title: 'LATEST UPDATES', view_more: this.constructGetViewMoreRequest('latest') })
-    let section3 = createHomeSection({ id: 'new_titles', title: 'NEW TITLES', view_more: this.constructGetViewMoreRequest('new_titles') })
-    let section4 = createHomeSection({ id: 'recommended', title: 'RECOMMENDATIONS', view_more: this.constructGetViewMoreRequest('recommended') })
+    const hotSection = createHomeSection({ id: 'hot_update', title: 'HOT UPDATES' })
+    const latestSection = createHomeSection({ id: 'latest', title: 'LATEST UPDATES' })
+    const newTitlesSection = createHomeSection({ id: 'new_titles', title: 'NEW TITLES' })
+    const recommendedSection = createHomeSection({ id:'recommended', title: 'RECOMMENDATIONS' })
+    sectionCallback(hotSection)
+    sectionCallback(latestSection)
+    sectionCallback(newTitlesSection)
+    sectionCallback(recommendedSection)
 
-    return [createHomeSectionRequest({ request: request, sections: [section1, section2, section3, section4] })]
-  }
-
-  getHomePageSections(data: any, sections: HomeSection[]): HomeSection[] {
-    let $ = this.cheerio.load(data);
-    let hot = (JSON.parse((data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])).slice(0, 15)
-    let latest = (JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])).slice(0, 15)
-    let newTitles = (JSON.parse((data.match(/vm.NewSeriesJSON = (.*);/) ?? [])[1])).slice(0, 15)
-    let recommended = JSON.parse((data.match(/vm.RecommendationJSON = (.*);/) ?? [])[1])
+    const $ = this.cheerio.load(data.data);
+    const hot = (JSON.parse((data.data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])).slice(0, 15)
+    const latest = (JSON.parse((data.data.match(/vm.LatestJSON = (.*);/) ?? [])[1])).slice(0, 15)
+    const newTitles = (JSON.parse((data.data.match(/vm.NewSeriesJSON = (.*);/) ?? [])[1])).slice(0, 15)
+    const recommended = JSON.parse((data.data.match(/vm.RecommendationJSON = (.*);/) ?? [])[1])
 
     let imgSource = ($('.ImageHolder').html()?.match(/ng-src="(.*)\//) ?? [])[1];
     if (imgSource !== ML_IMAGE_DOMAIN)
@@ -422,25 +385,25 @@ export class MangaLife extends Source {
       }))
     })
 
-    sections[0].items = hotManga
-    sections[1].items = latestManga
-    sections[2].items = newManga
-    sections[3].items = recManga
-    return sections
+    hotSection.items = hotManga
+    latestSection.items = latestManga
+    newTitlesSection.items = newManga
+    recommendedSection.items = recManga
+
+    sectionCallback(hotSection)
+    sectionCallback(latestSection)
+    sectionCallback(newTitlesSection)
+    sectionCallback(recommendedSection)
   }
 
-
-  getViewMoreRequest(key: string): Request | null {
-    return createRequestObject({
-      url: ML_DOMAIN,
-      method: 'GET'
-    })
-  }
-
-  getViewMoreItems(data: any, key: string): PagedResults | null {
+  async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults | null> {
+    const data = await createRequestObject({
+        url: ML_DOMAIN,
+        method: 'GET'
+      }).perform()
     let manga: MangaTile[] = []
-    if (key == 'hot_update') {
-      let hot = JSON.parse((data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])
+    if (homepageSectionId == 'hot_update') {
+      let hot = JSON.parse((data.data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])
       hot.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
@@ -457,8 +420,8 @@ export class MangaLife extends Source {
         }))
       })
     }
-    else if (key == 'latest') {
-      let latest = JSON.parse((data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
+    else if (homepageSectionId == 'latest') {
+      let latest = JSON.parse((data.data.match(/vm.LatestJSON = (.*);/) ?? [])[1])
       latest.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
@@ -475,8 +438,8 @@ export class MangaLife extends Source {
         }))
       })
     }
-    else if (key == 'recommended') {
-      let latest = JSON.parse((data.match(/vm.RecommendationJSON = (.*);/) ?? [])[1])
+    else if (homepageSectionId == 'recommended') {
+      let latest = JSON.parse((data.data.match(/vm.RecommendationJSON = (.*);/) ?? [])[1])
       latest.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
@@ -493,8 +456,8 @@ export class MangaLife extends Source {
         }))
       })
     }
-    else if (key == 'new_titles') {
-      let newTitles = JSON.parse((data.match(/vm.NewSeriesJSON = (.*);/) ?? [])[1])
+    else if (homepageSectionId == 'new_titles') {
+      let newTitles = JSON.parse((data.data.match(/vm.NewSeriesJSON = (.*);/) ?? [])[1])
       newTitles.forEach((elem: any) => {
         let id = elem.IndexName
         let title = elem.SeriesName
