@@ -10,22 +10,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Source = void 0;
 class Source {
     constructor(cheerio) {
+        // <-----------        OPTIONAL METHODS        -----------> //
+        /**
+         * An optional field where the author may put a link to their website
+         */
+        this.authorWebsite = "";
+        /**
+         * An optional field that defines the language of the extension's source
+         */
+        this.language = "all";
+        /**
+         * An optional field of source tags: Little bits of metadata which is rendered on the website
+         * under your repositories section
+         */
+        this.sourceTags = [];
+        /**
+         * Manages the ratelimits and the number of requests that can be done per second
+         * This is also used to fetch pages when a chapter is downloading
+         */
+        this.requestManager = createRequestManager({
+            requestsPerSecond: 2.5,
+            requestTimeout: 5000
+        });
         this.cheerio = cheerio;
     }
-    /**
-     * An optional field where the author may put a link to their website
-     */
-    get authorWebsite() { return null; }
-    /**
-     * An optional field that defines the language of the extension's source
-     */
-    get language() { return 'all'; }
-    /**
-     * An optional field of source tags: Little bits of metadata which is rendered on the website
-     * under your repositories section
-     */
-    get sourceTags() { return []; }
-    // <-----------        OPTIONAL METHODS        -----------> //
     /**
      * (OPTIONAL METHOD) This function is called when ANY request is made by the Paperback Application out to the internet.
      * By modifying the parameter and returning it, the user can inject any additional headers, cookies, or anything else
@@ -35,9 +43,9 @@ class Source {
      *
      * NOTE: This does **NOT** influence any requests defined in the source implementation. This function will only influence requests
      * which happen behind the scenes and are not defined in your source.
-     * @param request Any request which Paperback is sending out
      */
-    requestModifier(request) { return request; }
+    globalRequestHeaders() { return {}; }
+    globalRequestCookies() { return []; }
     /**
      * (OPTIONAL METHOD) Given a manga ID, return a URL which Safari can open in a browser to display.
      * @param mangaId
@@ -50,12 +58,6 @@ class Source {
      * Usually the {@link Request} url can simply be the base URL to the source.
      */
     getCloudflareBypassRequest() { return null; }
-    /**
-     * Returns the number of calls that can be done per second from the application
-     * This is to avoid IP bans from many of the sources
-     * Can be adjusted per source since different sites have different limits
-     */
-    get rateLimit() { return 2.5; }
     /**
      * (OPTIONAL METHOD) A function which communicates with a given source, and returns a list of all possible tags which the source supports.
      * These tags are generic and depend on the source. They could be genres such as 'Isekai, Action, Drama', or they can be
@@ -76,7 +78,7 @@ class Source {
      */
     filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) { return Promise.resolve(); }
     /**
-     * (OPTIONAL METHOD) A function which should get all of the available homepage sections for a given source, and return a {@link HomeSection} object.
+     * (OPTIONAL METHOD) A function which should readonly allf the available homepage sections for a given source, and return a {@link HomeSection} object.
      * The sectionCallback is to be used for each given section on the website. This may include a 'Latest Updates' section, or a 'Hot Manga' section.
      * It is recommended that before anything else in your source, you first use this sectionCallback and send it {@link HomeSection} objects
      * which are blank, and have not had any requests done on them just yet. This way, you provide the App with the sections to render on screen,
@@ -88,7 +90,7 @@ class Source {
      * (OPTIONAL METHOD) This function will take a given homepageSectionId and metadata value, and with this information, should return
      * all of the manga tiles supplied for the given state of parameters. Most commonly, the metadata value will contain some sort of page information,
      * and this request will target the given page. (Incrementing the page in the response so that the next call will return relevent data)
-     * @param homepageSectionId The given ID to the homepage defined in {@link getHomePageSections} which this method is to get more data about
+     * @param homepageSectionId The given ID to the homepage defined in {@link getHomePageSections} which this method is to readonly moreata about
      * @param metadata This is a metadata parameter which is filled our in the {@link getHomePageSections}'s return
      * function. Afterwards, if the metadata value returned in the {@link PagedResults} has been modified, the modified version
      * will be supplied to this function instead of the origional {@link getHomePageSections}'s version.
@@ -100,8 +102,8 @@ class Source {
      * If there is an additional page which needs to be called, the {@link PagedResults} value should have it's metadata filled out
      * with information needed to continue pulling information from this website.
      * Note that if the metadata value of {@link PagedResults} is undefined, this method will not continue to run when the user
-     * attempts to get more information
-     * @param metadata Identifying information as to what the source needs to call in order to get the next batch of data
+     * attempts to readonly morenformation
+     * @param metadata Identifying information as to what the source needs to call in order to readonly theext batch of data
      * of the directory. Usually this is a page counter.
      */
     getWebsiteMangaDirectory(metadata) { return Promise.resolve(null); }
@@ -164,7 +166,7 @@ __exportStar(require("./base"), exports);
 __exportStar(require("./models"), exports);
 __exportStar(require("./APIWrapper"), exports);
 
-},{"./APIWrapper":1,"./base":3,"./models":19}],5:[function(require,module,exports){
+},{"./APIWrapper":1,"./base":3,"./models":21}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -245,6 +247,10 @@ arguments[4][5][0].apply(exports,arguments)
 },{"dup":5}],16:[function(require,module,exports){
 arguments[4][5][0].apply(exports,arguments)
 },{"dup":5}],17:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],18:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],19:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TagType = void 0;
@@ -262,9 +268,9 @@ var TagType;
     TagType["RED"] = "danger";
 })(TagType = exports.TagType || (exports.TagType = {}));
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 arguments[4][5][0].apply(exports,arguments)
-},{"dup":5}],19:[function(require,module,exports){
+},{"dup":5}],21:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -291,8 +297,10 @@ __exportStar(require("./Constants"), exports);
 __exportStar(require("./MangaUpdate"), exports);
 __exportStar(require("./PagedResults"), exports);
 __exportStar(require("./ResponseObject"), exports);
+__exportStar(require("./RequestManager"), exports);
+__exportStar(require("./RequestHeaders"), exports);
 
-},{"./Chapter":5,"./ChapterDetails":6,"./Constants":7,"./HomeSection":8,"./Languages":9,"./Manga":10,"./MangaTile":11,"./MangaUpdate":12,"./PagedResults":13,"./RequestObject":14,"./ResponseObject":15,"./SearchRequest":16,"./SourceTag":17,"./TagSection":18}],20:[function(require,module,exports){
+},{"./Chapter":5,"./ChapterDetails":6,"./Constants":7,"./HomeSection":8,"./Languages":9,"./Manga":10,"./MangaTile":11,"./MangaUpdate":12,"./PagedResults":13,"./RequestHeaders":14,"./RequestManager":15,"./RequestObject":16,"./ResponseObject":17,"./SearchRequest":18,"./SourceTag":19,"./TagSection":20}],22:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -309,35 +317,34 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ML_DOMAIN = 'https://manga4life.com';
 let ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover';
 class MangaLife extends paperback_extensions_common_1.Source {
-    constructor(cheerio) {
-        super(cheerio);
-    }
-    get version() { return '1.1.1'; }
-    get name() { return 'Manga4Life'; }
-    get icon() { return 'icon.png'; }
-    get author() { return 'Daniel Kovalevich'; }
-    get authorWebsite() { return 'https://github.com/DanielKovalevich'; }
-    get description() { return 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching'; }
-    get hentaiSource() { return false; }
-    getMangaShareUrl(mangaId) { return `${ML_DOMAIN}/manga/${mangaId}`; }
-    get rateLimit() { return 2; }
-    get websiteBaseURL() { return ML_DOMAIN; }
-    get sourceTags() {
-        return [
+    constructor() {
+        super(...arguments);
+        this.version = '1.1.1';
+        this.name = 'Manga4Life';
+        this.icon = 'icon.png';
+        this.author = 'Daniel Kovalevich';
+        this.authorWebsite = 'https://github.com/DanielKovalevich';
+        this.description = 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching';
+        this.hentaiSource = false;
+        this.rateLimit = 2;
+        this.websiteBaseURL = ML_DOMAIN;
+        this.sourceTags = [
             {
                 text: "Notifications",
                 type: paperback_extensions_common_1.TagType.GREEN
             }
         ];
     }
+    getMangaShareUrl(mangaId) { return `${ML_DOMAIN}/manga/${mangaId}`; }
     getMangaDetails(mangaId) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}/manga/`,
                 method: 'GET',
                 param: mangaId
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             let $ = this.cheerio.load(data.data);
             let json = (_b = (_a = $('[type=application\\/ld\\+json]').html()) === null || _a === void 0 ? void 0 : _a.replace(/\t*\n*/g, '')) !== null && _b !== void 0 ? _b : '';
             // this is only because they added some really jank alternate titles and didn't propely string escape
@@ -401,14 +408,15 @@ class MangaLife extends paperback_extensions_common_1.Source {
     getChapters(mangaId) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}/manga/`,
                 method: "GET",
                 headers: {
                     "content-type": "application/x-www-form-urlencoded"
                 },
                 param: mangaId
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(data.data);
             let chapterJS = JSON.parse(((_b = (_a = $.root().html()) === null || _a === void 0 ? void 0 : _a.match(/vm.Chapters = (.*);/)) !== null && _b !== void 0 ? _b : [])[1]).reverse();
             let chapters = [];
@@ -441,14 +449,15 @@ class MangaLife extends paperback_extensions_common_1.Source {
     getChapterDetails(mangaId, chapterId) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}/read-online/`,
                 headers: {
                     "content-type": "application/x-www-form-urlencoded"
                 },
                 method: 'GET',
                 param: chapterId
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             let pages = [];
             let pathName = JSON.parse(((_a = data.data.match(/vm.CurPathName = (.*);/)) !== null && _a !== void 0 ? _a : [])[1]);
             let chapterInfo = JSON.parse(((_b = data.data.match(/vm.CurChapter = (.*);/)) !== null && _b !== void 0 ? _b : [])[1]);
@@ -472,13 +481,14 @@ class MangaLife extends paperback_extensions_common_1.Source {
     filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}/`,
                 headers: {
                     "content-type": "application/x-www-form-urlencoded"
                 },
                 method: "GET"
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             const returnObject = {
                 'ids': []
             };
@@ -517,14 +527,15 @@ class MangaLife extends paperback_extensions_common_1.Source {
                 'genre': genre,
                 'genreNo': genreNo
             };
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}/search/`,
                 metadata: metadata,
                 headers: {
                     "content-type": "application/x-www-form-urlencoded"
                 },
                 method: "GET"
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(data.data);
             let mangaTiles = [];
             let directory = JSON.parse(((_a = data.data.match(/vm.Directory = (.*);/)) !== null && _a !== void 0 ? _a : [])[1]);
@@ -578,13 +589,14 @@ class MangaLife extends paperback_extensions_common_1.Source {
     getTags() {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}/search/`,
                 method: 'GET',
                 headers: {
                     "content-type": "application/x-www-form-urlencoded",
                 }
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             let tagSections = [createTagSection({ id: '0', label: 'genres', tags: [] }),
                 createTagSection({ id: '1', label: 'format', tags: [] })];
             let genres = JSON.parse(((_a = data.data.match(/"Genre"\s*: (.*)/)) !== null && _a !== void 0 ? _a : [])[1].replace(/'/g, "\""));
@@ -598,10 +610,11 @@ class MangaLife extends paperback_extensions_common_1.Source {
     getHomePageSections(sectionCallback) {
         var _a, _b, _c, _d, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: `${ML_DOMAIN}`,
                 method: 'GET'
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             const hotSection = createHomeSection({ id: 'hot_update', title: 'HOT UPDATES' });
             const latestSection = createHomeSection({ id: 'latest', title: 'LATEST UPDATES' });
             const newTitlesSection = createHomeSection({ id: 'new_titles', title: 'NEW TITLES' });
@@ -684,10 +697,11 @@ class MangaLife extends paperback_extensions_common_1.Source {
     getViewMoreItems(homepageSectionId, metadata) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield createRequestObject({
+            const request = createRequestObject({
                 url: ML_DOMAIN,
                 method: 'GET'
-            }).perform();
+            });
+            const data = yield this.requestManager.schedule(request, 1);
             let manga = [];
             if (homepageSectionId == 'hot_update') {
                 let hot = JSON.parse(((_a = data.data.match(/vm.HotUpdateJSON = (.*);/)) !== null && _a !== void 0 ? _a : [])[1]);
@@ -767,5 +781,5 @@ class MangaLife extends paperback_extensions_common_1.Source {
 }
 exports.MangaLife = MangaLife;
 
-},{"paperback-extensions-common":4}]},{},[20])(20)
+},{"paperback-extensions-common":4}]},{},[22])(22)
 });
