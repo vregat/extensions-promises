@@ -4,7 +4,6 @@ import {
   Chapter,
   ChapterDetails,
   MangaTile,
-  HomeSectionRequest,
   HomeSection,
   SearchRequest,
   Request,
@@ -21,49 +20,27 @@ const GUYA_LANG = "en";
 const SPLIT_VAR = "|";
 
 export class Guya extends Source {
-  constructor(cheerio: CheerioAPI) {
-    super(cheerio);
-  }
-
-  get version(): string {
-    return "1.1.0";
-  }
-  get name(): string {
-    return "Guya";
-  }
-  get icon(): string {
-    return "icon.png";
-  }
-  get author(): string {
-    return "funkyhippo";
-  }
-  get authorWebsite(): string {
-    return "https://github.com/funkyhippo";
-  }
-  get description(): string {
-    return "Extension that pulls manga from guya.moe";
-  }
-  get language(): string {
-    return GUYA_LANG;
-  }
-  get hentaiSource(): boolean {
-    return false;
-  }
-  get rateLimit(): Number {
-    return 2
-  }
-
-  get websiteBaseURL(): string { return GUYA_API_BASE }
+  version = "1.1.0"
+  name = "Guya"
+  icon = "icon.png"
+  author = "funkyhippo"
+  authorWebsite = "https://github.com/funkyhippo"
+  description = "Extension that pulls manga from guya.moe"
+  language = GUYA_LANG
+  hentaiSource = false
+  websiteBaseURL = GUYA_API_BASE
 
   async getMangaDetails(mangaId: string): Promise<Manga> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       metadata: { mangaId },
       url: GUYA_ALL_SERIES_API,
       method: "GET",
-    }).perform()
+    })
 
-    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
+    let response = await this.requestManager.schedule(request, 1)
+
+    let result = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
 
     let mangas = [];
     for (let series in result) {
@@ -89,14 +66,15 @@ export class Guya extends Source {
 
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
-
-    let data = await createRequestObject({
+    let request = createRequestObject({
       metadata: { mangaId },
       url: `${GUYA_SERIES_API_BASE}/${mangaId}/`,
       method: "GET",
-    }).perform()
+    })
 
-    let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
+    let response = await this.requestManager.schedule(request, 1)
+
+    let result = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
     let rawChapters = result["chapters"];
     let groupMap = result["groups"];
 
@@ -125,10 +103,12 @@ export class Guya extends Source {
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
 
-    let data = await createRequestObject({
+    const request = createRequestObject({
       url: `${GUYA_SERIES_API_BASE}/${mangaId}/`,
       method: "GET",
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
     let rawChapters = result["chapters"];
@@ -146,10 +126,12 @@ export class Guya extends Source {
 
   async searchRequest(searchQuery: SearchRequest, metadata: any): Promise<PagedResults> {
 
-    let data = await createRequestObject({
+    const request = createRequestObject({
       url: GUYA_ALL_SERIES_API,
       method: "GET",
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
     let query = searchQuery.title ?? '';
@@ -178,10 +160,12 @@ export class Guya extends Source {
     var homeSection = createHomeSection({id: "all_guya", title: "ALL GUYA"})
     sectionCallback(homeSection)
 
-    let data = await createRequestObject({
+    const request = createRequestObject({
       url: GUYA_ALL_SERIES_API,
       method: "GET"
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let result = typeof data === "string" ? JSON.parse(data) : data;
 
@@ -203,10 +187,12 @@ export class Guya extends Source {
 
   async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
 
-    let data = await createRequestObject({
+    const request = createRequestObject({
       url: GUYA_ALL_SERIES_API,
       method: "GET"
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
 

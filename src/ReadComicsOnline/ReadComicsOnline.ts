@@ -1,32 +1,29 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse } from "paperback-extensions-common"
+import {
+  Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse
+} from "paperback-extensions-common"
 
 const READCOMICSONLINE_DOMAIN = 'https://readcomicsonline.ru'
 
 export class ReadComicsOnline extends Source {
-  constructor(cheerio: CheerioAPI) {
-    super(cheerio)
-  }
+  version = '0.4.0'
+  name = 'ReadComicsOnline'
+  description = 'Extension that pulls western comics from ReadComicsOnline.ru'
+  author = 'Conrad Weiser'
+  authorWebsite = 'http://github.com/conradweiser'
+  icon = "logo.png" // The website has SVG versions, I had to find one off of a different source
+  hentaiSource = false
+  websiteBaseURL = READCOMICSONLINE_DOMAIN
 
-  get version(): string { return '0.4.0' }
-  get name(): string { return 'ReadComicsOnline' }
-  get description(): string { return 'Extension that pulls western comics from ReadComicsOnline.ru' }
-  get author(): string { return 'Conrad Weiser' }
-  get authorWebsite(): string { return 'http://github.com/conradweiser' }
-  get icon(): string { return "logo.png" } // The website has SVG versions, I had to find one off of a different source
-  get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${READCOMICSONLINE_DOMAIN}/comic/${mangaId}` }
-  get websiteBaseURL(): string { return READCOMICSONLINE_DOMAIN }
-  get rateLimit(): Number {
-    return 2
-  }
-
 
   async getMangaDetails(mangaId: string): Promise<Manga> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${READCOMICSONLINE_DOMAIN}/comic/${mangaId}`,
       method: 'GET'
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let manga: Manga[] = []
     let $ = this.cheerio.load(data.data)
@@ -101,10 +98,12 @@ export class ReadComicsOnline extends Source {
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${READCOMICSONLINE_DOMAIN}/comic/${mangaId}`,
       method: "GET"
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let chapters: Chapter[] = []
@@ -136,10 +135,12 @@ export class ReadComicsOnline extends Source {
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${READCOMICSONLINE_DOMAIN}/comic/${mangaId}/${chapterId}`,
       method: 'GET',
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let pages: string[] = []
@@ -172,11 +173,12 @@ export class ReadComicsOnline extends Source {
 
   async searchRequest(query: SearchRequest, metadata: any): Promise<PagedResults> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${READCOMICSONLINE_DOMAIN}/search`,
-      timeout: 4000,
       method: "GET"
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let mangaTiles: MangaTile[] = []
 
@@ -211,10 +213,12 @@ export class ReadComicsOnline extends Source {
     sectionCallback(latest_comics)
 
     // Make the request and fill out available titles
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${READCOMICSONLINE_DOMAIN}`,
       method: 'GET'
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let popularComics: MangaTile[] = []
     let $ = this.cheerio.load(data.data)

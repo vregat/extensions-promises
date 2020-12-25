@@ -1,42 +1,34 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request , PagedResults, SourceTag, TagType, MangaUpdates } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request , PagedResults, SourceTag, TagType, MangaUpdates, RequestHeaders } from "paperback-extensions-common"
 
 const MN_DOMAIN = 'https://manganelo.com'
 
 export class Manganelo extends Source {
-  constructor(cheerio: CheerioAPI) {
-    super(cheerio)
-  }
+  version = '2.0.0'
+  name = 'Manganelo'
+  icon = 'icon.png'
+  author = 'Daniel Kovalevich'
+  authorWebsite = 'https://github.com/DanielKovalevich'
+  description = 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching'
+  hentaiSource = false
+  websiteBaseURL = MN_DOMAIN
+  sourceTags = [
+    {
+      text: "Notifications",
+      type: TagType.GREEN
+    }
+  ]
 
-  get version(): string { return '2.0.0' }
-
-  get name(): string { return 'Manganelo' }
-  get icon(): string { return 'icon.png' }
-  get author(): string { return 'Daniel Kovalevich' }
-  get authorWebsite(): string { return 'https://github.com/DanielKovalevich' }
-  get description(): string { return 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching' }
-  get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${MN_DOMAIN}/manga/${mangaId}` }
-  get websiteBaseURL(): string { return MN_DOMAIN }
-  get rateLimit(): Number {
-    return 2
-  }
-
-  get sourceTags(): SourceTag[] {
-    return [
-      {
-        text: "Notifications",
-        type: TagType.GREEN
-      }
-    ]
-  }
-
+  
   async getMangaDetails(mangaId: string): Promise<Manga> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${MN_DOMAIN}/manga/`,
       method: 'GET',
       param: mangaId
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let manga: Manga[] = []
     let $ = this.cheerio.load(data.data)
@@ -120,11 +112,13 @@ export class Manganelo extends Source {
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${MN_DOMAIN}/manga/`,
       method: 'GET',
       param: mangaId
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let allChapters = $('.row-content-chapter', '.body-site')
@@ -148,7 +142,7 @@ export class Manganelo extends Source {
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${MN_DOMAIN}/chapter/`,
       method: "GET",
       headers: {
@@ -156,7 +150,9 @@ export class Manganelo extends Source {
         Cookie: 'content_lazyload=off'
       },
       param: `${mangaId}/${chapterId}`
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let pages: string[] = []
@@ -181,14 +177,16 @@ export class Manganelo extends Source {
 
     while(loadNextPage) {
 
-      let data = await createRequestObject({
+      let request = createRequestObject({
         url: `${MN_DOMAIN}/genre-all/`,
         method: 'GET',
         headers: {
           "content-type": "application/x-www-form-urlencoded"
         },
         param: String(currPageNum)
-      }).perform()
+      })
+      
+      let data = await this.requestManager.schedule(request, 1)
 
       let $ = this.cheerio.load(data.data)
 
@@ -264,10 +262,12 @@ export class Manganelo extends Source {
     sectionCallback(section3)
 
     // Fill the homsections with data
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: MN_DOMAIN,
       method: 'GET'
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let topManga: MangaTile[] = []
@@ -342,7 +342,7 @@ export class Manganelo extends Source {
       search += `&sts=${status}`
     }
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${MN_DOMAIN}/advanced_search?`,
       method: 'GET',
       metadata: metadata,
@@ -350,7 +350,9 @@ export class Manganelo extends Source {
         "content-type": "application/x-www-form-urlencoded",
       },
       param: `${search}${metadata.page ? '&page=' + metadata.page : ''}` // If we have page information in our metadata, search for the provided page
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let panel = $('.panel-content-genres')
@@ -384,13 +386,15 @@ export class Manganelo extends Source {
 
   async getTags(): Promise<TagSection[] | null> {
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${MN_DOMAIN}/advanced_search?`,
       method: 'GET',
       headers: {
         "content-type": "application/x-www-form-urlencoded",
       }
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let panel = $('.advanced-search-tool-genres-list')
@@ -422,12 +426,14 @@ export class Manganelo extends Source {
       default: return Promise.resolve(null)
     }
 
-    let data = await createRequestObject({
+    let request = createRequestObject({
       url: `${MN_DOMAIN}`,
       method: 'GET',
       param: param,
       metadata: metadata
-    }).perform()
+    })
+    
+    let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let manga: MangaTile[] = []
@@ -468,28 +474,10 @@ export class Manganelo extends Source {
     });
   }
 
-  /**
-   * Manganelo image requests for older chapters and pages are required to have a referer to it's host
-   * @param request
-   */
-  requestModifier(request: Request): Request {
-
-    let headers: any = request.headers == undefined ? {} : request.headers
-    headers['Referer'] = `${MN_DOMAIN}`
-
-    return createRequestObject({
-      url: request.url,
-      method: request.method,
-      headers: headers,
-      data: request.data,
-      metadata: request.metadata,
-      timeout: request.timeout,
-      param: request.param,
-      cookies: request.cookies,
-      incognito: request.incognito,
-      useragent: request.useragent
-    }).request
-  
+  globalRequestHeaders(): RequestHeaders {
+    return {
+      referer: MN_DOMAIN
+    }
   }
 
   private isLastPage($: CheerioStatic): boolean {

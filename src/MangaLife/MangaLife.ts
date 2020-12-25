@@ -1,55 +1,51 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSectionRequest, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse, SourceTag, TagType, MangaUpdates, RequestObject } from "paperback-extensions-common"
+import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse, SourceTag, TagType, MangaUpdates } from "paperback-extensions-common"
 
 const ML_DOMAIN = 'https://manga4life.com'
 let ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover'
 
 export class MangaLife extends Source {
+  version = '1.1.1'
+  name = 'Manga4Life'
+  icon = 'icon.png'
+  author = 'Daniel Kovalevich'
+  authorWebsite = 'https://github.com/DanielKovalevich'
+  description = 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching'
+  hentaiSource = false
+  rateLimit = 2
+  websiteBaseURL = ML_DOMAIN
 
-  constructor(cheerio: CheerioAPI) {
-    super(cheerio)
-  }
+  sourceTags: SourceTag[] = [
+    {
+      text: "Notifications",
+      type: TagType.GREEN
+    }
+  ]
 
-  get version(): string { return '1.1.1' }
-  get name(): string { return 'Manga4Life' }
-  get icon(): string { return 'icon.png' }
-  get author(): string { return 'Daniel Kovalevich' }
-  get authorWebsite(): string { return 'https://github.com/DanielKovalevich' }
-  get description(): string { return 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching' }
-  get hentaiSource(): boolean { return false }
   getMangaShareUrl(mangaId: string): string | null { return `${ML_DOMAIN}/manga/${mangaId}` }
-  get rateLimit(): Number { return 2 }
-  get websiteBaseURL(): string { return ML_DOMAIN }
-
-  get sourceTags(): SourceTag[] {
-    return [
-      {
-        text: "Notifications",
-        type: TagType.GREEN
-      }
-    ]
-  }
 
   async getMangaDetails(mangaId: string): Promise<Manga> {
-    const data = await createRequestObject({
-        url: `${ML_DOMAIN}/manga/`,
-        method: 'GET',
-        param: mangaId
-      }).perform();
+    const request = createRequestObject({
+      url: `${ML_DOMAIN}/manga/`,
+      method: 'GET',
+      param: mangaId
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
     let json = $('[type=application\\/ld\\+json]').html()?.replace(/\t*\n*/g, '') ?? ''
 
     // this is only because they added some really jank alternate titles and didn't propely string escape
-    let jsonWithoutAlternateName = json.replace(/"alternateName".*?],/g, '');
+    let jsonWithoutAlternateName = json.replace(/"alternateName".*?],/g, '')
     let alternateNames = (/"alternateName": \[(.*?)\]/.exec(json) ?? [])[1]
       .replace(/\"/g, '')
       .split(',')
     let parsedJson = JSON.parse(jsonWithoutAlternateName)
     let entity = parsedJson.mainEntity
     let info = $('.row')
-    let imgSource = ($('.ImgHolder').html()?.match(/src="(.*)\//) ?? [])[1];
+    let imgSource = ($('.ImgHolder').html()?.match(/src="(.*)\//) ?? [])[1]
     if (imgSource !== ML_IMAGE_DOMAIN)
-      ML_IMAGE_DOMAIN = imgSource;
+      ML_IMAGE_DOMAIN = imgSource
     let image = `${ML_IMAGE_DOMAIN}/${mangaId}.jpg`
     let title = $('h1', info).first().text() ?? ''
     let titles = [title]
@@ -102,15 +98,17 @@ export class MangaLife extends Source {
   }
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
-    const data = await createRequestObject({
+    const request = createRequestObject({
       url: `${ML_DOMAIN}/manga/`,
       method: "GET",
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
       param: mangaId
-    }).perform()
-    
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
+
     const $ = this.cheerio.load(data.data)
     let chapterJS: any[] = JSON.parse(($.root().html()?.match(/vm.Chapters = (.*);/) ?? [])[1]).reverse()
     let chapters: Chapter[] = []
@@ -144,14 +142,16 @@ export class MangaLife extends Source {
   }
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
-    const data = await createRequestObject({
+    const request = createRequestObject({
       url: `${ML_DOMAIN}/read-online/`,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
       method: 'GET',
       param: chapterId
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     let pages: string[] = []
     let pathName = JSON.parse((data.data.match(/vm.CurPathName = (.*);/) ?? [])[1])
@@ -178,13 +178,15 @@ export class MangaLife extends Source {
   }
 
   async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
-    const data = await createRequestObject({
+    const request = createRequestObject({
       url: `${ML_DOMAIN}/`,
       headers: {
         "content-type": "application/x-www-form-urlencoded"
       },
       method: "GET"
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     const returnObject: MangaUpdates = {
       'ids': []
@@ -221,21 +223,23 @@ export class MangaLife extends Source {
       'genreNo': genreNo
     }
 
-    const data = await createRequestObject({
-        url: `${ML_DOMAIN}/search/`,
-        metadata: metadata,
-        headers: {
-          "content-type": "application/x-www-form-urlencoded"
-        },
-        method: "GET"
-      }).perform()
+    const request = createRequestObject({
+      url: `${ML_DOMAIN}/search/`,
+      metadata: metadata,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      method: "GET"
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(data.data)
     let mangaTiles: MangaTile[] = []
     let directory = JSON.parse((data.data.match(/vm.Directory = (.*);/) ?? [])[1])
 
-    let imgSource = ($('.img-fluid').first().attr('src')?.match(/(.*cover)/) ?? [])[1];
+    let imgSource = ($('.img-fluid').first().attr('src')?.match(/(.*cover)/) ?? [])[1]
     if (imgSource !== ML_IMAGE_DOMAIN)
-      ML_IMAGE_DOMAIN = imgSource;
+      ML_IMAGE_DOMAIN = imgSource
 
     directory.forEach((elem: any) => {
       let mKeyword: boolean = typeof metadata.keyword !== 'undefined' ? false : true
@@ -282,13 +286,15 @@ export class MangaLife extends Source {
   }
 
   async getTags(): Promise<TagSection[] | null> {
-    const data = await createRequestObject({
+    const request = createRequestObject({
       url: `${ML_DOMAIN}/search/`,
       method: 'GET',
       headers: {
         "content-type": "application/x-www-form-urlencoded",
       }
-    }).perform()
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
     let tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: [] }),
     createTagSection({ id: '1', label: 'format', tags: [] })]
     let genres = JSON.parse((data.data.match(/"Genre"\s*: (.*)/) ?? [])[1].replace(/'/g, "\""))
@@ -300,29 +306,31 @@ export class MangaLife extends Source {
   }
 
   async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
-    const data = await createRequestObject({
-        url: `${ML_DOMAIN}`,
-        method: 'GET'
-      }).perform()
+    const request = createRequestObject({
+      url: `${ML_DOMAIN}`,
+      method: 'GET'
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
 
     const hotSection = createHomeSection({ id: 'hot_update', title: 'HOT UPDATES' })
     const latestSection = createHomeSection({ id: 'latest', title: 'LATEST UPDATES' })
     const newTitlesSection = createHomeSection({ id: 'new_titles', title: 'NEW TITLES' })
-    const recommendedSection = createHomeSection({ id:'recommended', title: 'RECOMMENDATIONS' })
+    const recommendedSection = createHomeSection({ id: 'recommended', title: 'RECOMMENDATIONS' })
     sectionCallback(hotSection)
     sectionCallback(latestSection)
     sectionCallback(newTitlesSection)
     sectionCallback(recommendedSection)
 
-    const $ = this.cheerio.load(data.data);
+    const $ = this.cheerio.load(data.data)
     const hot = (JSON.parse((data.data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])).slice(0, 15)
     const latest = (JSON.parse((data.data.match(/vm.LatestJSON = (.*);/) ?? [])[1])).slice(0, 15)
     const newTitles = (JSON.parse((data.data.match(/vm.NewSeriesJSON = (.*);/) ?? [])[1])).slice(0, 15)
     const recommended = JSON.parse((data.data.match(/vm.RecommendationJSON = (.*);/) ?? [])[1])
 
-    let imgSource = ($('.ImageHolder').html()?.match(/ng-src="(.*)\//) ?? [])[1];
+    let imgSource = ($('.ImageHolder').html()?.match(/ng-src="(.*)\//) ?? [])[1]
     if (imgSource !== ML_IMAGE_DOMAIN)
-      ML_IMAGE_DOMAIN = imgSource;
+      ML_IMAGE_DOMAIN = imgSource
 
     let hotManga: MangaTile[] = []
     hot.forEach((elem: any) => {
@@ -397,10 +405,12 @@ export class MangaLife extends Source {
   }
 
   async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults | null> {
-    const data = await createRequestObject({
-        url: ML_DOMAIN,
-        method: 'GET'
-      }).perform()
+    const request = createRequestObject({
+      url: ML_DOMAIN,
+      method: 'GET'
+    })
+
+    const data = await this.requestManager.schedule(request, 1)
     let manga: MangaTile[] = []
     if (homepageSectionId == 'hot_update') {
       let hot = JSON.parse((data.data.match(/vm.HotUpdateJSON = (.*);/) ?? [])[1])
