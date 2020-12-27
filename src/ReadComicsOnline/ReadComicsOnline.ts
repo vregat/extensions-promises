@@ -1,19 +1,32 @@
 import {
-  Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse
+  Source,
+  Manga,
+  MangaStatus,
+  Chapter,
+  ChapterDetails,
+  HomeSection,
+  MangaTile,
+  SearchRequest,
+  LanguageCode,
+  TagSection,
+  PagedResults,
+  SourceInfo
 } from "paperback-extensions-common"
 
 const READCOMICSONLINE_DOMAIN = 'https://readcomicsonline.ru'
 
-export class ReadComicsOnline extends Source {
-  version = '0.4.0'
-  name = 'ReadComicsOnline'
-  description = 'Extension that pulls western comics from ReadComicsOnline.ru'
-  author = 'Conrad Weiser'
-  authorWebsite = 'http://github.com/conradweiser'
-  icon = "logo.png" // The website has SVG versions, I had to find one off of a different source
-  hentaiSource = false
-  websiteBaseURL = READCOMICSONLINE_DOMAIN
+export const ReadComicsOnlineInfo: SourceInfo = {
+  version: '0.4.0',
+  name: 'ReadComicsOnline',
+  description: 'Extension that pulls western comics from ReadComicsOnline.ru',
+  author: 'Conrad Weiser',
+  authorWebsite: 'http://github.com/conradweiser',
+  icon: "logo.png", // The website has SVG versions, I had to find one off of a different source
+  hentaiSource: false,
+  websiteBaseURL: READCOMICSONLINE_DOMAIN,
+}
 
+export class ReadComicsOnline extends Source {
   getMangaShareUrl(mangaId: string): string | null { return `${READCOMICSONLINE_DOMAIN}/comic/${mangaId}` }
 
   async getMangaDetails(mangaId: string): Promise<Manga> {

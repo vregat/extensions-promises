@@ -1,26 +1,41 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request, PagedResults, Response as PaperbackResponse, SourceTag, TagType, MangaUpdates } from "paperback-extensions-common"
+import {
+  Source,
+  Manga,
+  MangaStatus,
+  Chapter,
+  ChapterDetails,
+  HomeSection,
+  MangaTile,
+  SearchRequest,
+  LanguageCode,
+  TagSection,
+  PagedResults,
+  SourceInfo,
+  MangaUpdates,
+  TagType
+} from "paperback-extensions-common"
 
 const ML_DOMAIN = 'https://manga4life.com'
 let ML_IMAGE_DOMAIN = 'https://cover.mangabeast01.com/cover'
 
-export class MangaLife extends Source {
-  version = '1.1.1'
-  name = 'Manga4Life'
-  icon = 'icon.png'
-  author = 'Daniel Kovalevich'
-  authorWebsite = 'https://github.com/DanielKovalevich'
-  description = 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching'
-  hentaiSource = false
-  rateLimit = 2
-  websiteBaseURL = ML_DOMAIN
-
-  sourceTags: SourceTag[] = [
+export const MangaLifeInfo: SourceInfo = {
+  version: '1.1.1',
+  name: 'Manga4Life',
+  icon: 'icon.png',
+  author: 'Daniel Kovalevich',
+  authorWebsite: 'https://github.com/DanielKovalevich',
+  description: 'Extension that pulls manga from MangaLife, includes Advanced Search and Updated manga fetching',
+  hentaiSource: false,
+  websiteBaseURL: ML_DOMAIN,
+  sourceTags: [
     {
       text: "Notifications",
       type: TagType.GREEN
     }
   ]
+}
 
+export class MangaLife extends Source {
   getMangaShareUrl(mangaId: string): string | null { return `${ML_DOMAIN}/manga/${mangaId}` }
 
   async getMangaDetails(mangaId: string): Promise<Manga> {

@@ -1,25 +1,43 @@
-import { Source, Manga, MangaStatus, Chapter, ChapterDetails, HomeSection, MangaTile, SearchRequest, LanguageCode, TagSection, Request , PagedResults, SourceTag, TagType, MangaUpdates, RequestHeaders } from "paperback-extensions-common"
+import {
+  Source,
+  Manga,
+  MangaStatus,
+  Chapter,
+  ChapterDetails,
+  HomeSection,
+  MangaTile,
+  SearchRequest,
+  LanguageCode,
+  TagSection,
+  PagedResults,
+  SourceInfo,
+  MangaUpdates,
+  RequestHeaders,
+  TagType
+} from "paperback-extensions-common"
 
 const MN_DOMAIN = 'https://manganelo.com'
 
-export class Manganelo extends Source {
-  version = '2.0.0'
-  name = 'Manganelo'
-  icon = 'icon.png'
-  author = 'Daniel Kovalevich'
-  authorWebsite = 'https://github.com/DanielKovalevich'
-  description = 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching'
-  hentaiSource = false
-  websiteBaseURL = MN_DOMAIN
-  sourceTags = [
+export const ManganeloInfo: SourceInfo = {
+  version: '2.0.0',
+  name: 'Manganelo',
+  icon: 'icon.png',
+  author: 'Daniel Kovalevich',
+  authorWebsite: 'https://github.com/DanielKovalevich',
+  description: 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching',
+  hentaiSource: false,
+  websiteBaseURL: MN_DOMAIN,
+  sourceTags: [
     {
       text: "Notifications",
       type: TagType.GREEN
     }
   ]
+}
 
+export class Manganelo extends Source {
   getMangaShareUrl(mangaId: string): string | null { return `${MN_DOMAIN}/manga/${mangaId}` }
-  
+
   async getMangaDetails(mangaId: string): Promise<Manga> {
 
     let request = createRequestObject({
@@ -27,7 +45,7 @@ export class Manganelo extends Source {
       method: 'GET',
       param: mangaId
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let manga: Manga[] = []
@@ -117,7 +135,7 @@ export class Manganelo extends Source {
       method: 'GET',
       param: mangaId
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
@@ -151,7 +169,7 @@ export class Manganelo extends Source {
       },
       param: `${mangaId}/${chapterId}`
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
@@ -175,7 +193,7 @@ export class Manganelo extends Source {
     let loadNextPage: boolean = true
     let currPageNum: number = 1
 
-    while(loadNextPage) {
+    while (loadNextPage) {
 
       let request = createRequestObject({
         url: `${MN_DOMAIN}/genre-all/`,
@@ -185,14 +203,14 @@ export class Manganelo extends Source {
         },
         param: String(currPageNum)
       })
-      
+
       let data = await this.requestManager.schedule(request, 1)
 
       let $ = this.cheerio.load(data.data)
 
       let foundIds: string[] = []
-  
-      let passedReferenceTime = false;
+
+      let passedReferenceTime = false
       let panel = $('.panel-content-genres')
       for (let item of $('.content-genres-item', panel).toArray()) {
         let id = ($('a', item).first().attr('href') ?? '').split('/').pop() ?? ''
@@ -202,16 +220,16 @@ export class Manganelo extends Source {
         if (mangaTime > new Date(Date.now())) {
           mangaTime = new Date(Date.now() - 60000)
         }
-  
-        passedReferenceTime = mangaTime <= time;
+
+        passedReferenceTime = mangaTime <= time
         if (!passedReferenceTime) {
           if (ids.includes(id)) {
             foundIds.push(id)
           }
         }
-        else break;
+        else break
       }
-  
+
       if (!passedReferenceTime) {
         currPageNum++
       }
@@ -219,11 +237,11 @@ export class Manganelo extends Source {
       else {
         loadNextPage = false
       }
-  
+
       mangaUpdatesFoundCallback(createMangaUpdates({
         ids: foundIds
       }))
-    }    
+    }
   }
 
   private constructGetViewMoreRequest(key: string, page: number) {
@@ -251,7 +269,7 @@ export class Manganelo extends Source {
     })
   }
 
-  async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void>{
+  async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
 
     // Give Paperback a skeleton of what these home sections should look like to pre-render them
     let section1 = createHomeSection({ id: 'top_week', title: 'TOP OF THE WEEK' })
@@ -266,7 +284,7 @@ export class Manganelo extends Source {
       url: MN_DOMAIN,
       method: 'GET'
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
@@ -351,7 +369,7 @@ export class Manganelo extends Source {
       },
       param: `${search}${metadata.page ? '&page=' + metadata.page : ''}` // If we have page information in our metadata, search for the provided page
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
@@ -380,7 +398,7 @@ export class Manganelo extends Source {
     return createPagedResults({
       results: manga,
       metadata: metadata
-    });
+    })
   }
 
 
@@ -393,7 +411,7 @@ export class Manganelo extends Source {
         "content-type": "application/x-www-form-urlencoded",
       }
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
@@ -432,7 +450,7 @@ export class Manganelo extends Source {
       param: param,
       metadata: metadata
     })
-    
+
     let data = await this.requestManager.schedule(request, 1)
 
     let $ = this.cheerio.load(data.data)
@@ -471,7 +489,7 @@ export class Manganelo extends Source {
     return createPagedResults({
       results: manga,
       metadata: metadata
-    });
+    })
   }
 
   globalRequestHeaders(): RequestHeaders {
@@ -481,8 +499,8 @@ export class Manganelo extends Source {
   }
 
   private isLastPage($: CheerioStatic): boolean {
-    let current = $('.page-select').text();
-    let total = $('.page-last').text();
+    let current = $('.page-select').text()
+    let total = $('.page-last').text()
 
     if (current) {
       total = (/(\d+)/g.exec(total) ?? [''])[0]
