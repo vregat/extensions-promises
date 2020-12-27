@@ -12,19 +12,6 @@ class Source {
     constructor(cheerio) {
         // <-----------        OPTIONAL METHODS        -----------> //
         /**
-         * An optional field where the author may put a link to their website
-         */
-        this.authorWebsite = "";
-        /**
-         * An optional field that defines the language of the extension's source
-         */
-        this.language = "all";
-        /**
-         * An optional field of source tags: Little bits of metadata which is rendered on the website
-         * under your repositories section
-         */
-        this.sourceTags = [];
-        /**
          * Manages the ratelimits and the number of requests that can be done per second
          * This is also used to fetch pages when a chapter is downloading
          */
@@ -166,7 +153,7 @@ __exportStar(require("./base"), exports);
 __exportStar(require("./models"), exports);
 __exportStar(require("./APIWrapper"), exports);
 
-},{"./APIWrapper":1,"./base":3,"./models":21}],5:[function(require,module,exports){
+},{"./APIWrapper":1,"./base":3,"./models":22}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -251,6 +238,8 @@ arguments[4][5][0].apply(exports,arguments)
 },{"dup":5}],18:[function(require,module,exports){
 arguments[4][5][0].apply(exports,arguments)
 },{"dup":5}],19:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],20:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TagType = void 0;
@@ -268,9 +257,9 @@ var TagType;
     TagType["RED"] = "danger";
 })(TagType = exports.TagType || (exports.TagType = {}));
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 arguments[4][5][0].apply(exports,arguments)
-},{"dup":5}],21:[function(require,module,exports){
+},{"dup":5}],22:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -299,8 +288,9 @@ __exportStar(require("./PagedResults"), exports);
 __exportStar(require("./ResponseObject"), exports);
 __exportStar(require("./RequestManager"), exports);
 __exportStar(require("./RequestHeaders"), exports);
+__exportStar(require("./SourceInfo"), exports);
 
-},{"./Chapter":5,"./ChapterDetails":6,"./Constants":7,"./HomeSection":8,"./Languages":9,"./Manga":10,"./MangaTile":11,"./MangaUpdate":12,"./PagedResults":13,"./RequestHeaders":14,"./RequestManager":15,"./RequestObject":16,"./ResponseObject":17,"./SearchRequest":18,"./SourceTag":19,"./TagSection":20}],22:[function(require,module,exports){
+},{"./Chapter":5,"./ChapterDetails":6,"./Constants":7,"./HomeSection":8,"./Languages":9,"./Manga":10,"./MangaTile":11,"./MangaUpdate":12,"./PagedResults":13,"./RequestHeaders":14,"./RequestManager":15,"./RequestObject":16,"./ResponseObject":17,"./SearchRequest":18,"./SourceInfo":19,"./SourceTag":20,"./TagSection":21}],23:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -312,27 +302,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Manganelo = void 0;
+exports.Manganelo = exports.ManganeloInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MN_DOMAIN = 'https://manganelo.com';
+exports.ManganeloInfo = {
+    version: '2.0.0',
+    name: 'Manganelo',
+    icon: 'icon.png',
+    author: 'Daniel Kovalevich',
+    authorWebsite: 'https://github.com/DanielKovalevich',
+    description: 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching',
+    hentaiSource: false,
+    websiteBaseURL: MN_DOMAIN,
+    sourceTags: [
+        {
+            text: "Notifications",
+            type: paperback_extensions_common_1.TagType.GREEN
+        }
+    ]
+};
 class Manganelo extends paperback_extensions_common_1.Source {
-    constructor() {
-        super(...arguments);
-        this.version = '2.0.0';
-        this.name = 'Manganelo';
-        this.icon = 'icon.png';
-        this.author = 'Daniel Kovalevich';
-        this.authorWebsite = 'https://github.com/DanielKovalevich';
-        this.description = 'Extension that pulls manga from Manganelo, includes Advanced Search and Updated manga fetching';
-        this.hentaiSource = false;
-        this.websiteBaseURL = MN_DOMAIN;
-        this.sourceTags = [
-            {
-                text: "Notifications",
-                type: paperback_extensions_common_1.TagType.GREEN
-            }
-        ];
-    }
     getMangaShareUrl(mangaId) { return `${MN_DOMAIN}/manga/${mangaId}`; }
     getMangaDetails(mangaId) {
         var _a, _b, _c, _d, _e;
@@ -772,5 +761,5 @@ class Manganelo extends paperback_extensions_common_1.Source {
 }
 exports.Manganelo = Manganelo;
 
-},{"paperback-extensions-common":4}]},{},[22])(22)
+},{"paperback-extensions-common":4}]},{},[23])(23)
 });
