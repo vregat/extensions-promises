@@ -302,174 +302,298 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Guya = exports.GuyaInfo = void 0;
+exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
-const GUYA_API_BASE = "https://guya.moe";
-const GUYA_SERIES_API_BASE = `${GUYA_API_BASE}/api/series`;
-const GUYA_ALL_SERIES_API = `${GUYA_API_BASE}/api/get_all_series/`;
-const GUYA_LANG = "en";
-const SPLIT_VAR = "|";
-exports.GuyaInfo = {
-    version: "1.1.0",
-    name: "Guya",
-    icon: "icon.png",
-    author: "funkyhippo",
-    authorWebsite: "https://github.com/funkyhippo",
-    description: "Extension that pulls manga from guya.moe",
-    language: GUYA_LANG,
+const READMNGCOM_DOMAIN = 'https://www.readmng.com';
+exports.ReadmngComInfo = {
+    version: '0.0.9',
+    name: 'Readmng.com',
+    description: 'Extension that pulls mangas from readmng.com',
+    author: 'Vregat',
+    authorWebsite: 'https://github.com/vregat/extensions-promises',
+    icon: 'logo.png',
     hentaiSource: false,
-    websiteBaseURL: GUYA_API_BASE
+    websiteBaseURL: READMNGCOM_DOMAIN
 };
-class Guya extends paperback_extensions_common_1.Source {
+class ReadmngCom extends paperback_extensions_common_1.Source {
     getMangaDetails(mangaId) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let request = createRequestObject({
-                metadata: { mangaId },
-                url: GUYA_ALL_SERIES_API,
-                method: "GET",
+                url: `${READMNGCOM_DOMAIN}/${mangaId}`,
+                method: 'GET'
             });
-            let response = yield this.requestManager.schedule(request, 1);
-            let result = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
-            let mangas = [];
-            for (let series in result) {
-                let seriesDetails = result[series];
-                if (mangaId.includes(seriesDetails["slug"])) {
-                    mangas.push(createManga({
-                        id: seriesDetails["slug"],
-                        titles: [series],
-                        image: `${GUYA_API_BASE}/${seriesDetails["cover"]}`,
-                        rating: 5,
-                        status: paperback_extensions_common_1.MangaStatus.ONGOING,
-                        artist: seriesDetails["artist"],
-                        author: seriesDetails["author"],
-                        desc: seriesDetails["description"],
-                    }));
-                }
+            let data = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(data);
+            let panel = $('.panel-body');
+            let title = (_a = $('.img-responsive', panel).attr('alt')) !== null && _a !== void 0 ? _a : '';
+            let image = (_b = $('.img-responsive', panel).attr('src')) !== null && _b !== void 0 ? _b : '';
+            let titles = [title].concat($('.dl-horizontal > dd:nth-child(2)', panel).text().split(/,|;/));
+            let status = $('.dl-horizontal > dd:nth-child(4)', panel).text().toString() == 'Completed' ? paperback_extensions_common_1.MangaStatus.COMPLETED : paperback_extensions_common_1.MangaStatus.ONGOING;
+            let views = +$('.dl-horizontal > dd:nth-child(10)', panel).text().split(',').join('');
+            let genres = [];
+            for (let tagElement of $('.dl-horizontal > dd:nth-child(6)', panel).find('a').toArray()) {
+                let id = $(tagElement).attr('href').replace(`${READMNGCOM_DOMAIN}/category/`, '');
+                let text = $(tagElement).contents().text();
+                genres.push(createTag({ id: id, label: text }));
             }
-            return mangas[0];
+            let genresSection = createTagSection({ id: 'genre', label: 'Genre', tags: genres });
+            let description = $('.movie-detail').text().trim();
+            let castList = $('ul.cast-list');
+            let authorElement = $('li:contains("Author")', castList);
+            let author = $("li > a", authorElement).text().trim();
+            let artistElement = $('li:contains("Artist")', castList);
+            let artist = $("li > a", artistElement).text().trim();
+            let rating = +$('div.progress-bar-success').attr('title').replace('%', '');
+            return createManga({
+                id: mangaId,
+                titles: titles,
+                image: image,
+                rating: rating,
+                status: status,
+                views: views,
+                desc: description,
+                tags: [genresSection],
+                author: author,
+                artist: artist
+            });
         });
     }
     getChapters(mangaId) {
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             let request = createRequestObject({
-                metadata: { mangaId },
-                url: `${GUYA_SERIES_API_BASE}/${mangaId}/`,
-                method: "GET",
+                url: `${READMNGCOM_DOMAIN}/${mangaId}`,
+                method: 'GET'
             });
-            let response = yield this.requestManager.schedule(request, 1);
-            let result = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
-            let rawChapters = result["chapters"];
-            let groupMap = result["groups"];
+            let data = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(data);
+            let allChapters = $('ul.chp_lst');
             let chapters = [];
-            for (let chapter in rawChapters) {
-                let chapterMetadata = rawChapters[chapter];
-                for (let group in chapterMetadata["groups"]) {
-                    chapters.push(createChapter({
-                        id: `${chapter}${SPLIT_VAR}${group}`,
-                        mangaId: mangaId,
-                        chapNum: Number(chapter),
-                        langCode: paperback_extensions_common_1.LanguageCode.ENGLISH,
-                        name: chapterMetadata["title"],
-                        volume: chapterMetadata["volume"],
-                        group: groupMap[group],
-                        time: new Date(Number(chapterMetadata["release_date"][group]) * 1000),
-                    }));
+            let chNum = $('ul.chp_lst > li').toArray().length - 1;
+            for (let chapter of $('li', allChapters).toArray()) {
+                let id = (_b = (_a = $('a', chapter).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) !== null && _b !== void 0 ? _b : '';
+                let name = (_c = $('a > .val', chapter).text().trim()) !== null && _c !== void 0 ? _c : '';
+                let time = (_d = $('a > .dte', chapter).text().trim()) !== null && _d !== void 0 ? _d : '';
+                let timeValue = +time.split(' ')[0];
+                let parsedDate = new Date(Date.now());
+                if (time.includes('Second')) {
+                    parsedDate.setSeconds(parsedDate.getSeconds() - timeValue);
                 }
+                else if (time.includes('Minute')) {
+                    parsedDate.setMinutes(parsedDate.getMinutes() - timeValue);
+                }
+                else if (time.includes('Hour')) {
+                    parsedDate.setHours(parsedDate.getHours() - timeValue);
+                }
+                else if (time.includes('Day')) {
+                    parsedDate.setDate(parsedDate.getDate() - timeValue);
+                }
+                else if (time.includes('Week')) {
+                    parsedDate.setDate(parsedDate.getDate() - (timeValue * 7));
+                }
+                else if (time.includes('Month')) {
+                    parsedDate.setMonth(parsedDate.getMonth() - timeValue);
+                }
+                else if (time.includes('Year')) {
+                    parsedDate.setFullYear(parsedDate.getFullYear() - timeValue);
+                }
+                chapters.push(createChapter({
+                    id: id,
+                    mangaId: mangaId,
+                    name: name,
+                    langCode: paperback_extensions_common_1.LanguageCode.ENGLISH,
+                    chapNum: chNum,
+                    time: parsedDate
+                }));
+                chNum--;
             }
             return chapters;
         });
     }
     getChapterDetails(mangaId, chapterId) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const request = createRequestObject({
-                url: `${GUYA_SERIES_API_BASE}/${mangaId}/`,
-                method: "GET",
+            let request = createRequestObject({
+                url: `${READMNGCOM_DOMAIN}/${mangaId}/${chapterId}/all-pages`,
+                method: 'GET'
             });
-            const data = yield this.requestManager.schedule(request, 1);
-            let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
-            let rawChapters = result["chapters"];
-            let [chapter, group] = chapterId.split(SPLIT_VAR);
-            return createChapterDetails({
+            let data = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(data);
+            let pages = [];
+            for (const page of $('.page_chapter > .img-responsive').toArray()) {
+                pages.push((_a = $(page).attr('src')) !== null && _a !== void 0 ? _a : '');
+            }
+            let chapterDetails = createChapterDetails({
                 id: chapterId,
-                longStrip: false,
                 mangaId: mangaId,
-                pages: rawChapters[chapter]["groups"][group].map((page) => `${GUYA_API_BASE}/media/manga/${mangaId}/chapters/${rawChapters[chapter]["folder"]}/${group}/${page}`),
+                pages: pages,
+                longStrip: false
+            });
+            return chapterDetails;
+        });
+    }
+    searchRequest(query, metadata) {
+        var _a, _b, _c, _d, _e, _f, _g;
+        return __awaiter(this, void 0, void 0, function* () {
+            let title = ((_a = query.title) !== null && _a !== void 0 ? _a : '').split(' ').join('+');
+            let author = ((_b = query.author) !== null && _b !== void 0 ? _b : '').split(' ').join('+');
+            let artist = ((_c = query.artist) !== null && _c !== void 0 ? _c : '').split(' ').join('+');
+            let status = '';
+            switch (query.status) {
+                case 0:
+                    status = 'completed';
+                    break;
+                case 1:
+                    status = 'ongoing';
+                    break;
+                default:
+                    status = 'both';
+                    break;
+            }
+            let request = createRequestObject({
+                url: `${READMNGCOM_DOMAIN}/service/advanced_search`,
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                data: {
+                    'type': 'all',
+                    'manga-name': title,
+                    'author-name': author,
+                    'artist-name': artist,
+                    'status': status
+                }
+            });
+            let data = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(data);
+            let manga = [];
+            for (let item of $('.style-list > div.box').toArray()) {
+                let id = (_e = (_d = $('.title a', item).attr('href')) === null || _d === void 0 ? void 0 : _d.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _e !== void 0 ? _e : '';
+                let title = (_f = $('.title a', item).attr('title')) !== null && _f !== void 0 ? _f : '';
+                let img = (_g = $('.body a > img', item).attr('src')) !== null && _g !== void 0 ? _g : '';
+                manga.push(createMangaTile({
+                    id: id,
+                    title: createIconText({ text: title }),
+                    image: img
+                }));
+            }
+            return createPagedResults({
+                results: manga
             });
         });
     }
-    searchRequest(searchQuery, metadata) {
-        var _a;
+    getMangaShareUrl(mangaId) {
+        return `${READMNGCOM_DOMAIN}/${mangaId}`;
+    }
+    filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) {
         return __awaiter(this, void 0, void 0, function* () {
-            const request = createRequestObject({
-                url: GUYA_ALL_SERIES_API,
-                method: "GET",
-            });
-            const data = yield this.requestManager.schedule(request, 1);
-            let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
-            let query = (_a = searchQuery.title) !== null && _a !== void 0 ? _a : '';
-            let filteredResults = Object.keys(result).filter((e) => e.toLowerCase().includes(query.toLowerCase()));
-            let tiles = filteredResults.map((series) => {
-                let seriesMetadata = result[series];
-                return createMangaTile({
-                    id: seriesMetadata["slug"],
-                    image: `${GUYA_API_BASE}/${seriesMetadata["cover"]}`,
-                    title: createIconText({ text: series }),
+            let loadNextPage = true;
+            let currentPage = 1;
+            time.setHours(0, 0, 0, 0); //website does not use hours/minutes/seconds
+            while (loadNextPage) {
+                let request = createRequestObject({
+                    url: `${READMNGCOM_DOMAIN}/latest-releases/${currentPage}`,
+                    method: 'GET'
                 });
-            });
-            return createPagedResults({
-                results: tiles
-            });
+                let data = yield this.requestManager.schedule(request, 1);
+                let $ = this.cheerio.load(data);
+                let passedTime = false;
+                let updatedManga = $('.manga_updates');
+                let foundIds = [];
+                for (let manga of $('dl', updatedManga).toArray()) {
+                    let item = $('dt', manga);
+                    let mangaInfo = $('a.manga_info', item).attr('href').replace(`${READMNGCOM_DOMAIN}/`, '');
+                    let updatedDate = $('span.time', item).contents().text().split('/');
+                    let parsedDate = new Date(+updatedDate[2], (+updatedDate[1]) - 1, +updatedDate[0]);
+                    let numChapters = $('dd', manga).toArray().length;
+                    passedTime = parsedDate < time;
+                    if (!passedTime) {
+                        if (ids.includes(mangaInfo)) {
+                            for (let c = 0; c < numChapters; c++) {
+                                foundIds.push(mangaInfo);
+                            }
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (!passedTime) {
+                    currentPage++;
+                }
+                else {
+                    loadNextPage = false;
+                }
+                mangaUpdatesFoundCallback(createMangaUpdates({
+                    ids: foundIds
+                }));
+            }
         });
     }
     getHomePageSections(sectionCallback) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Send the empty homesection back so the app can preload the section
-            var homeSection = createHomeSection({ id: "all_guya", title: "ALL GUYA" });
-            sectionCallback(homeSection);
-            const request = createRequestObject({
-                url: GUYA_ALL_SERIES_API,
-                method: "GET"
+            this.parseLatestReleases(sectionCallback);
+            this.parseHotManga(sectionCallback);
+        });
+    }
+    parseLatestReleases(sectionCallback) {
+        var _a, _b, _c, _d, _e;
+        return __awaiter(this, void 0, void 0, function* () {
+            let latestSection = createHomeSection({
+                id: 'latest_releases',
+                title: 'LATEST RELEASES'
             });
-            const data = yield this.requestManager.schedule(request, 1);
-            let result = typeof data === "string" ? JSON.parse(data) : data;
-            let mangas = [];
-            for (let series in result) {
-                let seriesDetails = result[series];
-                mangas.push(createMangaTile({
-                    id: seriesDetails["slug"],
-                    image: `${GUYA_API_BASE}/${seriesDetails["cover"]}`,
-                    title: createIconText({ text: series }),
+            sectionCallback(latestSection);
+            let latestRequest = createRequestObject({ url: `${READMNGCOM_DOMAIN}/latest-releases`, method: 'GET' });
+            let data = yield this.requestManager.schedule(latestRequest, 1);
+            let result = [];
+            let $ = this.cheerio.load(data);
+            let pages = $('div.content-list div.style-thumbnail');
+            for (let item of $('li', pages).toArray()) {
+                let id = (_b = (_a = $('.thumbnail', item).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _b !== void 0 ? _b : '';
+                let img = (_c = $('.thumbnail img', item).attr('src')) !== null && _c !== void 0 ? _c : '';
+                let title = (_e = (_d = $('.thumbnail', item).attr('title')) === null || _d === void 0 ? void 0 : _d.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _e !== void 0 ? _e : '';
+                result.push(createMangaTile({
+                    id: id,
+                    image: img,
+                    title: createIconText({ text: title })
                 }));
             }
-            homeSection.items = mangas;
-            sectionCallback(homeSection);
+            latestSection.items = result;
+            sectionCallback(latestSection);
         });
     }
-    filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) {
+    parseHotManga(sectionCallback) {
+        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
-            const request = createRequestObject({
-                url: GUYA_ALL_SERIES_API,
-                method: "GET"
+            let hotSection = createHomeSection({
+                id: 'hot_manga',
+                title: 'HOT MANGA'
             });
-            const data = yield this.requestManager.schedule(request, 1);
-            let result = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
-            let foundIds = [];
-            for (let series in result) {
-                let seriesDetails = result[series];
-                let seriesUpdated = new Date(seriesDetails["last_updated"] * 1000);
-                if (seriesUpdated >= time &&
-                    ids.includes(series)) {
-                    foundIds.push(series);
-                }
+            sectionCallback(hotSection);
+            let hotRequest = createRequestObject({ url: `${READMNGCOM_DOMAIN}/hot-manga`, method: 'GET' });
+            let data = yield this.requestManager.schedule(hotRequest, 1);
+            let result = [];
+            let $ = this.cheerio.load(data);
+            let pages = $('div.style-list');
+            for (let item of $('div.box', pages).toArray()) {
+                let id = (_b = (_a = $('.body > .left > a', item).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _b !== void 0 ? _b : '';
+                let img = (_c = $('.body > .left img', item).attr('src')) !== null && _c !== void 0 ? _c : '';
+                let title = (_e = (_d = $('.body > .left > a', item).attr('title')) === null || _d === void 0 ? void 0 : _d.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _e !== void 0 ? _e : '';
+                result.push(createMangaTile({
+                    id: id,
+                    image: img,
+                    title: createIconText({ text: title })
+                }));
             }
-            mangaUpdatesFoundCallback(createMangaUpdates({ ids: foundIds }));
+            hotSection.items = result;
+            sectionCallback(hotSection);
         });
-    }
-    getMangaShareUrl(mangaId) {
-        return `${GUYA_API_BASE}/read/manga/${mangaId}/`;
     }
 }
-exports.Guya = Guya;
+exports.ReadmngCom = ReadmngCom;
 
 },{"paperback-extensions-common":4}]},{},[23])(23)
 });
