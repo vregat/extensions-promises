@@ -598,7 +598,7 @@ exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const READMNGCOM_DOMAIN = 'https://www.readmng.com';
 exports.ReadmngComInfo = {
-    version: '0.0.9',
+    version: '0.0.10',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -784,6 +784,7 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
             let loadNextPage = true;
             let currentPage = 1;
             time.setHours(0, 0, 0, 0); //website does not use hours/minutes/seconds
+            let foundIds = [];
             while (loadNextPage) {
                 let request = createRequestObject({
                     url: `${READMNGCOM_DOMAIN}/latest-releases/${currentPage}`,
@@ -793,7 +794,6 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 let $ = this.cheerio.load(response.data);
                 let passedTime = false;
                 let updatedManga = $('.manga_updates');
-                let foundIds = [];
                 for (let manga of $('dl', updatedManga).toArray()) {
                     let item = $('dt', manga);
                     let mangaInfo = $('a.manga_info', item).attr('href').replace(`${READMNGCOM_DOMAIN}/`, '');
@@ -804,7 +804,7 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                     if (!passedTime) {
                         if (ids.includes(mangaInfo)) {
                             for (let c = 0; c < numChapters; c++) {
-                                foundIds.push(mangaInfo);
+                                foundIds = [...foundIds, mangaInfo];
                             }
                         }
                     }
@@ -818,10 +818,13 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 else {
                     loadNextPage = false;
                 }
-                mangaUpdatesFoundCallback(createMangaUpdates({
-                    ids: foundIds
-                }));
             }
+            var updates = createMangaUpdates({
+                ids: foundIds
+            });
+            //updates.ids = foundIds
+            //console.log(`foundIds: ${JSON.stringify(foundIds)}, callbackInput: ${JSON.stringify(updates)}`);
+            mangaUpdatesFoundCallback(updates);
         });
     }
     getHomePageSections(sectionCallback) {
