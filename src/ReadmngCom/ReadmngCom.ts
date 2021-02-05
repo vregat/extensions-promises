@@ -36,9 +36,9 @@ export class ReadmngCom extends Source {
             method: 'GET'
         })
 
-        let data = await this.requestManager.schedule(request, 1)
+        let response = await this.requestManager.schedule(request, 1)
 
-        let $ = this.cheerio.load(data)
+        let $ = this.cheerio.load(response.data)
         let panel = $('.panel-body')
         let title = $('.img-responsive', panel).attr('alt') ?? ''
         let image = $('.img-responsive', panel).attr('src') ?? ''
@@ -87,9 +87,9 @@ export class ReadmngCom extends Source {
             method: 'GET'
         })
 
-        let data = await this.requestManager.schedule(request, 1)
+        let response = await this.requestManager.schedule(request, 1)
 
-        let $ = this.cheerio.load(data)
+        let $ = this.cheerio.load(response.data)
         let allChapters = $('ul.chp_lst')
         let chapters: Chapter[] = []
         let chNum: number = $('ul.chp_lst > li').toArray().length - 1
@@ -138,9 +138,9 @@ export class ReadmngCom extends Source {
             method: 'GET'
         })
 
-        let data = await this.requestManager.schedule(request, 1)
+        let response = await this.requestManager.schedule(request, 1)
 
-        let $ = this.cheerio.load(data)
+        let $ = this.cheerio.load(response.data)
 
         let pages: string[] = []
         for (const page of $('.page_chapter > .img-responsive').toArray()) {
@@ -190,9 +190,9 @@ export class ReadmngCom extends Source {
             }
         })
 
-        let data = await this.requestManager.schedule(request, 1)
+        let response = await this.requestManager.schedule(request, 1)
 
-        let $ = this.cheerio.load(data)
+        let $ = this.cheerio.load(response.data)
 
         let manga: MangaTile[] = []
 
@@ -227,8 +227,8 @@ export class ReadmngCom extends Source {
                 url: `${READMNGCOM_DOMAIN}/latest-releases/${currentPage}`,
                 method: 'GET'
             })
-            let data = await this.requestManager.schedule(request, 1)
-            let $ = this.cheerio.load(data)
+            let response = await this.requestManager.schedule(request, 1)
+            let $ = this.cheerio.load(response.data)
 
             let passedTime = false
             let updatedManga = $('.manga_updates')
@@ -278,10 +278,10 @@ export class ReadmngCom extends Source {
         sectionCallback(latestSection)
 
         let latestRequest = createRequestObject({ url: `${READMNGCOM_DOMAIN}/latest-releases`, method: 'GET' })
-        let data = await this.requestManager.schedule(latestRequest, 1)
+        let response = await this.requestManager.schedule(latestRequest, 1)
 
         let result: MangaTile[] = []
-        let $ = this.cheerio.load(data)
+        let $ = this.cheerio.load(response.data)
         let pages = $('div.content-list div.style-thumbnail')
 
         for (let item of $('li', pages).toArray()) {
@@ -308,10 +308,10 @@ export class ReadmngCom extends Source {
         sectionCallback(hotSection)
 
         let hotRequest = createRequestObject({ url: `${READMNGCOM_DOMAIN}/hot-manga`, method: 'GET' })
-        let data = await this.requestManager.schedule(hotRequest, 1)
+        let response = await this.requestManager.schedule(hotRequest, 1)
 
         let result: MangaTile[] = []
-        let $ = this.cheerio.load(data)
+        let $ = this.cheerio.load(response.data)
         let pages = $('div.style-list')
         for (let item of $('div.box', pages).toArray()) {
             let id = $('.body > .left > a', item).attr('href')?.replace(`${READMNGCOM_DOMAIN}/`, '') ?? ''
