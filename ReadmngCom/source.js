@@ -615,8 +615,8 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 url: `${READMNGCOM_DOMAIN}/${mangaId}`,
                 method: 'GET'
             });
-            let data = yield this.requestManager.schedule(request, 1);
-            let $ = this.cheerio.load(data);
+            let response = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(response.data);
             let panel = $('.panel-body');
             let title = (_a = $('.img-responsive', panel).attr('alt')) !== null && _a !== void 0 ? _a : '';
             let image = (_b = $('.img-responsive', panel).attr('src')) !== null && _b !== void 0 ? _b : '';
@@ -658,8 +658,8 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 url: `${READMNGCOM_DOMAIN}/${mangaId}`,
                 method: 'GET'
             });
-            let data = yield this.requestManager.schedule(request, 1);
-            let $ = this.cheerio.load(data);
+            let response = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(response.data);
             let allChapters = $('ul.chp_lst');
             let chapters = [];
             let chNum = $('ul.chp_lst > li').toArray().length - 1;
@@ -710,8 +710,8 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 url: `${READMNGCOM_DOMAIN}/${mangaId}/${chapterId}/all-pages`,
                 method: 'GET'
             });
-            let data = yield this.requestManager.schedule(request, 1);
-            let $ = this.cheerio.load(data);
+            let response = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(response.data);
             let pages = [];
             for (const page of $('.page_chapter > .img-responsive').toArray()) {
                 pages.push((_a = $(page).attr('src')) !== null && _a !== void 0 ? _a : '');
@@ -758,8 +758,8 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                     'status': status
                 }
             });
-            let data = yield this.requestManager.schedule(request, 1);
-            let $ = this.cheerio.load(data);
+            let response = yield this.requestManager.schedule(request, 1);
+            let $ = this.cheerio.load(response.data);
             let manga = [];
             for (let item of $('.style-list > div.box').toArray()) {
                 let id = (_e = (_d = $('.title a', item).attr('href')) === null || _d === void 0 ? void 0 : _d.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _e !== void 0 ? _e : '';
@@ -789,8 +789,8 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                     url: `${READMNGCOM_DOMAIN}/latest-releases/${currentPage}`,
                     method: 'GET'
                 });
-                let data = yield this.requestManager.schedule(request, 1);
-                let $ = this.cheerio.load(data);
+                let response = yield this.requestManager.schedule(request, 1);
+                let $ = this.cheerio.load(response.data);
                 let passedTime = false;
                 let updatedManga = $('.manga_updates');
                 let foundIds = [];
@@ -839,9 +839,9 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
             });
             sectionCallback(latestSection);
             let latestRequest = createRequestObject({ url: `${READMNGCOM_DOMAIN}/latest-releases`, method: 'GET' });
-            let data = yield this.requestManager.schedule(latestRequest, 1);
+            let response = yield this.requestManager.schedule(latestRequest, 1);
             let result = [];
-            let $ = this.cheerio.load(data);
+            let $ = this.cheerio.load(response.data);
             let pages = $('div.content-list div.style-thumbnail');
             for (let item of $('li', pages).toArray()) {
                 let id = (_b = (_a = $('.thumbnail', item).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _b !== void 0 ? _b : '';
@@ -866,9 +866,9 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
             });
             sectionCallback(hotSection);
             let hotRequest = createRequestObject({ url: `${READMNGCOM_DOMAIN}/hot-manga`, method: 'GET' });
-            let data = yield this.requestManager.schedule(hotRequest, 1);
+            let response = yield this.requestManager.schedule(hotRequest, 1);
             let result = [];
-            let $ = this.cheerio.load(data);
+            let $ = this.cheerio.load(response.data);
             let pages = $('div.style-list');
             for (let item of $('div.box', pages).toArray()) {
                 let id = (_b = (_a = $('.body > .left > a', item).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`${READMNGCOM_DOMAIN}/`, '')) !== null && _b !== void 0 ? _b : '';
