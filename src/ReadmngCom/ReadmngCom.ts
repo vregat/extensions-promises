@@ -19,7 +19,7 @@ import {
 const READMNGCOM_DOMAIN = 'https://www.readmng.com'
 
 export const ReadmngComInfo: SourceInfo = {
-    version: '0.0.9',
+    version: '0.0.10',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -222,6 +222,7 @@ export class ReadmngCom extends Source {
         let currentPage: number = 1
         time.setHours(0, 0, 0, 0) //website does not use hours/minutes/seconds
 
+        let foundIds: string[] = []
         while (loadNextPage) {
             let request = createRequestObject({
                 url: `${READMNGCOM_DOMAIN}/latest-releases/${currentPage}`,
@@ -232,7 +233,6 @@ export class ReadmngCom extends Source {
 
             let passedTime = false
             let updatedManga = $('.manga_updates')
-            let foundIds: string[] = []
 
             for (let manga of $('dl', updatedManga).toArray()) {
                 let item = $('dt', manga)
@@ -246,7 +246,7 @@ export class ReadmngCom extends Source {
                 if (!passedTime) {
                     if (ids.includes(mangaInfo)) {
                         for (let c = 0; c < numChapters; c++) {
-                            foundIds.push(mangaInfo)
+                            foundIds = [...foundIds, mangaInfo];
                         }
                     }
                 } else {
@@ -259,10 +259,13 @@ export class ReadmngCom extends Source {
                 loadNextPage = false
             }
 
-            mangaUpdatesFoundCallback(createMangaUpdates({
-                ids: foundIds
-            }))
         }
+        var updates: MangaUpdates = createMangaUpdates({
+            ids: foundIds
+        })
+        //updates.ids = foundIds
+        //console.log(`foundIds: ${JSON.stringify(foundIds)}, callbackInput: ${JSON.stringify(updates)}`);
+        mangaUpdatesFoundCallback(updates)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {

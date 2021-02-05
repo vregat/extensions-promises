@@ -9,12 +9,10 @@ describe('ReadmngCom Tests', function () {
     var chaiAsPromised = require('chai-as-promised');
     chai.use(chaiAsPromised);
 
-    var mangaId = "versatile-mage";
+    var mangaId = "one-piece1";
 
     it("Get Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, mangaId);
-        expect(details, `No results found for ID: ${mangaId}`).to.be.an('array');
-        expect(details).to.not.have.lengthOf(0, "Empty response");
 
         let data = details;
         expect(data.id, "Missing link").to.be.not.empty;
@@ -47,4 +45,12 @@ describe('ReadmngCom Tests', function () {
         expect(data.mangaId, "Missing mangaId").to.be.not.empty;
         expect(data.pages, "No pages found").to.be.not.empty;
     });
+
+    it("Testing Notifications", async () => {
+        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-1-27"), [mangaId])
+        console.log(JSON.stringify(updates))
+        expect(updates, "No server response").to.exist
+        expect(updates, "Empty server response").to.not.be.empty
+        expect(updates[0], "No updates").to.not.be.empty;
+    })
 })
