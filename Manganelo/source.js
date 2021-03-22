@@ -339,10 +339,6 @@ exports.Manganelo = exports.ManganeloInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ManganeloParser_1 = require("./ManganeloParser");
 const MN_DOMAIN = 'https://manganelo.com';
-const method = 'GET';
-const headers = {
-    "content-type": "application/x-www-form-urlencoded"
-};
 exports.ManganeloInfo = {
     version: '2.1.1',
     name: 'Manganelo',
@@ -364,9 +360,8 @@ class Manganelo extends paperback_extensions_common_1.Source {
     getMangaDetails(mangaId) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MN_DOMAIN}/manga/`,
-                method,
-                param: mangaId
+                url: `${MN_DOMAIN}/manga/${mangaId}`,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -376,9 +371,8 @@ class Manganelo extends paperback_extensions_common_1.Source {
     getChapters(mangaId) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MN_DOMAIN}/manga/`,
-                method,
-                param: mangaId
+                url: `${MN_DOMAIN}/manga/${mangaId}`,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -388,13 +382,8 @@ class Manganelo extends paperback_extensions_common_1.Source {
     getChapterDetails(mangaId, chapterId) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MN_DOMAIN}/chapter/`,
-                method,
-                headers: {
-                    "content-type": "application/x-www-form-urlencoded",
-                    Cookie: 'content_lazyload=off'
-                },
-                param: `${mangaId}/${chapterId}`
+                url: `${MN_DOMAIN}/chapter/${mangaId}/${chapterId}`,
+                method: 'GET',
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -410,21 +399,14 @@ class Manganelo extends paperback_extensions_common_1.Source {
             };
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
-                    url: `${MN_DOMAIN}/genre-all/`,
-                    method,
-                    headers,
-                    param: String(page++)
+                    url: `${MN_DOMAIN}/genre-all/${page++}`,
+                    method: 'GET',
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
                 const result = ManganeloParser_1.parseUpdatedManga($, time, ids);
                 updatedManga.ids = [...ids, ...result.ids];
                 updatedManga.loadMore = result.loadMore;
-                /*if (updatedManga.ids.length > 0) {
-                  mangaUpdatesFoundCallback(createMangaUpdates({
-                    ids: updatedManga.ids
-                  }))
-                }*/
             }
             if (updatedManga.ids.length > 0) {
                 mangaUpdatesFoundCallback(createMangaUpdates({
@@ -443,7 +425,7 @@ class Manganelo extends paperback_extensions_common_1.Source {
             // Fill the homsections with data
             const request = createRequestObject({
                 url: MN_DOMAIN,
-                method,
+                method: 'GET',
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -456,10 +438,8 @@ class Manganelo extends paperback_extensions_common_1.Source {
             let page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
             const search = ManganeloParser_1.generateSearch(query);
             const request = createRequestObject({
-                url: `${MN_DOMAIN}/advanced_search?`,
-                method,
-                headers,
-                param: `${search}${'&page=' + page}`
+                url: `${MN_DOMAIN}/advanced_search?${search}${'&page=' + page}`,
+                method: 'GET',
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -475,8 +455,7 @@ class Manganelo extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${MN_DOMAIN}/advanced_search?`,
-                method,
-                headers,
+                method: 'GET',
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -495,9 +474,8 @@ class Manganelo extends paperback_extensions_common_1.Source {
             else
                 return Promise.resolve(null);
             const request = createRequestObject({
-                url: `${MN_DOMAIN}`,
-                method,
-                param,
+                url: `${MN_DOMAIN}${param}`,
+                method: 'GET',
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);

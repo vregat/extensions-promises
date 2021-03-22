@@ -339,7 +339,7 @@ exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const READMNGCOM_DOMAIN = 'https://www.readmng.com';
 exports.ReadmngComInfo = {
-    version: '0.0.10',
+    version: '0.0.12',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -350,7 +350,7 @@ exports.ReadmngComInfo = {
 };
 class ReadmngCom extends paperback_extensions_common_1.Source {
     getMangaDetails(mangaId) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             let request = createRequestObject({
                 url: `${READMNGCOM_DOMAIN}/${mangaId}`,
@@ -366,9 +366,11 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
             let views = +$('.dl-horizontal > dd:nth-child(10)', panel).text().split(',').join('');
             let genres = [];
             for (let tagElement of $('.dl-horizontal > dd:nth-child(6)', panel).find('a').toArray()) {
-                let id = $(tagElement).attr('href').replace(`${READMNGCOM_DOMAIN}/category/`, '');
+                let id = (_c = $(tagElement).attr('href')) === null || _c === void 0 ? void 0 : _c.replace(`${READMNGCOM_DOMAIN}/category/`, '');
                 let text = $(tagElement).contents().text();
-                genres.push(createTag({ id: id, label: text }));
+                if (id) {
+                    genres.push(createTag({ id: id, label: text }));
+                }
             }
             let genresSection = createTagSection({ id: 'genre', label: 'Genre', tags: genres });
             let description = $('.movie-detail').text().trim();
@@ -377,7 +379,11 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
             let author = $("li > a", authorElement).text().trim();
             let artistElement = $('li:contains("Artist")', castList);
             let artist = $("li > a", artistElement).text().trim();
-            let rating = +$('div.progress-bar-success').attr('title').replace('%', '');
+            let ratingString = (_d = $('div.progress-bar-success').attr('title')) === null || _d === void 0 ? void 0 : _d.replace('%', '');
+            let rating = 0;
+            if (ratingString) {
+                rating = +ratingString;
+            }
             return createManga({
                 id: mangaId,
                 titles: titles,
@@ -399,36 +405,39 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 url: `${READMNGCOM_DOMAIN}/${mangaId}`,
                 method: 'GET'
             });
+            console.time('GetChaptersRequest');
             let response = yield this.requestManager.schedule(request, 1);
+            console.timeEnd('GetChaptersRequest');
             let $ = this.cheerio.load(response.data);
-            let allChapters = $('ul.chp_lst');
+            let allChapters = $('ul.chp_lst > li').toArray();
             let chapters = [];
-            let chNum = $('ul.chp_lst > li').toArray().length - 1;
-            for (let chapter of $('li', allChapters).toArray()) {
+            let chNum = allChapters.length - 1;
+            for (let chapter of allChapters) {
                 let id = (_b = (_a = $('a', chapter).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) !== null && _b !== void 0 ? _b : '';
                 let name = (_c = $('a > .val', chapter).text().trim()) !== null && _c !== void 0 ? _c : '';
                 let time = (_d = $('a > .dte', chapter).text().trim()) !== null && _d !== void 0 ? _d : '';
                 let timeValue = +time.split(' ')[0];
+                let timeUnit = time.split(' ')[1];
                 let parsedDate = new Date(Date.now());
-                if (time.includes('Second')) {
+                if (timeUnit == 'Second') {
                     parsedDate.setSeconds(parsedDate.getSeconds() - timeValue);
                 }
-                else if (time.includes('Minute')) {
+                else if (timeUnit == 'Minute') {
                     parsedDate.setMinutes(parsedDate.getMinutes() - timeValue);
                 }
-                else if (time.includes('Hour')) {
+                else if (timeUnit == 'Hour') {
                     parsedDate.setHours(parsedDate.getHours() - timeValue);
                 }
-                else if (time.includes('Day')) {
+                else if (timeUnit == 'Day') {
                     parsedDate.setDate(parsedDate.getDate() - timeValue);
                 }
-                else if (time.includes('Week')) {
+                else if (timeUnit == 'Week') {
                     parsedDate.setDate(parsedDate.getDate() - (timeValue * 7));
                 }
-                else if (time.includes('Month')) {
+                else if (timeUnit == 'Month') {
                     parsedDate.setMonth(parsedDate.getMonth() - timeValue);
                 }
-                else if (time.includes('Year')) {
+                else if (timeUnit == 'Year') {
                     parsedDate.setFullYear(parsedDate.getFullYear() - timeValue);
                 }
                 chapters.push(createChapter({
@@ -521,6 +530,7 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
         return `${READMNGCOM_DOMAIN}/${mangaId}`;
     }
     filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let loadNextPage = true;
             let currentPage = 1;
@@ -537,13 +547,13 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 let updatedManga = $('.manga_updates');
                 for (let manga of $('dl', updatedManga).toArray()) {
                     let item = $('dt', manga);
-                    let mangaInfo = $('a.manga_info', item).attr('href').replace(`${READMNGCOM_DOMAIN}/`, '');
+                    let mangaInfo = (_a = $('a.manga_info', item).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`${READMNGCOM_DOMAIN}/`, '');
                     let updatedDate = $('span.time', item).contents().text().split('/');
                     let parsedDate = new Date(+updatedDate[2], (+updatedDate[1]) - 1, +updatedDate[0]);
                     let numChapters = $('dd', manga).toArray().length;
                     passedTime = parsedDate < time;
                     if (!passedTime) {
-                        if (ids.includes(mangaInfo)) {
+                        if (mangaInfo && ids.includes(mangaInfo)) {
                             for (let c = 0; c < numChapters; c++) {
                                 foundIds = [...foundIds, mangaInfo];
                             }
