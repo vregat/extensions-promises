@@ -19,7 +19,7 @@ import {
 const READMNGCOM_DOMAIN = 'https://www.readmng.com'
 
 export const ReadmngComInfo: SourceInfo = {
-    version: '0.0.12',
+    version: '0.0.13',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -98,11 +98,11 @@ export class ReadmngCom extends Source {
         console.timeEnd('GetChaptersRequest')
 
         let $ = this.cheerio.load(response.data)
-        let allChapters = $('ul.chp_lst > li').toArray()
+        let allChapters = $('ul.chp_lst')
         let chapters: Chapter[] = []
-        let chNum = allChapters.length - 1
+        let chNum = $('ul.chp_lst > li').toArray().length - 1
 
-        for (let chapter of allChapters) {
+        for (let chapter of $('li', allChapters).toArray()) {
             let id: string = $('a', chapter).attr('href')?.split('/').pop() ?? ''
             let name: string = $('a > .val', chapter).text().trim() ?? ''
 
