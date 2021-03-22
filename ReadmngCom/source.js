@@ -339,7 +339,7 @@ exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const READMNGCOM_DOMAIN = 'https://www.readmng.com';
 exports.ReadmngComInfo = {
-    version: '0.0.12',
+    version: '0.0.13',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -409,10 +409,10 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
             let response = yield this.requestManager.schedule(request, 1);
             console.timeEnd('GetChaptersRequest');
             let $ = this.cheerio.load(response.data);
-            let allChapters = $('ul.chp_lst > li').toArray();
+            let allChapters = $('ul.chp_lst');
             let chapters = [];
-            let chNum = allChapters.length - 1;
-            for (let chapter of allChapters) {
+            let chNum = $('ul.chp_lst > li').toArray().length - 1;
+            for (let chapter of $('li', allChapters).toArray()) {
                 let id = (_b = (_a = $('a', chapter).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) !== null && _b !== void 0 ? _b : '';
                 let name = (_c = $('a > .val', chapter).text().trim()) !== null && _c !== void 0 ? _c : '';
                 let time = (_d = $('a > .dte', chapter).text().trim()) !== null && _d !== void 0 ? _d : '';
