@@ -339,7 +339,7 @@ exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const READMNGCOM_DOMAIN = 'https://www.readmng.com';
 exports.ReadmngComInfo = {
-    version: '0.0.13',
+    version: '0.0.14',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -405,9 +405,7 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 url: `${READMNGCOM_DOMAIN}/${mangaId}`,
                 method: 'GET'
             });
-            console.time('GetChaptersRequest');
             let response = yield this.requestManager.schedule(request, 1);
-            console.timeEnd('GetChaptersRequest');
             let $ = this.cheerio.load(response.data);
             let allChapters = $('ul.chp_lst');
             let chapters = [];
