@@ -15,10 +15,6 @@ import {
 import { generateSearch, isLastPage, parseChapterDetails, parseChapters, parseHomeSections, parseMangaDetails, parseSearch, parseTags, parseUpdatedManga, parseViewMore, UpdatedManga } from "./ManganeloParser"
 
 const MN_DOMAIN = 'https://manganelo.com'
-const method = 'GET'
-const headers = {
-  "content-type": "application/x-www-form-urlencoded"
-}
 
 export const ManganeloInfo: SourceInfo = {
   version: '2.1.1',
@@ -42,9 +38,8 @@ export class Manganelo extends Source {
 
   async getMangaDetails(mangaId: string): Promise<Manga> {
     const request = createRequestObject({
-      url: `${MN_DOMAIN}/manga/`,
-      method,
-      param: mangaId
+      url: `${MN_DOMAIN}/manga/${mangaId}`,
+      method: 'GET'
     })
 
     const response = await this.requestManager.schedule(request, 1)
@@ -54,9 +49,8 @@ export class Manganelo extends Source {
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
     const request = createRequestObject({
-      url: `${MN_DOMAIN}/manga/`,
-      method,
-      param: mangaId
+      url: `${MN_DOMAIN}/manga/${mangaId}`,
+      method: 'GET'
     })
 
     const response = await this.requestManager.schedule(request, 1)
@@ -66,13 +60,12 @@ export class Manganelo extends Source {
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
     const request = createRequestObject({
-      url: `${MN_DOMAIN}/chapter/`,
-      method,
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-        Cookie: 'content_lazyload=off'
-      },
-      param: `${mangaId}/${chapterId}`
+      url: `${MN_DOMAIN}/chapter/${mangaId}/${chapterId}`,
+      method: 'GET',
+      //headers: {
+      //  "content-type": "application/x-www-form-urlencoded",
+      //  Cookie: 'content_lazyload=off'
+      //}
     })
 
     const response = await this.requestManager.schedule(request, 1)
@@ -89,10 +82,10 @@ export class Manganelo extends Source {
 
     while (updatedManga.loadMore) {
       const request = createRequestObject({
-        url: `${MN_DOMAIN}/genre-all/`,
-        method,
-        headers,
-        param: String(page++)
+        url: `${MN_DOMAIN}/genre-all/${page++}`,
+        method: 'GET',
+        //headers,
+        //param: String(page++)
       })
 
       const response = await this.requestManager.schedule(request, 1)
@@ -101,12 +94,6 @@ export class Manganelo extends Source {
 
       updatedManga.ids = [...ids, ...result.ids];
       updatedManga.loadMore = result.loadMore;
-
-      /*if (updatedManga.ids.length > 0) {
-        mangaUpdatesFoundCallback(createMangaUpdates({
-          ids: updatedManga.ids
-        }))
-      }*/
     }
 
     if (updatedManga.ids.length > 0) {
@@ -126,7 +113,7 @@ export class Manganelo extends Source {
     // Fill the homsections with data
     const request = createRequestObject({
       url: MN_DOMAIN,
-      method,
+      method: 'GET',
     })
 
     const response = await this.requestManager.schedule(request, 1)
@@ -138,10 +125,8 @@ export class Manganelo extends Source {
     let page: number = metadata?.page ?? 1
     const search = generateSearch(query)
     const request = createRequestObject({
-      url: `${MN_DOMAIN}/advanced_search?`,
-      method,
-      headers,
-      param: `${search}${'&page=' + page}`
+      url: `${MN_DOMAIN}/advanced_search?${search}${'&page=' + page}`,
+      method: 'GET',
     })
 
     const response = await this.requestManager.schedule(request, 1)
@@ -158,8 +143,7 @@ export class Manganelo extends Source {
   async getTags(): Promise<TagSection[] | null> {
     const request = createRequestObject({
       url: `${MN_DOMAIN}/advanced_search?`,
-      method,
-      headers,
+      method: 'GET',
     })
 
     const response = await this.requestManager.schedule(request, 1)
@@ -177,9 +161,8 @@ export class Manganelo extends Source {
     else return Promise.resolve(null)
 
     const request = createRequestObject({
-      url: `${MN_DOMAIN}`,
-      method,
-      param,
+      url: `${MN_DOMAIN}${param}`,
+      method: 'GET',
     })
 
     const response = await this.requestManager.schedule(request, 1)

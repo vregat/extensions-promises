@@ -15,7 +15,7 @@ describe('Manganelo Tests', function () {
      * Try to choose a manga which is updated frequently, so that the historical checking test can 
      * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
      */
-    var mangaId = "yukoku_no_moriarty";   // Mashle
+    var mangaId = "acmagame";   // Mashle
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, mangaId);
@@ -82,7 +82,9 @@ describe('Manganelo Tests', function () {
     })
 
     it("Testing Notifications", async () => {
-        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-1-27"), [mangaId])
+        let date = new Date()
+        date.setDate(date.getDate() - 3)
+        let updates = await wrapper.filterUpdatedManga(source, date, [mangaId])
         expect(updates, "No server response").to.exist
         expect(updates, "Empty server response").to.not.be.empty
         expect(updates[0], "No updates").to.not.be.empty;

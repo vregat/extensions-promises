@@ -19,7 +19,7 @@ import {
 const READMNGCOM_DOMAIN = 'https://www.readmng.com'
 
 export const ReadmngComInfo: SourceInfo = {
-    version: '0.0.10',
+    version: '0.0.12',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -49,9 +49,11 @@ export class ReadmngCom extends Source {
 
         let genres = []
         for (let tagElement of $('.dl-horizontal > dd:nth-child(6)', panel).find('a').toArray()) {
-            let id = $(tagElement).attr('href').replace(`${READMNGCOM_DOMAIN}/category/`, '')
+            let id = $(tagElement).attr('href')?.replace(`${READMNGCOM_DOMAIN}/category/`, '')
             let text = $(tagElement).contents().text()
-            genres.push(createTag({ id: id, label: text }))
+            if (id) {
+                genres.push(createTag({ id: id, label: text }))
+            }
         }
 
         let genresSection = createTagSection({ id: 'genre', label: 'Genre', tags: genres })
@@ -65,7 +67,11 @@ export class ReadmngCom extends Source {
         let artistElement = $('li:contains("Artist")', castList)
         let artist = $("li > a", artistElement).text().trim()
 
-        let rating = +$('div.progress-bar-success').attr('title').replace('%', '')
+        let ratingString = $('div.progress-bar-success').attr('title')?.replace('%', '')
+        let rating = 0
+        if (ratingString) {
+            rating = +ratingString
+        }
 
         return createManga({
             id: mangaId,
@@ -87,35 +93,38 @@ export class ReadmngCom extends Source {
             method: 'GET'
         })
 
+        console.time('GetChaptersRequest')
         let response = await this.requestManager.schedule(request, 1)
+        console.timeEnd('GetChaptersRequest')
 
         let $ = this.cheerio.load(response.data)
-        let allChapters = $('ul.chp_lst')
+        let allChapters = $('ul.chp_lst > li').toArray()
         let chapters: Chapter[] = []
-        let chNum: number = $('ul.chp_lst > li').toArray().length - 1
+        let chNum = allChapters.length - 1
 
-        for (let chapter of $('li', allChapters).toArray()) {
+        for (let chapter of allChapters) {
             let id: string = $('a', chapter).attr('href')?.split('/').pop() ?? ''
             let name: string = $('a > .val', chapter).text().trim() ?? ''
 
             let time = $('a > .dte', chapter).text().trim() ?? ''
             let timeValue = +time.split(' ')[0]
+            let timeUnit = time.split(' ')[1]
 
             let parsedDate = new Date(Date.now())
 
-            if (time.includes('Second')) {
+            if (timeUnit == 'Second') {
                 parsedDate.setSeconds(parsedDate.getSeconds() - timeValue)
-            } else if (time.includes('Minute')) {
+            } else if (timeUnit == 'Minute') {
                 parsedDate.setMinutes(parsedDate.getMinutes() - timeValue)
-            } else if (time.includes('Hour')) {
+            } else if (timeUnit == 'Hour') {
                 parsedDate.setHours(parsedDate.getHours() - timeValue)
-            } else if (time.includes('Day')) {
+            } else if (timeUnit == 'Day') {
                 parsedDate.setDate(parsedDate.getDate() - timeValue)
-            } else if (time.includes('Week')) {
+            } else if (timeUnit == 'Week') {
                 parsedDate.setDate(parsedDate.getDate() - (timeValue * 7))
-            } else if (time.includes('Month')) {
+            } else if (timeUnit == 'Month') {
                 parsedDate.setMonth(parsedDate.getMonth() - timeValue)
-            } else if (time.includes('Year')) {
+            } else if (timeUnit == 'Year') {
                 parsedDate.setFullYear(parsedDate.getFullYear() - timeValue)
             }
 
@@ -236,7 +245,7 @@ export class ReadmngCom extends Source {
 
             for (let manga of $('dl', updatedManga).toArray()) {
                 let item = $('dt', manga)
-                let mangaInfo = $('a.manga_info', item).attr('href').replace(`${READMNGCOM_DOMAIN}/`, '')
+                let mangaInfo = $('a.manga_info', item).attr('href')?.replace(`${READMNGCOM_DOMAIN}/`, '')
                 let updatedDate = $('span.time', item).contents().text().split('/')
                 let parsedDate = new Date(+updatedDate[2], (+updatedDate[1]) - 1, +updatedDate[0])
 
@@ -244,7 +253,7 @@ export class ReadmngCom extends Source {
 
                 passedTime = parsedDate < time
                 if (!passedTime) {
-                    if (ids.includes(mangaInfo)) {
+                    if (mangaInfo && ids.includes(mangaInfo)) {
                         for (let c = 0; c < numChapters; c++) {
                             foundIds = [...foundIds, mangaInfo];
                         }
@@ -252,6 +261,7 @@ export class ReadmngCom extends Source {
                 } else {
                     break
                 }
+
             }
             if (!passedTime) {
                 currentPage++

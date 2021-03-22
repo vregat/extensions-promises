@@ -34,9 +34,7 @@ describe('ReadmngCom Tests', function () {
     });
 
     it("Get Chapter Details", async () => {
-
-        let chapters = await wrapper.getChapters(source, mangaId);
-        let data = await wrapper.getChapterDetails(source, mangaId, chapters[0].id);
+        let data = await wrapper.getChapterDetails(source, mangaId, '10');
 
         expect(data, "No response").to.exist;
         expect(data, "Empty response").to.not.be.empty;
@@ -47,8 +45,9 @@ describe('ReadmngCom Tests', function () {
     });
 
     it("Testing Notifications", async () => {
-        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-1-27"), [mangaId])
-        console.log(JSON.stringify(updates))
+        let date = new Date()
+        date.setDate(date.getDate() - 3)
+        let updates = await wrapper.filterUpdatedManga(source, date, [mangaId])
         expect(updates, "No server response").to.exist
         expect(updates, "Empty server response").to.not.be.empty
         expect(updates[0], "No updates").to.not.be.empty;
