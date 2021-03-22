@@ -19,7 +19,7 @@ import {
 const READMNGCOM_DOMAIN = 'https://www.readmng.com'
 
 export const ReadmngComInfo: SourceInfo = {
-    version: '0.0.13',
+    version: '0.0.14',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -92,10 +92,7 @@ export class ReadmngCom extends Source {
             url: `${READMNGCOM_DOMAIN}/${mangaId}`,
             method: 'GET'
         })
-
-        console.time('GetChaptersRequest')
         let response = await this.requestManager.schedule(request, 1)
-        console.timeEnd('GetChaptersRequest')
 
         let $ = this.cheerio.load(response.data)
         let allChapters = $('ul.chp_lst')
