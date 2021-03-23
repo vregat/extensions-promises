@@ -19,7 +19,7 @@ import {
 const READMNGCOM_DOMAIN = 'https://www.readmng.com'
 
 export const ReadmngComInfo: SourceInfo = {
-    version: '0.0.14',
+    version: '0.0.15',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -30,6 +30,14 @@ export const ReadmngComInfo: SourceInfo = {
 }
 
 export class ReadmngCom extends Source {
+
+    getCloudflareBypassRequest() {
+        return createRequestObject({
+            url: READMNGCOM_DOMAIN,
+            method: 'GET'
+        });
+    }
+
     async getMangaDetails(mangaId: string): Promise<Manga> {
         let request = createRequestObject({
             url: `${READMNGCOM_DOMAIN}/${mangaId}`,
