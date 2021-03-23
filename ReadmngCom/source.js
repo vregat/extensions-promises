@@ -339,7 +339,7 @@ exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const READMNGCOM_DOMAIN = 'https://www.readmng.com';
 exports.ReadmngComInfo = {
-    version: '0.0.14',
+    version: '0.0.15',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -349,6 +349,12 @@ exports.ReadmngComInfo = {
     websiteBaseURL: READMNGCOM_DOMAIN
 };
 class ReadmngCom extends paperback_extensions_common_1.Source {
+    getCloudflareBypassRequest() {
+        return createRequestObject({
+            url: READMNGCOM_DOMAIN,
+            method: 'GET'
+        });
+    }
     getMangaDetails(mangaId) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
