@@ -339,7 +339,7 @@ exports.ReadmngCom = exports.ReadmngComInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const READMNGCOM_DOMAIN = 'https://www.readmng.com';
 exports.ReadmngComInfo = {
-    version: '0.0.15',
+    version: '0.0.17',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -353,6 +353,17 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
         return createRequestObject({
             url: READMNGCOM_DOMAIN,
             method: 'GET'
+        });
+    }
+    getAdvancedSearchForm() {
+        return createUserForm({
+            formElements: [
+                createTextFieldObject({
+                    id: 'mangaName',
+                    userReadableTitle: 'Manga name',
+                    placeholderText: 'Manga name'
+                })
+            ]
         });
     }
     getMangaDetails(mangaId) {
@@ -423,25 +434,25 @@ class ReadmngCom extends paperback_extensions_common_1.Source {
                 let timeValue = +time.split(' ')[0];
                 let timeUnit = time.split(' ')[1];
                 let parsedDate = new Date(Date.now());
-                if (timeUnit == 'Second') {
+                if (timeUnit.includes('Second')) {
                     parsedDate.setSeconds(parsedDate.getSeconds() - timeValue);
                 }
-                else if (timeUnit == 'Minute') {
+                else if (timeUnit.includes('Minute')) {
                     parsedDate.setMinutes(parsedDate.getMinutes() - timeValue);
                 }
-                else if (timeUnit == 'Hour') {
+                else if (timeUnit.includes('Hour')) {
                     parsedDate.setHours(parsedDate.getHours() - timeValue);
                 }
-                else if (timeUnit == 'Day') {
+                else if (timeUnit.includes('Day')) {
                     parsedDate.setDate(parsedDate.getDate() - timeValue);
                 }
-                else if (timeUnit == 'Week') {
+                else if (timeUnit.includes('Week')) {
                     parsedDate.setDate(parsedDate.getDate() - (timeValue * 7));
                 }
-                else if (timeUnit == 'Month') {
+                else if (timeUnit.includes('Month')) {
                     parsedDate.setMonth(parsedDate.getMonth() - timeValue);
                 }
-                else if (timeUnit == 'Year') {
+                else if (timeUnit.includes('Year')) {
                     parsedDate.setFullYear(parsedDate.getFullYear() - timeValue);
                 }
                 chapters.push(createChapter({
