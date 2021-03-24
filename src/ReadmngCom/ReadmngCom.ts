@@ -19,7 +19,7 @@ import {
 const READMNGCOM_DOMAIN = 'https://www.readmng.com'
 
 export const ReadmngComInfo: SourceInfo = {
-    version: '0.0.15',
+    version: '0.0.17',
     name: 'Readmng.com',
     description: 'Extension that pulls mangas from readmng.com',
     author: 'Vregat',
@@ -35,6 +35,18 @@ export class ReadmngCom extends Source {
         return createRequestObject({
             url: READMNGCOM_DOMAIN,
             method: 'GET'
+        });
+    }
+
+    getAdvancedSearchForm() {
+        return createUserForm({
+            formElements: [
+                createTextFieldObject({
+                    id: 'mangaName',
+                    userReadableTitle: 'Manga name',
+                    placeholderText: 'Manga name'
+                })
+            ]
         });
     }
 
@@ -117,19 +129,19 @@ export class ReadmngCom extends Source {
 
             let parsedDate = new Date(Date.now())
 
-            if (timeUnit == 'Second') {
+            if (timeUnit.includes('Second')) {
                 parsedDate.setSeconds(parsedDate.getSeconds() - timeValue)
-            } else if (timeUnit == 'Minute') {
+            } else if (timeUnit.includes('Minute')) {
                 parsedDate.setMinutes(parsedDate.getMinutes() - timeValue)
-            } else if (timeUnit == 'Hour') {
+            } else if (timeUnit.includes('Hour')) {
                 parsedDate.setHours(parsedDate.getHours() - timeValue)
-            } else if (timeUnit == 'Day') {
+            } else if (timeUnit.includes('Day')) {
                 parsedDate.setDate(parsedDate.getDate() - timeValue)
-            } else if (timeUnit == 'Week') {
+            } else if (timeUnit.includes('Week')) {
                 parsedDate.setDate(parsedDate.getDate() - (timeValue * 7))
-            } else if (timeUnit == 'Month') {
+            } else if (timeUnit.includes('Month')) {
                 parsedDate.setMonth(parsedDate.getMonth() - timeValue)
-            } else if (timeUnit == 'Year') {
+            } else if (timeUnit.includes('Year')) {
                 parsedDate.setFullYear(parsedDate.getFullYear() - timeValue)
             }
 
