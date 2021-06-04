@@ -17,7 +17,7 @@ import { generateSearch, isLastPage, parseChapterDetails, parseChapters, parseHo
 const MN_DOMAIN = 'https://manganato.com'
 
 export const ManganatoInfo: SourceInfo = {
-  version: '2.1.2',
+  version: '2.1.3',
   name: 'Manganato',
   icon: 'icon.png',
   author: 'Daniel Kovalevich',
@@ -80,7 +80,7 @@ export class Manganato extends Source {
       loadMore: true
     }
 
-    while (updatedManga.loadMore) {
+    /*while (updatedManga.loadMore) {
       const request = createRequestObject({
         url: `${MN_DOMAIN}/genre-all/${page++}`,
         method: 'GET',
@@ -94,6 +94,25 @@ export class Manganato extends Source {
 
       updatedManga.ids = [...ids, ...result.ids];
       updatedManga.loadMore = result.loadMore;
+    }*/
+
+    for (const element of ids) {
+      const request = createRequestObject({
+        url: `${element}`,
+        method: 'GET',
+        //headers,
+        //param: String(page++)
+      })
+
+      const response = await this.requestManager.schedule(request, 1)
+      const $ = this.cheerio.load(response.data)
+      const result = parseChapters($, element)
+
+      for (const chapter of result) {
+        if (chapter.time && chapter.time >= time) {
+          updatedManga.ids = [...ids, element]
+        }
+      }
     }
 
     if (updatedManga.ids.length > 0) {
