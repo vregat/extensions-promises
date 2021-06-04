@@ -340,7 +340,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ManganatoParser_1 = require("./ManganatoParser");
 const MN_DOMAIN = 'https://manganato.com';
 exports.ManganatoInfo = {
-    version: '2.1.2',
+    version: '2.1.3',
     name: 'Manganato',
     icon: 'icon.png',
     author: 'Daniel Kovalevich',
@@ -397,16 +397,34 @@ class Manganato extends paperback_extensions_common_1.Source {
                 ids: [],
                 loadMore: true
             };
-            while (updatedManga.loadMore) {
+            /*while (updatedManga.loadMore) {
+              const request = createRequestObject({
+                url: `${MN_DOMAIN}/genre-all/${page++}`,
+                method: 'GET',
+                //headers,
+                //param: String(page++)
+              })
+        
+              const response = await this.requestManager.schedule(request, 1)
+              const $ = this.cheerio.load(response.data)
+              const result = parseUpdatedManga($, time, ids)
+        
+              updatedManga.ids = [...ids, ...result.ids];
+              updatedManga.loadMore = result.loadMore;
+            }*/
+            for (const element of ids) {
                 const request = createRequestObject({
-                    url: `${MN_DOMAIN}/genre-all/${page++}`,
+                    url: `${element}`,
                     method: 'GET',
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
-                const result = ManganatoParser_1.parseUpdatedManga($, time, ids);
-                updatedManga.ids = [...ids, ...result.ids];
-                updatedManga.loadMore = result.loadMore;
+                const result = ManganatoParser_1.parseChapters($, element);
+                for (const chapter of result) {
+                    if (chapter.time && chapter.time >= time) {
+                        updatedManga.ids = [...ids, element];
+                    }
+                }
             }
             if (updatedManga.ids.length > 0) {
                 mangaUpdatesFoundCallback(createMangaUpdates({
